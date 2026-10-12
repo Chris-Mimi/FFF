@@ -277,8 +277,10 @@ export const useCoachData = ({
       !selectedMembers.length &&
       !privateOnly
     ) {
-      setSearchResults([]);
-      setMovements(new Map());
+      // Keep the same object when already empty so this branch can never drive a
+      // re-render loop, whatever array identities the caller passes.
+      setSearchResults(prev => (prev.length ? [] : prev));
+      setMovements(prev => (prev.size ? new Map() : prev));
       return;
     }
 

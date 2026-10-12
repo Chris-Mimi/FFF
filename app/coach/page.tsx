@@ -30,6 +30,11 @@ import { highlightText } from '@/utils/search-utils';
 
 type ViewMode = 'weekly' | 'monthly';
 
+// Must be ONE shared array: a fresh `[]` per render re-fires useCoachData's search
+// effect every render, which sets state → endless re-render that starves
+// router.push (every header tab dead while the Athletes filter is muted).
+const NO_MEMBERS: string[] = [];
+
 export default function CoachDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<{ role: string; name: string } | null>(null);
@@ -129,7 +134,7 @@ export default function CoachDashboard() {
     selectedSessionTypes,
     includedSectionTypes,
     selectedSectionTypeFilter,
-    selectedMembers: athletesMuted ? [] : selectedMembers,
+    selectedMembers: athletesMuted ? NO_MEMBERS : selectedMembers,
     notDoneBySelected,
     privateOnly,
   });
