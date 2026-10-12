@@ -183,6 +183,14 @@ For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** 
 2. Buttons that set state work but `router.push` does nothing + no network traffic + clean console = a **render loop** on that page.
 3. **Never pass a fresh `[]` / `{}` literal into a hook whose effect depends on it** — use a module-level constant or `useMemo`.
 
+### Planner movement detection: library names only, no guessing (S419)
+**Why:** the detector credited text that was only PART of a library name to the longest library name containing it — "Rings:" → Ring Dip, "L-Sit:" → Wall-sit, "Squats" → Squat Jump, "Bear Crawl" → WB Bear Crawl. Chris: "no guessing" and "I don't want any exercises in the app which are not in the library."
+
+**How to apply:**
+1. Never re-add a fuzzy / partial-name match to `utils/movement-extraction.ts`. Allowed: exact library name, its singular/plural, a library name written inside a longer phrase, and the fixed `genericToCanonical` defaults.
+2. Any change to the detector must be shown old-vs-new across every workout before it ships (pattern: `git show HEAD:utils/movement-extraction.ts` to a temp file, run both, diff per workout). S419 found two hidden dependencies this way (singular text vs plural name; names ending in a bracket).
+3. Abbreviations in workout text are never read — Chris uses them in sentences on purpose. Wrong flags are fixed in the workout text, not by adding rules. Audit: `scripts/audit-movement-false-flags.ts`; backlog: `memory-bank/planner-false-flags-todo.md`.
+
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
 

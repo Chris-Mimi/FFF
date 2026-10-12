@@ -44,6 +44,7 @@ Claude reads these files at session start to know the state of the project. **Ch
 |:---|:---|
 | [activeContext.md](memory-bank/activeContext.md) | The last 5 sessions, current open issues, next steps, landmines. The "what's going on right now" doc. |
 | [claude-rules.md](memory-bank/claude-rules.md) | Durable hard rules promoted from past incidents (e.g. "never `.from(big_table).select()` without a filter"). What Claude *must* follow. |
+| [planner-false-flags-todo.md](memory-bank/planner-false-flags-todo.md) | Numbered list of workout lines the Planner counts wrongly (or stopped counting) — to correct with Chris. From the S419 audit. |
 | [database-and-growth.md](memory-bank/database-and-growth.md) | Reference playbook for how the app scales as data grows. Kitchen/dining-room analogy, decision tree, 7-category scaling map. Read on demand when a scaling question comes up. |
 | [techContext.md](memory-bank/techContext.md) | Tech stack, environment variables, core configuration. |
 | [systemPatterns.md](memory-bank/systemPatterns.md) | Code conventions and patterns used across the project. |

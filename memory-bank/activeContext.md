@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 287
-**Updated:** 2026-10-10 (Session 418 continued after first close — Opus 5.5. **Wellpass sign-in + credit badges in Session Management; coach Remove now promotes the waitlist; kids' scores reach athlete pages; Members → Subscriptions shows €8/€10/yearly totals incl. cash; Library edit-form + athlete-filter scroll fixes; 10-card cash-renewal help in the modal; Custom Movements groups filled (+4 new groups).**)
+**Version:** 288
+**Updated:** 2026-10-12 (Session 419 — Opus 5.5. **Dead coach tabs root cause found + fixed (muted Athletes filter render loop, NOT login). German athlete pushes. Planner detector: position-based overlap + "no guessing". Movement false-flag audit script + to-do list. Jan Huelbig Stripe block diagnosed.**)
+
+<!-- Older S418: 2026-10-10 (Session 418 continued after first close — Opus 5.5. **Wellpass sign-in + credit badges in Session Management; coach Remove now promotes the waitlist; kids' scores reach athlete pages; Members → Subscriptions shows €8/€10/yearly totals incl. cash; Library edit-form + athlete-filter scroll fixes; 10-card cash-renewal help in the modal; Custom Movements groups filled (+4 new groups).**) -->
 
 <!-- Older S417: 2026-10-08 (Session 417 — Opus 5.5. **Good Morning duplicate fixed (names swapped, new lift, unique-name index + toast). Pendlay Row 29.05 accumulated loads had become Lifts entries — 6 deleted, Chris swapped the lift→exercise on all 4 Weekend WOD #26.14 copies.**) -->
 
@@ -150,6 +152,8 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **Planner "last programmed" fix (S419):** Bench Press showed 22.07 instead of 16.09. `addKnownMovements` in [utils/movement-extraction.ts](utils/movement-extraction.ts) dropped a short name whenever a longer name containing it was on the same line ("Bench Press superset with DB Bench Press" → only DB Bench Press). Now judged per position. Old-vs-new over all 632 sessions: 22 sessions gain a movement, none lose one (Burpee ×2, Bar Hanging Knee Raise ×2, Clean, Power Clean, Rope Climb, GHD Hip Extension, Bench Press). Chris to glance at "KB Basics: Clean & Press" now counting a plain Clean.
 
+**Planner false-flag audit (S419):** new read-only `scripts/audit-movement-false-flags.ts` (`--group`, `--cat`, `--out`) runs the app's extractor line by line over every distinct workout text (462) and lists movements credited without solid evidence. 5,546 pairs → 171 candidates → ~31 real ones given to Chris as a numbered list. Three causes: (1) **loose-match guess** in `findMatchingExercise` step 4 — text that is only PART of a library name is credited to the LONGEST library name containing it ("L-Sit:" → Wall-sit, "Rings:" → Ring Dip, "Squats" → Squat Jump, "Bear Crawl" → WB Bear Crawl); slug `name`s widen it. (2) sentences that say NOT to do a movement. (3) variant prefixes not in the library. **Chris's principle: only exact library names in workout text; he fixes text by hand. Abbreviations in text are never read (verified), so he uses them in sentences. He declined the "sentence" rule.** **Chris 12.10: "no guessing" → guess removed** in `findMatchingExercise` (text that is only part of a library name no longer counts); added singular→plural tolerance ("Deep Squat Knee Circle" → "…Circles", 33 workouts relied on the guess) and stopped stripping a closing bracket that belongs to the name ("DB Deadlift (unilateral)" only matched via the guess). Old-vs-new over 464 distinct workouts: 63 credits removed in 40 workouts (29 in 11 D&D), 2 added (both D&D), build clean. Still active by design: the fixed defaults table `genericToCanonical` (Row → C2 Rower, Sit-ups → AbMat Sit-up, Pull-ups → Pull-up Kipping, Push-ups → Push-up Strict…) — Chris to say if those go too. **Next (Chris's plan): once he trusts the detector, audit Diapers & Dumbbells sessions (`--only "Diapers & Dumbbells"`) — Mimi writes free text there — and I replace her wording with exact library names (needs his go-ahead per workout batch; S240 rule).**
+
 **Jan Huelbig (S419, pending — Chris waiting for Jan to reply; don't chase):** his in-app 10-card purchase on 11.10 was **blocked by Stripe's own risk filter** (red "Blocked" chip, "too high risk… independently of your Radar configuration", failure code `card_declined`) — no charge, so no card issued; app + webhook are fine. Card still the cash one from 18.09 at 10/10 with 13.10 booked. Chris told him to retry by typing the card number (not Apple Pay); if blocked again → cash/transfer + **Close & Issue New**. A dry run of his renewal gives a clean 0/10.
 
 **S418 data done (no action):** 25.09 09:00 scores moved back onto the pasted copy; Petra/Annerose cash renewals = Close & Issue New (steps now in the modal); Michael Weber Pay with → Wellpass; Sergej → Liane Felsing, Sermet Güler, Bianca Härtel linked on Wellpass; Annerose promoted 09.10 18:30; L-Sit scaling text added to Parallettes L-Sit Hold description.
@@ -287,6 +291,14 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 419 (2026-10-11→12 — Opus 5.5) — DEAD TABS ROOT CAUSE, GERMAN PUSHES, PLANNER DETECTION "NO GUESSING" (all pushed, build exit 0)**
+- Dead coach tabs: muted Athletes filter passed a fresh `[]` each render → endless re-render → `router.push` starved (`108ae5f`). Not login, not VPN. Rule added to claude-rules.
+- Athlete pushes German, times without seconds (`3408525`); coach pushes stay English. Verify via `notification_log`, don't ask Chris.
+- Planner: short name beside a longer variant now counts ("Bench Press superset with DB Bench Press", `ecd63d5`); loose-match guess removed + singular/plural + closing-bracket fix.
+- New `scripts/audit-movement-false-flags.ts`; findings in `memory-bank/planner-false-flags-todo.md` (43 numbered items + defaults decision).
+- Jan Huelbig: in-app 10-card payment blocked by Stripe's own risk filter — no charge, app correct; pending his retry or cash.
+- Chris confirmed all S418 / S416 / S415 live checks OK; Wellpass "Link member" button declined (I link directly).
+
 **Session 418 (2026-10-08→10 — Opus 5.5) — LIFT-ENTRY CLEANUP, WEEK 41, KIDS' PAGES, WELLPASS BADGES, SUBSCRIPTION TOTALS (all pushed, build exit 0)**
 - Lift entries: writer + parity cover non-RM; paused bench → exercise (22 deleted); C&J 5x5 duplicates (30 deleted); GitHub failure email confirmed. Week 41.1+41.2 (97 WSR).
 - Kids' coach-entered scores now reach athlete pages (`82cf768`, 8 backfilled). 25.09 09:00 scores recovered from the kept original wod.
@@ -354,7 +366,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **S419 — 1 live check:** German athlete pushes (see ⚡ Kickoff).
+1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
+1. **S419 — German athlete pushes:** verify from `notification_log` (see ⚡ Kickoff).
 1. ✅ **S418, S416 and S415 live checks all confirmed OK by Chris (S419).**
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.
