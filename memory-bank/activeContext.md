@@ -143,13 +143,12 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**First — Chris to confirm live (all S418, shipped):**
-1. Neo's Forge Benchmarks shows C2 Rower 1km 5:21 (05.10) + 5:10 (06.07) — kids' scores fix (`82cf768`).
-2. Session Management: orange "WP sign-ins N/min" + red "WP credit −N" badges (Carmine −3, Sermet −2, Lucases −30 as shared 1.5×).
-3. Coach **Remove** on an upcoming class promotes the first waitlister (toast says so) — `d76e5d1`.
-4. Members → Subscriptions top line: "6 monthly €8 · 12 monthly €10 (2 cash) · 15 yearly (6 cash) · 1 in trial".
-5. Workouts → Athletes filter keeps its place on click; Library → Edit Exercise keeps typed text.
-6. Custom Movements: groups now populated; list = 242. New groups: Bar & Ring Muscle-up, Holds, Gymnastics: HS, Gymnastics: Rings.
+**S419 (2026-10-11) — Chris confirmed ✅ all S418, S416 and S415 live checks.** Nothing outstanding from those sessions.
+
+**First — Chris to confirm live (S419):**
+1. Athlete pushes are now German ([lib/notifications.ts](lib/notifications.ts)) — next booking push reads "Buchung bestätigt / Platz gesichert – Di., 13. Okt. um 18:30 Uhr" (time no longer shows seconds). Coach-facing pushes stay English. **Not translated:** the notification-preference labels in `components/ui/NotificationPrompt.tsx` and the non-10-card booking messages.
+
+**Jan Huelbig (S419, open):** his in-app 10-card purchase on 11.10 was **blocked by Stripe's own risk filter** (red "Blocked" chip, "too high risk… independently of your Radar configuration", failure code `card_declined`) — no charge, so no card issued; app + webhook are fine. Card still the cash one from 18.09 at 10/10 with 13.10 booked. Chris told him to retry by typing the card number (not Apple Pay); if blocked again → cash/transfer + **Close & Issue New**. A dry run of his renewal gives a clean 0/10.
 
 **S418 data done (no action):** 25.09 09:00 scores moved back onto the pasted copy; Petra/Annerose cash renewals = Close & Issue New (steps now in the modal); Michael Weber Pay with → Wellpass; Sergej → Liane Felsing, Sermet Güler, Bianca Härtel linked on Wellpass; Annerose promoted 09.10 18:30; L-Sit scaling text added to Parallettes L-Sit Hold description.
 
@@ -165,17 +164,13 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **Chris's rule (S417):** load = ONE set's weight → lift from the **Lifts modal**. Load = TOTAL → exercise from the **Exercise Library** + Load chip. Only `section.lifts` triggers Lifts entries ([useScoreEntry.ts:45-54](hooks/coach/useScoreEntry.ts#L45-L54)).
 
-**S416 live checks still on hold** (Chris: "we'll come back to them") — see Next Immediate Steps.
-
 **🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Mac already fixed. Remove this line once done. **S418: Chris will take the Mac to the box and do it there — keep reminding each session start.**
 
 **🔔 Open with Chris (S416):**
 - **Michael Weber (S418, done):** on wife Marion's Wellpass for now → Pay with switched ten_card → wellpass, 09.10 + 11.10 bookings un-flagged. Card 5/10 has no purchase date (paper card) so app bookings never counted. When he returns to the 10-card: switch Pay with back + enter the purchase date.
 - **Stoffer (S418, parked by Chris):** Wellpass ran out → Gloria + Torben bought a 10-card (Torben already shares Gloria's card). Torben's old Wellpass entry is still linked to him. If he gets Wellpass back, Chris may want Gloria added to it — wait for him.
-- **Wellpass tab has no manual link button** — links only come from Sync from Excel (name match, one member per name). I link extras directly (Sergej → Liane Felsing, Sermet Güler, Bianca Härtel done S418; sync now treats ä/ö/ü/ß = ae/oe/ue/ss). Offered a "Link member" button; not asked for.
-- Lenny Kleinert: parent login (mausibrueckner@web.de) is NAMED "Lenny Kleinert" — Chris checking.
+- **Wellpass tab has no manual link button — Chris decided S419: don't build it (too rare).** Links only come from Sync from Excel (name match, one member per name). **When Chris mentions a member who should be on someone else's Wellpass (2nd household member, name mismatch), I add the link directly and tell him — he said he'll forget this is how it's done, so offer it unprompted.** Method: insert a `wellpass_identity_members` row (done for Lani Neumann S407; Sergej → Liane Felsing, Sermet Güler, Bianca Härtel S418; sync treats ä/ö/ü/ß = ae/oe/ue/ss).
 - Alois Weihe / Michael Weber pay-with ten_card vs types [wellpass] — Chris: "edge cases", leave.
-- Offered, not answered: translate the older English pushes ("Session Cancelled", "Booking Removed"…) and non-10-card booking messages to German.
 
 **S416 lessons:**
 - **VERIFY BEFORE EXPLAINING.** Chris had to chase me several rounds on the 10-card "ticks/adjustment" explanation; I guessed mechanisms ("written by hand", "saving the window re-breaks it") that the data disproved. Query the row / read the code first, use on-screen field names (Sessions Used, Total Sessions). Auto-memory `feedback_be_precise_verify_before_explaining.md`.
@@ -331,7 +326,8 @@ Athlete Tools
 
 ## 🚨 Known Open Issues
 
-- **Stale-login freeze recurred 09.10 (S418)** despite the S400 middleware self-heal — typing in Library → Edit Exercise and tab clicks dead; clearing site data fixed it. If it recurs, investigate why the self-heal didn't fire. Fixed S418 (Chris asked): `MovementLibraryPopup` passes a new `editingExercise` object every render and `ExerciseFormModal`'s reset effect depends on it → any Library re-render wipes unsaved edits. Fix = `useMemo` the prop.
+- **"Dead tabs" root cause found S419 (12.10) — NOT a login problem; the "stale-login" label below was wrong.** With the Workouts → Athletes filter **muted**, [app/coach/page.tsx](app/coach/page.tsx) passed a fresh `[]` to `useCoachData` every render → its search effect re-fired every render and set new empty state → endless re-render with no network traffic → `router.push` (a low-priority transition) never committed, so every header tab was dead while Workouts (plain state) worked. `coach_selected_athletes_muted` lives in localStorage, hence: survives hard refresh, cured by clearing site data, fine in Incognito. Introduced by the S397 mute feature (`8dce682`, 14.07); first freeze S398 (18.07). Evidence from Chris's broken tab: typed `/coach/members` loads fine (server accepts login), the tab click's request returns normally (304 + page script), console clean. Fix: shared `NO_MEMBERS` constant + the empty-filter branch keeps the same state object. **Awaiting Chris: confirm unmute revives the tabs, then after deploy that mute no longer kills them.** The S398 "corrupted cookie" diagnosis and the S400 middleware self-heal were aimed at the wrong cause (self-heal is harmless, leave it).
+- **(superseded by the entry above) Stale-login freeze recurred 09.10 (S418)** despite the S400 middleware self-heal — typing in Library → Edit Exercise and tab clicks dead; clearing site data fixed it. If it recurs, investigate why the self-heal didn't fire — **Chris agreed (S419) to tell me BEFORE clearing site data** so the broken state can be inspected. Fixed S418 (Chris asked): `MovementLibraryPopup` passes a new `editingExercise` object every render and `ExerciseFormModal`'s reset effect depends on it → any Library re-render wipes unsaved edits. Fix = `useMemo` the prop.
 
 - **Partial `track` columns silently demote athletes (S411)** — `leaderboard-utils.ts:380-382` compares track *before* scaling and treats a missing track as `4`. If a session has tracks on some athletes and not others, the unmarked ones rank below everyone marked. Convention: unmarked on a board that marks any `Trk2` = Track 1, so **fill the blanks**. Not a code bug — a data-entry hazard.
 - **Cancelling a pre-booked session after a renewal can show `-1/10` (S416)** — when the old card was filled by future bookings, the new card's offset is negative; an in-time cancel of one of those makes Sessions Used −1. Numbers are right (11 available), display odd. Offered to tidy, not asked for.
@@ -356,9 +352,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **S418 — 6 live checks** listed in ⚡ Kickoff (kids page, WP badges, waitlist promote, subscription totals, filter/edit fixes, Custom Movements groups).
-1. **S416 — live checks (nothing exercised by a real athlete yet):** (a) a parent's Book a Class shows kids' chips + "10er-Karte für X kaufen" opens Stripe with the right product (cancel, don't pay); (b) a 1-over athlete gets the German block on the next booking; (c) Cancel Session → 10-card chip drops, Restore → back; (d) mark a no-show → athlete (or parent) gets "Nicht erschienen"; (e) copy a workout over a scored one on a past date → scores still there after the Undo toast closes.
-1. **S415 — live checks (not yet exercised in the app):** (a) next time a coach adds a 10-card member to a class, the chip goes +1; (b) first **Close & Issue New on an over-limit card** — preview shows the carried sessions/dates; (c) link Torben → Gloria via **Share a card…** and confirm both chips update; (d) log out of an athlete account in Chris's browser and confirm their pushes stop.
+1. **S419 — 1 live check:** German athlete pushes (see ⚡ Kickoff).
+1. ✅ **S418, S416 and S415 live checks all confirmed OK by Chris (S419).**
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.
 1. **S410 — score entry needs nothing.** Weeks 35 and 3 fully entered and verified; Chris completed Martina, the Sabrina/Steven loads and the rest of board 3.1 himself.
