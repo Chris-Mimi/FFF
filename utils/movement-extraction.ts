@@ -135,6 +135,9 @@ const findMatchingExercise = (
   if (depluralized !== lower && knownExercisesLower.has(depluralized)) {
     return normalizeMovement(depluralized);
   }
+  // …and the other way round: text singular, library plural
+  // ("Deep Squat Knee Circle" → "Deep Squat Knee Circles").
+  if (knownExercisesLower.has(`${lower}s`)) return normalizeMovement(`${lower}s`);
 
   // 3. Generic term failsafe — maps common shorthand to canonical DB names
   const canonical = genericToCanonical[lower] || genericToCanonical[depluralized];
@@ -152,27 +155,21 @@ const findMatchingExercise = (
     if (wpCanonical && knownExercisesLower.has(wpCanonical)) return normalizeMovement(wpCanonical);
   }
 
-  // 4. Substring matching — known exercise found within candidate or vice versa.
-  // Collect all candidates and return the longest match, so more-specific names
-  // win over shorter substrings (e.g. "Sumo Deadlift" beats "Deadlift" when
-  // matching "Barbell Sumo Deadlift").
+  // 4. Substring matching — a known exercise written inside the candidate (e.g.
+  // "back squat" in "heavy back squats"). The longest match wins, so more-specific
+  // names beat shorter substrings ("Sumo Deadlift" beats "Deadlift" when matching
+  // "Barbell Sumo Deadlift").
+  // No guessing the other way round (S419): text that is only PART of a library
+  // name is not credited to it. That rule turned "Rings:" into Ring Dip, "L-Sit:"
+  // into Wall-sit and "Squats" into Squat Jump. Workout text must use the library
+  // name to be counted.
   let bestMatch: string | null = null;
   for (const exercise of knownExercisesList) {
     if (exercise.length < 4) continue;
-
-    let isMatch = false;
-    // Known exercise contained in candidate (e.g., "back squat" in "heavy back squats")
-    if (lower.includes(exercise) || lower.includes(exercise + 's')) {
-      isMatch = true;
-    }
-    // Candidate contained in known exercise (e.g., "arch stretch" in "partner arch stretch")
-    // Require candidate to be at least 60% of exercise name length to prevent
-    // single words like "advanced" matching "advanced tuck planche"
-    else if (lower.length >= 4 && lower.length >= exercise.length * 0.6 &&
-        (exercise.includes(lower) || exercise.includes(depluralized))) {
-      isMatch = true;
-    }
-    if (isMatch && (!bestMatch || exercise.length > bestMatch.length)) {
+    // Library plural written in the singular still counts ("…Knee Circle x 10").
+    const singular = /[^s]s$/.test(exercise) ? exercise.slice(0, -1) : exercise;
+    if (!lower.includes(singular)) continue;
+    if (!bestMatch || exercise.length > bestMatch.length) {
       bestMatch = exercise;
     }
   }
@@ -277,8 +274,10 @@ export const extractMovementsFromText = (
       // Skip instruction fragments
       if (isInstructionLine(part)) return;
 
-      // Remove any stray unmatched closing parens
-      const cleanedPart = part.replace(/\)$/, '').trim();
+      // Remove a stray unmatched closing paren — but keep one that closes a name
+      // like "DB Deadlift (unilateral)", or the exact-name match below fails.
+      const unmatchedClose = (part.match(/\)/g) || []).length > (part.match(/\(/g) || []).length;
+      const cleanedPart = (unmatchedClose ? part.replace(/\)$/, '') : part).trim();
       if (!cleanedPart) return;
 
       let movementText = '';
