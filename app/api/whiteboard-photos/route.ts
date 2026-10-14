@@ -17,6 +17,29 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const week = searchParams.get('week');
 
+    // ?summary=1 → every week that has photos, with its photo count (week picker).
+    // Paged: the table grows ~5 rows a week and must not hit the 1000-row cap.
+    if (searchParams.get('summary')) {
+      const counts = new Map<string, number>();
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabaseAdmin
+          .from('whiteboard_photos')
+          .select('workout_week')
+          .order('id', { ascending: true })
+          .range(from, from + 999);
+        if (error) {
+          console.error('Error fetching whiteboard week summary:', error);
+          return NextResponse.json({ error: 'Failed to fetch whiteboard weeks' }, { status: 500 });
+        }
+        for (const row of data || []) counts.set(row.workout_week, (counts.get(row.workout_week) || 0) + 1);
+        if (!data || data.length < 1000) break;
+      }
+      const weeks = [...counts.entries()]
+        .map(([w, count]) => ({ week: w, count }))
+        .sort((a, b) => b.week.localeCompare(a.week));
+      return NextResponse.json(weeks);
+    }
+
     let query = supabaseAdmin
       .from('whiteboard_photos')
       .select('id, workout_week, photo_label, photo_url, caption, display_order, created_at')

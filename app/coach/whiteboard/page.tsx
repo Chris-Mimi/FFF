@@ -27,9 +27,11 @@ export default function WhiteboardPage() {
   const [loading, setLoading] = useState(true);
   const [photos, setPhotos] = useState<WhiteboardPhoto[]>([]);
   const [selectedWeek, setSelectedWeek] = useState<string>('');
+  const [weeksWithPhotos, setWeeksWithPhotos] = useState<{ week: string; count: number }[]>([]);
 
   useEffect(() => {
     checkAuth();
+    fetchWeeksWithPhotos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -96,20 +98,13 @@ export default function WhiteboardPage() {
   };
 
   const navigateWeek = (direction: 'prev' | 'next') => {
+    // Step from the week's Thursday so 53-week years (e.g. 2026-W53) aren't skipped.
     const { year, week } = parseIsoWeek(selectedWeek);
-    let newYear = year;
-    let newWeek = week + (direction === 'next' ? 1 : -1);
-
-    // Handle year boundaries (approximately 52-53 weeks per year)
-    if (newWeek < 1) {
-      newYear--;
-      newWeek = 52; // Simplified - most years have 52 weeks
-    } else if (newWeek > 52) {
-      newYear++;
-      newWeek = 1;
-    }
-
-    setSelectedWeek(formatIsoWeek(newYear, newWeek));
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const thursday = new Date(jan4);
+    thursday.setUTCDate(jan4.getUTCDate() - (jan4.getUTCDay() || 7) + 4 + (week - 1) * 7 + (direction === 'next' ? 7 : -7));
+    const target = new Date(thursday.getUTCFullYear(), thursday.getUTCMonth(), thursday.getUTCDate());
+    setSelectedWeek(formatIsoWeek(thursday.getUTCFullYear(), getWeekNumber(target)));
   };
 
   const goToCurrentWeek = () => {
@@ -129,16 +124,34 @@ export default function WhiteboardPage() {
     }
   };
 
+  const fetchWeeksWithPhotos = async () => {
+    try {
+      const response = await authFetch('/api/whiteboard-photos?summary=1');
+      if (!response.ok) throw new Error('Failed to fetch weeks');
+      setWeeksWithPhotos(await response.json());
+    } catch (error) {
+      console.error('Error fetching whiteboard weeks:', error);
+    }
+  };
+
+  // Dropdown options: every week with photos, plus the selected week if it has none yet.
+  const weekOptions = weeksWithPhotos.some(w => w.week === selectedWeek) || !selectedWeek
+    ? weeksWithPhotos
+    : [...weeksWithPhotos, { week: selectedWeek, count: 0 }].sort((a, b) => b.week.localeCompare(a.week));
+
   const handlePhotoUploaded = () => {
     fetchPhotos();
+    fetchWeeksWithPhotos();
   };
 
   const handlePhotoDeleted = () => {
     fetchPhotos();
+    fetchWeeksWithPhotos();
   };
 
   const handlePhotoUpdated = () => {
     fetchPhotos();
+    fetchWeeksWithPhotos();
   };
 
   if (loading) {
@@ -190,7 +203,18 @@ export default function WhiteboardPage() {
               <span className='hidden sm:inline'>Previous</span>
             </button>
             <div className='flex items-center gap-1 sm:gap-3'>
-              <span className='text-xs sm:text-base md:text-lg font-semibold text-gray-900'>{getWeekDateRange(selectedWeek)}</span>
+              <select
+                value={selectedWeek}
+                onChange={e => setSelectedWeek(e.target.value)}
+                title='Jump to a week with board photos'
+                className='max-w-[11rem] sm:max-w-none text-xs sm:text-base md:text-lg font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-1.5 sm:px-2 py-0.5 sm:py-1 cursor-pointer hover:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600'
+              >
+                {weekOptions.map(({ week, count }) => (
+                  <option key={week} value={week}>
+                    {`Wk ${parseIsoWeek(week).week} · ${getWeekDateRange(week)}${count ? ` (${count})` : ''}`}
+                  </option>
+                ))}
+              </select>
               <button
                 onClick={goToCurrentWeek}
                 className='px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition'
