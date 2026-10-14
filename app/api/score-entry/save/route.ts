@@ -32,18 +32,23 @@ interface ScoreEntry {
   modified_note?: string | null;
 }
 
+const MAX_LOAD_KG = 10000;
+
 function validateScore(score: ScoreEntry): string | null {
   if (score.reps_result != null && (score.reps_result < 0 || score.reps_result > 10000)) {
     return 'Reps must be between 0 and 10,000';
   }
-  if (score.weight_result != null && (score.weight_result < 0 || score.weight_result > 500)) {
-    return 'Weight must be between 0 and 500 kg';
+  // Loads can be a total (reps x weight summed over rounds, e.g. a Snatch EMOM
+  // scored 1,360 kg), so the cap is a typo guard, not a single-lift limit.
+  // Lifts entries keep their own 500 kg cap in /api/lift-records.
+  if (score.weight_result != null && (score.weight_result < 0 || score.weight_result > MAX_LOAD_KG)) {
+    return 'Weight must be between 0 and 10,000 kg';
   }
-  if (score.weight_result_2 != null && (score.weight_result_2 < 0 || score.weight_result_2 > 500)) {
-    return 'Weight 2 must be between 0 and 500 kg';
+  if (score.weight_result_2 != null && (score.weight_result_2 < 0 || score.weight_result_2 > MAX_LOAD_KG)) {
+    return 'Weight 2 must be between 0 and 10,000 kg';
   }
-  if (score.weight_result_3 != null && (score.weight_result_3 < 0 || score.weight_result_3 > 500)) {
-    return 'Weight 3 must be between 0 and 500 kg';
+  if (score.weight_result_3 != null && (score.weight_result_3 < 0 || score.weight_result_3 > MAX_LOAD_KG)) {
+    return 'Weight 3 must be between 0 and 10,000 kg';
   }
   if (score.rounds_result != null && (score.rounds_result < 0 || score.rounds_result > 1000)) {
     return 'Rounds must be between 0 and 1,000';

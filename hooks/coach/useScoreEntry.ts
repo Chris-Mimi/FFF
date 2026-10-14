@@ -426,7 +426,9 @@ export function useScoreEntry(sessionId: string) {
       }
     } catch (error) {
       console.error('Error saving scores:', error);
-      toast.error('Failed to save scores');
+      // Show the server's reason (e.g. a validation message) instead of hiding it.
+      const reason = error instanceof Error && error.message !== 'Failed to save' ? `: ${error.message}` : '';
+      toast.error(`Failed to save scores${reason}`);
     } finally {
       setSaving(false);
     }
