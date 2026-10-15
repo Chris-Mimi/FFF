@@ -77,7 +77,7 @@ function SortableForgeCard({
       </div>
 
       {/* Edit/Delete Buttons */}
-      <div className='absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-0.5 sm:gap-1 md:opacity-0 md:group-hover:opacity-100 transition'>
+      <div className='absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-0.5 sm:gap-1'>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -99,7 +99,7 @@ function SortableForgeCard({
           <Trash2 size={12} className='sm:w-4 sm:h-4' />
         </button>
       </div>
-      <h3 className='text-xs sm:text-sm md:text-base font-bold text-gray-900 mb-0.5 sm:mb-1'>{forge.name}</h3>
+      <h3 className='text-xs sm:text-sm md:text-base font-bold text-gray-900 mb-0.5 sm:mb-1 pr-10 sm:pr-14'>{forge.name}</h3>
       <p className='text-[10px] sm:text-xs md:text-sm text-gray-800 mb-0.5 sm:mb-1'>{forge.type}</p>
       {forge.description && (
         <p className='text-[9px] sm:text-[10px] md:text-xs text-gray-700 line-clamp-2 group-hover:line-clamp-none'>{forge.description}</p>

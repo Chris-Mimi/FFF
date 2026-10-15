@@ -91,7 +91,7 @@ export default function BenchmarksTab({
               key={benchmark.id}
               className='border border-gray-300 rounded-lg p-3 bg-teal-100 hover:bg-teal-200 hover:shadow-lg hover:z-10 transition-all group relative'
             >
-              <div className='absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition'>
+              <div className='absolute top-2 right-2 flex gap-1'>
                 <button
                   onClick={() => onEdit(benchmark)}
                   className='p-1 text-blue-600 hover:bg-blue-50 rounded transition'
@@ -107,7 +107,7 @@ export default function BenchmarksTab({
                   <Trash2 size={16} />
                 </button>
               </div>
-              <h3 className='text-base font-bold text-gray-900 mb-1'>{benchmark.name}</h3>
+              <h3 className='text-base font-bold text-gray-900 mb-1 pr-14'>{benchmark.name}</h3>
               <p className='text-sm text-gray-800 mb-1'>{benchmark.type}</p>
               {benchmark.description && (
                 <p className='text-xs text-gray-700 line-clamp-2 group-hover:line-clamp-none'>{benchmark.description}</p>
