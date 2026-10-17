@@ -206,7 +206,7 @@ export default function BenchmarksLiftsManagementPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Pacing
+            Split Times
           </button>
           <button
             onClick={() => setActiveTab('achievements')}

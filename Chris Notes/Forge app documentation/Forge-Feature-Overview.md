@@ -47,6 +47,19 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 - **Session Type groups** — save named bundles of session types (e.g., "Adults", "Kids") and switch your whole view to one group with a single click — click it again to clear. Set up once, then flip between "show me only the adult classes" and "show me only the kids classes" instantly. Rename, edit, or delete groups any time; they sync across all your devices
 - **"Not done by selected" filter** — select a group of athletes, then flip one chip to show only the workouts that *none* of them has ever attended. Perfect for picking a benchmark or session that's brand-new to a whole group (a small-group class, a make-up session, a fair head-to-head) without anyone having a prior-attempt advantage. Stacks with the search box and the other filters, so you can narrow it to e.g. only adult WODs none of the group has done
 
+### Split Times — Real Pacing Data for Writing WODs
+
+Writing a "for time" workout means guessing how long it will take — and a time cap set on a hunch either cuts half the class off or leaves the fast athletes standing around. Split Times (Toolkit → Split Times) replaces the guess with your own athletes' numbers.
+
+- **Your gym's times for each part of a workout** — record how long your athletes actually take for a 400 m run, 30 Up-Downs, a 500 m SkiErg, a 40 m Burpee Broad Jump, and so on. These are deliberately *not* best times: they're times taken inside real WODs, so they reflect how your athletes move when the clock is running and other movements are in the mix
+- **Fastest, median and slowest at a glance** — every task card shows the three numbers that matter for programming, with the names behind the fastest and slowest. A dot strip shows how spread out the class is
+- **Fresh vs. fatigued** — each time can be marked as start of the WOD / 1st round or end of the WOD / last round. The dots are coloured to match, so you can see how much a movement slows down when it comes late in a workout
+- **Different amounts for women and men** — tasks like a ♀ 800 m / ♂ 1000 m row keep separate numbers for each group, so the figures stay comparable
+- **Time-cap helper** — add tasks to the helper, set how many times each is done (e.g. 3 × 400 m run + 3 × 30 Up-Downs), add a transition time, and Forge totals the fastest, median and slowest finish and suggests a time cap. Programming a fair cap becomes a 20-second job
+- **Back to the source workout** — every time carries its date; tap it to jump to that day's workout in the calendar and see exactly what was programmed around it
+- **Fast to fill** — add one score, or paste a whole list straight from your notes ("Claudia: 1:15, 1:55" — two times are read as 1st and last round; a date on a line carries down to the lines below). Names are matched to your members automatically and anything that doesn't match is flagged before saving
+- **Built on the Exercise Library** — every task uses a library movement name, so the data lines up with the rest of your programming tools
+
 ### Member & Class Management
 
 - **Self-registration with approval** — members sign up themselves; you approve, block, or manage their access. **Only approved members appear in the Athletes list** — pending sign-ups (including spam/bot registrations awaiting your decision) stay out of it until you approve them. Pending registrations that turn out to be spam, duplicates, or mistakes can be rejected with one click — the member record, athlete profile, and email/auth account are all fully removed so nothing lingers as a "ghost" athlete and the person can re-register from scratch
@@ -233,7 +246,7 @@ There's no app-switching, no spreadsheets, no whiteboards that get erased. Just 
 
 ## What Makes Forge Unique
 
-1. **Programming intelligence** — no other gym platform tells you when you last programmed a movement or shows you frequency gaps in your training cycle
+1. **Programming intelligence** — no other gym platform tells you when you last programmed a movement, shows you frequency gaps in your training cycle, or uses your own athletes' split times to suggest a realistic time cap
 2. **Built by a coach, not a software company** — Forge wasn't designed in a product meeting by people who've never touched a barbell. It was built by an experienced CrossFit coach who programs workouts every day and knows what's missing from existing tools. The calendar layout, the search workflow, the movement tracking panel, the way sections are structured — every detail reflects years of real coaching experience, not guesswork
 3. **Integrated athlete journey** — from booking a class to logging the workout to tracking PRs to sharing results, it's one seamless flow
 4. **Gym identity** — custom benchmarks, custom achievements, branded share cards. Forge becomes *your* gym's platform, not a generic tool

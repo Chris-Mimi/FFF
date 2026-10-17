@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Toolkit → Pacing (S421).
+ * Toolkit → Split Times (S421; internal name "pacing").
  *
  * Reference times for PARTS of workouts (a 400 m run, 30 Up-Downs…) so the
  * coach can see how long the fastest and slowest athletes need when writing a
@@ -163,7 +163,7 @@ export default function PacingTab() {
       setLibrary((ex.data ?? []).map(e => ({ id: e.id, name: e.display_name || e.name })));
     } catch (err) {
       console.error('Pacing load failed', err);
-      toast.error('Could not load pacing data');
+      toast.error('Could not load split times');
     } finally {
       setLoading(false);
     }
@@ -217,7 +217,7 @@ export default function PacingTab() {
   const toggleHelper = (id: string) =>
     setHelper(h => (h.some(x => x.id === id) ? h.filter(x => x.id !== id) : [...h, { id, n: 1 }]));
 
-  if (loading) return <div className='bg-white rounded-lg p-6 text-gray-600'>Loading pacing…</div>;
+  if (loading) return <div className='bg-white rounded-lg p-6 text-gray-600'>Loading split times…</div>;
 
   const helperPanel = (
     <HelperPanel
@@ -283,7 +283,7 @@ export default function PacingTab() {
         {/* Cards */}
         {!tasks.length ? (
           <div className='bg-white rounded-lg p-6 text-gray-600 text-sm'>
-            No pacing tasks yet. Create one with <strong>+ New task</strong> (e.g. Run 400m), then add your athletes&apos; times with <strong>+ Add scores</strong>.
+            No split times yet. Create one with <strong>+ New task</strong> (e.g. Run 400m), then add your athletes&apos; times with <strong>+ Add scores</strong>.
           </div>
         ) : !shown.length ? (
           <div className='bg-white rounded-lg p-6 text-gray-600 text-sm'>No tasks match. Clear the search or pick another group.</div>
