@@ -30,6 +30,13 @@ const POSITION_LABEL: Record<string, string> = { start: 'Start of WOD', end: 'En
 const isFresh = (p: Position) => p === 'start' || p === 'first';
 const isTired = (p: Position) => p === 'end' || p === 'last';
 const dotColor = (p: Position) => (isFresh(p) ? 'bg-teal-600' : isTired(p) ? 'bg-orange-600' : 'bg-slate-400');
+// Scaled scores never rank above Rx (Chris, S421): the numbers are built from Rx scores
+// (unmarked counts as Rx). Only when a task has no Rx score at all do the scaled ones stand in.
+const isScaled = (s: { scaling: string | null }) => !!s.scaling && s.scaling !== 'Rx';
+function countedScores<T extends { scaling: string | null }>(rows: T[]): { list: T[]; scaledOnly: boolean } {
+  const rx = rows.filter(s => !isScaled(s));
+  return rx.length ? { list: rx, scaledOnly: false } : { list: rows, scaledOnly: rows.length > 0 };
+}
 const tagClass = (p: Position) => (isFresh(p) ? 'bg-teal-100 text-teal-800' : isTired(p) ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-500');
 
 interface PacingTask {
@@ -295,6 +302,8 @@ export default function PacingTab() {
           <div className='grid gap-3'>
             {shown.map(t => {
               const rows = scoresByTask.get(t.id) ?? [];
+              const counted = countedScores(rows);
+              const scaledCount = rows.filter(isScaled).length;
               const athletes = new Set(rows.map(nameOf)).size;
               const inHelper = helper.some(h => h.id === t.id);
               const split = !!(t.amount_female || t.amount_male);
@@ -309,7 +318,7 @@ export default function PacingTab() {
                         {split && <span className='ml-2 align-middle text-xs font-semibold bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5'>♀ {t.amount_female ?? '–'} · ♂ {t.amount_male ?? '–'}</span>}
                       </h3>
                       <div className='text-xs text-gray-500 mt-0.5'>
-                        {t.category} · {rows.length} score{rows.length === 1 ? '' : 's'} · {athletes} athlete{athletes === 1 ? '' : 's'}{t.note ? ` · ${t.note}` : ''}
+                        {t.category} · {rows.length} score{rows.length === 1 ? '' : 's'} · {athletes} athlete{athletes === 1 ? '' : 's'}{counted.scaledOnly ? ' · scaled scores only' : scaledCount ? ` · ${scaledCount} scaled (not counted)` : ''}{t.note ? ` · ${t.note}` : ''}
                       </div>
                     </div>
                     <div className='flex flex-wrap gap-1.5 items-center'>
@@ -328,7 +337,7 @@ export default function PacingTab() {
                   {split ? (
                     <div className='grid gap-2'>
                       {(['F', 'M'] as const).map(g => {
-                        const list = rows.filter(s => s.member_id && memberById.get(s.member_id)?.gender === g);
+                        const list = counted.list.filter(s => s.member_id && memberById.get(s.member_id)?.gender === g);
                         const sum = summarise(toRows(list));
                         if (!sum) return null;
                         return (
@@ -340,12 +349,12 @@ export default function PacingTab() {
                       })}
                     </div>
                   ) : (() => {
-                    const sum = summarise(toRows(rows));
+                    const sum = summarise(toRows(counted.list));
                     if (!sum) return <div className='text-sm text-gray-500'>No scores yet.</div>;
                     return (
                       <>
                         <StatTiles s={sum} />
-                        <RangeStrip rows={rows} sum={sum} nameOf={nameOf} />
+                        <RangeStrip rows={counted.list} sum={sum} nameOf={nameOf} />
                       </>
                     );
                   })()}
@@ -369,8 +378,8 @@ export default function PacingTab() {
                               </tr>
                             </thead>
                             <tbody>
-                              {[...rows].sort((a, b) => a.time_seconds - b.time_seconds).map(s => (
-                                <tr key={s.id} className='border-t border-gray-100 whitespace-nowrap'>
+                              {[...rows].sort((a, b) => Number(isScaled(a)) - Number(isScaled(b)) || a.time_seconds - b.time_seconds).map(s => (
+                                <tr key={s.id} className={`border-t border-gray-100 whitespace-nowrap ${isScaled(s) && !counted.scaledOnly ? 'text-gray-500' : ''}`}>
                                   <td className='px-3 py-1.5'>
                                     {nameOf(s)}
                                     {!s.member_id && <span className='ml-1.5 text-[10px] text-gray-400' title='Imported from the old note — not a member'>(ex)</span>}
@@ -495,7 +504,7 @@ function HelperPanel({ tasks, scoresByTask, helper, setHelper, transition, setTr
   let fast = 0, med = 0, slow = 0, count = 0;
   const items = helper.map(h => {
     const t = tasks.find(x => x.id === h.id);
-    const sum = summarise((scoresByTask.get(h.id) ?? []).map(s => ({ seconds: s.time_seconds, who: '' })));
+    const sum = summarise(countedScores(scoresByTask.get(h.id) ?? []).list.map(s => ({ seconds: s.time_seconds, who: '' })));
     if (t && sum) { fast += sum.min * h.n; med += sum.med * h.n; slow += sum.max * h.n; count += h.n; }
     return { h, t };
   }).filter(x => x.t);
