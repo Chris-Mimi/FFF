@@ -5,12 +5,12 @@
  *
  * Reference times for PARTS of workouts (a 400 m run, 30 Up-Downs…) so the
  * coach can see how long the fastest and slowest athletes need when writing a
- * for-time WOD. These are not best times — where in the workout a task sat
- * (start/end, 1st/last round) is recorded and shown as the dot colour.
+ * for-time WOD. These are not best times — when in the workout a task sat
+ * (which round, and where in that round) is recorded and shown as the dot colour.
  *
- * Tables: `pacing_tasks` + `pacing_scores` (coach-only RLS, migration
- * 20261018000000). Scores belong to members; `legacy_name` only exists for
- * ex-athletes imported from the old Aids note.
+ * Tables: `pacing_tasks` + `pacing_scores` (coach-only RLS, migrations
+ * 20261018000000 + 20261018000001). Scores belong to members; `legacy_name`
+ * only exists for ex-athletes imported from the old Aids note.
  */
 
 import { confirm } from '@/lib/confirm';
@@ -24,12 +24,27 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 const CATEGORIES = ['Runs', 'Ergs', 'Bodyweight', 'Lunges & carries', 'Holds', 'Other'] as const;
-type Position = 'start' | 'end' | 'first' | 'last' | null;
 
-const POSITION_LABEL: Record<string, string> = { start: 'Start of WOD', end: 'End of WOD', first: '1st round', last: 'Last round' };
-const isFresh = (p: Position) => p === 'start' || p === 'first';
-const isTired = (p: Position) => p === 'end' || p === 'last';
-const dotColor = (p: Position) => (isFresh(p) ? 'bg-teal-600' : isTired(p) ? 'bg-orange-600' : 'bg-slate-400');
+type Phase = 'first' | 'middle' | 'last' | 'single' | null;
+type Place = 'first' | 'middle' | 'last' | null;
+
+const PHASE_LABEL: Record<string, string> = { first: '1st round', middle: 'Middle round', last: 'Last round', single: 'No rounds' };
+const PLACE_LABEL: Record<string, string> = { first: 'First task (fresh)', middle: 'Mid-round, after other tasks', last: 'Last task' };
+const PHASE_SHORT: Record<string, string> = { first: '1st rd', middle: 'Mid rd', last: 'Last rd', single: 'No rounds' };
+const PLACE_SHORT: Record<string, string> = { first: 'first task', middle: 'mid-round', last: 'last task' };
+
+/** Fresh = early round AND first task; tired = last round after other work (or last task of a one-off effort). */
+function freshness(phase: Phase, place: Place): 'fresh' | 'mid' | 'tired' | 'unknown' {
+  if (!phase && !place) return 'unknown';
+  if ((phase === 'first' || phase === 'single' || !phase) && (place === 'first' || !place)) return 'fresh';
+  if ((phase === 'last' && place !== 'first') || ((phase === 'single' || !phase) && place === 'last')) return 'tired';
+  return 'mid';
+}
+const DOT: Record<string, string> = { fresh: 'bg-teal-600', mid: 'bg-amber-500', tired: 'bg-orange-600', unknown: 'bg-slate-400' };
+const TAG: Record<string, string> = { fresh: 'bg-teal-100 text-teal-800', mid: 'bg-amber-100 text-amber-800', tired: 'bg-orange-100 text-orange-800', unknown: 'bg-gray-100 text-gray-500' };
+const whenText = (s: { round_phase: Phase; round_place: Place }) =>
+  [s.round_phase && PHASE_SHORT[s.round_phase], s.round_place && PLACE_SHORT[s.round_place]].filter(Boolean).join(' · ') || '–';
+
 // Scaled scores never rank above Rx (Chris, S421): the numbers are built from Rx scores
 // (unmarked counts as Rx). Only when a task has no Rx score at all do the scaled ones stand in.
 const isScaled = (s: { scaling: string | null }) => !!s.scaling && s.scaling !== 'Rx';
@@ -37,7 +52,6 @@ function countedScores<T extends { scaling: string | null }>(rows: T[]): { list:
   const rx = rows.filter(s => !isScaled(s));
   return rx.length ? { list: rx, scaledOnly: false } : { list: rows, scaledOnly: rows.length > 0 };
 }
-const tagClass = (p: Position) => (isFresh(p) ? 'bg-teal-100 text-teal-800' : isTired(p) ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-500');
 
 interface PacingTask {
   id: string;
@@ -57,7 +71,8 @@ interface PacingScore {
   member_id: string | null;
   legacy_name: string | null;
   time_seconds: number;
-  position: Position;
+  round_phase: Phase;
+  round_place: Place;
   scaling: string | null;
   score_date: string | null;
   note: string | null;
@@ -123,6 +138,46 @@ async function fetchAllRows<T>(table: string, columns: string): Promise<T[]> {
   return rows;
 }
 
+/** Resolve a typed/pasted name to a member: full name, whiteboard name, or a unique first name. */
+function resolveMember(name: string, members: MemberLite[]): MemberLite | null {
+  const n = name.trim().toLowerCase();
+  if (!n) return null;
+  const exact = members.filter(m => m.label.toLowerCase() === n);
+  if (exact.length === 1) return exact[0];
+  const wb = members.filter(m => (m.whiteboard ?? '').toLowerCase() === n);
+  if (wb.length === 1) return wb[0];
+  const first = members.filter(m => m.first.toLowerCase() === n);
+  return first.length === 1 ? first[0] : null;
+}
+
+const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm';
+
+function PhaseSelect({ value, onChange, keepLabel }: { value: string; onChange: (v: string) => void; keepLabel?: string }) {
+  return (
+    <select value={value} onChange={e => onChange(e.target.value)} className={inputCls}>
+      <option value=''>{keepLabel ?? 'Not recorded'}</option>
+      {Object.entries(PHASE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+    </select>
+  );
+}
+function PlaceSelect({ value, onChange, keepLabel }: { value: string; onChange: (v: string) => void; keepLabel?: string }) {
+  return (
+    <select value={value} onChange={e => onChange(e.target.value)} className={inputCls}>
+      <option value=''>{keepLabel ?? 'Not recorded'}</option>
+      {Object.entries(PLACE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+    </select>
+  );
+}
+function ScaleSelect({ value, onChange, keepLabel }: { value: string; onChange: (v: string) => void; keepLabel?: string }) {
+  return (
+    <select value={value} onChange={e => onChange(e.target.value)} className={inputCls}>
+      <option value=''>{keepLabel ?? 'Rx (not marked)'}</option>
+      <option>Rx</option>
+      <option>Sc</option>
+    </select>
+  );
+}
+
 // ---------- component ----------
 
 export default function PacingTab() {
@@ -171,7 +226,7 @@ export default function PacingTab() {
       if (ex.error) throw ex.error;
       setLibrary((ex.data ?? []).map(e => ({ id: e.id, name: e.display_name || e.name })));
     } catch (err) {
-      console.error('Pacing load failed', err);
+      console.error('Split times load failed', err);
       toast.error('Could not load split times');
     } finally {
       setLoading(false);
@@ -215,14 +270,6 @@ export default function PacingTab() {
     load();
   };
 
-  const deleteScore = async (s: PacingScore) => {
-    if (!await confirm({ title: 'Delete score', message: `Delete ${nameOf(s)}'s ${fmtTime(s.time_seconds)}?`, confirmText: 'Delete', variant: 'danger' })) return;
-    const { error } = await supabase.from('pacing_scores').delete().eq('id', s.id);
-    if (error) { console.error(error); toast.error('Failed to delete score'); return; }
-    toast.success('Score deleted');
-    load();
-  };
-
   const toggleHelper = (id: string) =>
     setHelper(h => (h.some(x => x.id === id) ? h.filter(x => x.id !== id) : [...h, { id, n: 1 }]));
 
@@ -235,9 +282,9 @@ export default function PacingTab() {
       helper={helper}
       setHelper={setHelper}
       transition={transition}
+      setTransition={setTransition}
       margin={margin}
       setMargin={setMargin}
-      setTransition={setTransition}
       onClose={() => setSheetOpen(false)}
     />
   );
@@ -285,8 +332,9 @@ export default function PacingTab() {
             ))}
           </div>
           <div className='flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500'>
-            <span className='flex items-center gap-1.5'><span className='w-2.5 h-2.5 rounded-full bg-teal-600' />Start of WOD / 1st round</span>
-            <span className='flex items-center gap-1.5'><span className='w-2.5 h-2.5 rounded-full bg-orange-600' />End of WOD / last round</span>
+            <span className='flex items-center gap-1.5'><span className='w-2.5 h-2.5 rounded-full bg-teal-600' />Fresh: 1st round, first task</span>
+            <span className='flex items-center gap-1.5'><span className='w-2.5 h-2.5 rounded-full bg-amber-500' />In between</span>
+            <span className='flex items-center gap-1.5'><span className='w-2.5 h-2.5 rounded-full bg-orange-600' />Tired: last round, after other tasks</span>
             <span className='flex items-center gap-1.5'><span className='w-2.5 h-2.5 rounded-full bg-slate-400' />Not recorded</span>
           </div>
         </div>
@@ -294,7 +342,7 @@ export default function PacingTab() {
         {/* Cards */}
         {!tasks.length ? (
           <div className='bg-white rounded-lg p-6 text-gray-600 text-sm'>
-            No split times yet. Create one with <strong>+ New task</strong> (e.g. Run 400m), then add your athletes&apos; times with <strong>+ Add scores</strong>.
+            No split times yet. Create a task with <strong>+ New task</strong> (e.g. Run 400m), then add your athletes&apos; times with <strong>+ Add scores</strong>.
           </div>
         ) : !shown.length ? (
           <div className='bg-white rounded-lg p-6 text-gray-600 text-sm'>No tasks match. Clear the search or pick another group.</div>
@@ -318,11 +366,13 @@ export default function PacingTab() {
                         {split && <span className='ml-2 align-middle text-xs font-semibold bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5'>♀ {t.amount_female ?? '–'} · ♂ {t.amount_male ?? '–'}</span>}
                       </h3>
                       <div className='text-xs text-gray-500 mt-0.5'>
-                        {t.category} · {rows.length} score{rows.length === 1 ? '' : 's'} · {athletes} athlete{athletes === 1 ? '' : 's'}{counted.scaledOnly ? ' · scaled scores only' : scaledCount ? ` · ${scaledCount} scaled (not counted)` : ''}{t.note ? ` · ${t.note}` : ''}
+                        {t.category} · {rows.length} score{rows.length === 1 ? '' : 's'} · {athletes} athlete{athletes === 1 ? '' : 's'}
+                        {counted.scaledOnly ? ' · scaled scores only' : scaledCount ? ` · ${scaledCount} scaled (not counted)` : ''}
+                        {t.note ? ` · ${t.note}` : ''}
                       </div>
                     </div>
                     <div className='flex flex-wrap gap-1.5 items-center'>
-                      <button onClick={() => setScoreModal({ taskId: t.id, editing: null })} className='px-2.5 py-1 text-xs sm:text-sm border border-gray-200 rounded-lg hover:bg-gray-50 font-medium'>+ Score</button>
+                      <button onClick={() => setScoreModal({ taskId: t.id, editing: null })} className='px-2.5 py-1 text-xs sm:text-sm border border-gray-200 rounded-lg hover:bg-gray-50 font-medium'>+ Scores</button>
                       <button
                         onClick={() => toggleHelper(t.id)}
                         className={`px-2.5 py-1 text-xs sm:text-sm rounded-lg font-medium border flex items-center gap-1 ${inHelper ? 'bg-[#178da6] border-[#178da6] text-white' : 'border-gray-200 hover:bg-gray-50'}`}
@@ -365,47 +415,14 @@ export default function PacingTab() {
                         {openTasks[t.id] ? '▾' : '▸'} All {rows.length} scores
                       </button>
                       {openTasks[t.id] && (
-                        <div className='overflow-x-auto mt-2 border border-gray-200 rounded-lg'>
-                          <table className='w-full text-sm'>
-                            <thead className='bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500'>
-                              <tr>
-                                <th className='text-left px-3 py-2'>Athlete</th>
-                                <th className='text-left px-3 py-2'>Time</th>
-                                <th className='text-left px-3 py-2'>When</th>
-                                <th className='text-left px-3 py-2'>Scale</th>
-                                <th className='text-left px-3 py-2'>Date</th>
-                                <th className='px-3 py-2' />
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {[...rows].sort((a, b) => Number(isScaled(a)) - Number(isScaled(b)) || a.time_seconds - b.time_seconds).map(s => (
-                                <tr key={s.id} className={`border-t border-gray-100 whitespace-nowrap ${isScaled(s) && !counted.scaledOnly ? 'text-gray-500' : ''}`}>
-                                  <td className='px-3 py-1.5'>
-                                    {nameOf(s)}
-                                    {!s.member_id && <span className='ml-1.5 text-[10px] text-gray-400' title='Imported from the old note — not a member'>(ex)</span>}
-                                    {s.note && <span className='block text-xs text-gray-500 whitespace-normal'>{s.note}</span>}
-                                  </td>
-                                  <td className='px-3 py-1.5 font-mono tabular-nums'>{fmtTime(s.time_seconds)}</td>
-                                  <td className='px-3 py-1.5'><span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${tagClass(s.position)}`}>{s.position ? POSITION_LABEL[s.position] : '–'}</span></td>
-                                  <td className='px-3 py-1.5'>{s.scaling || '–'}</td>
-                                  <td className='px-3 py-1.5 font-mono tabular-nums'>
-                                    {s.score_date ? (
-                                      <button onClick={() => router.push(`/coach?date=${s.score_date}`)} className='text-[#178da6] underline underline-offset-2' title='Open that day in the calendar'>
-                                        {showDate(s.score_date)}
-                                      </button>
-                                    ) : '–'}
-                                  </td>
-                                  <td className='px-2 py-1.5'>
-                                    <div className='flex gap-1 justify-end'>
-                                      <button onClick={() => setScoreModal({ taskId: t.id, editing: s })} className='p-1 text-gray-500 hover:text-gray-900' aria-label='Edit score'><Edit2 size={14} /></button>
-                                      <button onClick={() => deleteScore(s)} className='p-1 text-gray-500 hover:text-red-600' aria-label='Delete score'><Trash2 size={14} /></button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                        <ScoreTable
+                          rows={rows}
+                          scaledOnly={counted.scaledOnly}
+                          nameOf={nameOf}
+                          onEdit={s => setScoreModal({ taskId: t.id, editing: s })}
+                          onOpenDate={d => router.push(`/coach?date=${d}`)}
+                          onChanged={load}
+                        />
                       )}
                     </div>
                   )}
@@ -438,16 +455,23 @@ export default function PacingTab() {
           onSaved={() => { setTaskModal(null); load(); }}
         />
       )}
-      {scoreModal && (
-        <ScoreModal
+      {scoreModal && (scoreModal.editing ? (
+        <EditScoreModal
+          score={scoreModal.editing}
+          members={members}
+          nameOf={nameOf}
+          onClose={() => setScoreModal(null)}
+          onSaved={() => { setScoreModal(null); load(); }}
+        />
+      ) : (
+        <AddScoresModal
           tasks={tasks}
           taskId={scoreModal.taskId}
-          editing={scoreModal.editing}
           members={members}
           onClose={() => setScoreModal(null)}
           onSaved={() => { setScoreModal(null); load(); }}
         />
-      )}
+      ))}
     </div>
   );
 }
@@ -479,13 +503,127 @@ function RangeStrip({ rows, sum, nameOf }: { rows: PacingScore[]; sum: Summary; 
       {rows.map(s => (
         <span
           key={s.id}
-          title={`${nameOf(s)} ${fmtTime(s.time_seconds)}${s.position ? ' · ' + POSITION_LABEL[s.position] : ''}`}
-          className={`absolute top-1.5 w-3.5 h-3.5 -ml-[7px] rounded-full border-2 border-white shadow ${dotColor(s.position)}`}
+          title={`${nameOf(s)} ${fmtTime(s.time_seconds)} · ${whenText(s)}`}
+          className={`absolute top-1.5 w-3.5 h-3.5 -ml-[7px] rounded-full border-2 border-white shadow ${DOT[freshness(s.round_phase, s.round_place)]}`}
           style={{ left: `${((s.time_seconds - sum.min) / span) * 100}%` }}
         />
       ))}
       <span className='absolute top-6 -left-2 text-[11px] text-gray-500 font-mono'>{fmtTime(sum.min)}</span>
       <span className='absolute top-6 -right-2 text-[11px] text-gray-500 font-mono'>{fmtTime(sum.max)}</span>
+    </div>
+  );
+}
+
+/** Score list with tick boxes: set Date / Round / Place / Scale on many scores at once, or delete them. */
+function ScoreTable({ rows, scaledOnly, nameOf, onEdit, onOpenDate, onChanged }: {
+  rows: PacingScore[];
+  scaledOnly: boolean;
+  nameOf: (s: PacingScore) => string;
+  onEdit: (s: PacingScore) => void;
+  onOpenDate: (iso: string) => void;
+  onChanged: () => void;
+}) {
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bDate, setBDate] = useState('');
+  const [bPhase, setBPhase] = useState('');
+  const [bPlace, setBPlace] = useState('');
+  const [bScale, setBScale] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const sorted = [...rows].sort((a, b) => Number(isScaled(a)) - Number(isScaled(b)) || a.time_seconds - b.time_seconds);
+  const allOn = selected.size === rows.length && rows.length > 0;
+  const toggle = (id: string) => setSelected(s => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
+  const apply = async () => {
+    const patch: Record<string, string> = {};
+    if (bDate) patch.score_date = bDate;
+    if (bPhase) patch.round_phase = bPhase;
+    if (bPlace) patch.round_place = bPlace;
+    if (bScale) patch.scaling = bScale;
+    if (!Object.keys(patch).length) { toast.error('Pick at least one thing to change'); return; }
+    setBusy(true);
+    const { error } = await supabase.from('pacing_scores').update(patch).in('id', [...selected]);
+    setBusy(false);
+    if (error) { console.error(error); toast.error('Failed to update scores'); return; }
+    toast.success(`${selected.size} score${selected.size === 1 ? '' : 's'} updated`);
+    setSelected(new Set()); setBDate(''); setBPhase(''); setBPlace(''); setBScale('');
+    onChanged();
+  };
+
+  const remove = async (ids: string[], label: string) => {
+    if (!await confirm({ title: 'Delete scores', message: `Delete ${label}?`, confirmText: 'Delete', variant: 'danger' })) return;
+    const { error } = await supabase.from('pacing_scores').delete().in('id', ids);
+    if (error) { console.error(error); toast.error('Failed to delete'); return; }
+    toast.success('Deleted');
+    setSelected(new Set());
+    onChanged();
+  };
+
+  return (
+    <div className='mt-2 grid gap-2'>
+      {selected.size > 0 && (
+        <div className='bg-[#178da6]/10 border border-[#178da6] rounded-lg p-2.5 grid gap-2'>
+          <div className='text-sm font-semibold text-[#178da6]'>{selected.size} selected — set for all of them:</div>
+          <div className='grid grid-cols-2 sm:grid-cols-4 gap-2'>
+            <label className='grid gap-0.5 text-xs font-medium'>Date<input type='date' value={bDate} onChange={e => setBDate(e.target.value)} className={inputCls} /></label>
+            <label className='grid gap-0.5 text-xs font-medium'>Round<PhaseSelect value={bPhase} onChange={setBPhase} keepLabel='Keep as is' /></label>
+            <label className='grid gap-0.5 text-xs font-medium'>Place in round<PlaceSelect value={bPlace} onChange={setBPlace} keepLabel='Keep as is' /></label>
+            <label className='grid gap-0.5 text-xs font-medium'>Scale<ScaleSelect value={bScale} onChange={setBScale} keepLabel='Keep as is' /></label>
+          </div>
+          <div className='flex flex-wrap gap-2 justify-end'>
+            <button onClick={() => remove([...selected], `${selected.size} selected score${selected.size === 1 ? '' : 's'}`)} className='px-3 py-1.5 text-sm border border-red-200 text-red-600 rounded-lg bg-white'>Delete selected</button>
+            <button onClick={() => setSelected(new Set())} className='px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white'>Clear selection</button>
+            <button onClick={apply} disabled={busy} className='px-3 py-1.5 text-sm bg-[#178da6] text-white rounded-lg font-medium disabled:opacity-50'>{busy ? 'Saving…' : 'Apply'}</button>
+          </div>
+        </div>
+      )}
+      <div className='overflow-x-auto border border-gray-200 rounded-lg'>
+        <table className='w-full text-sm'>
+          <thead className='bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500'>
+            <tr>
+              <th className='px-2 py-2 w-8'>
+                <input type='checkbox' checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(rows.map(r => r.id)))} aria-label='Select all' />
+              </th>
+              <th className='text-left px-3 py-2'>Athlete</th>
+              <th className='text-left px-3 py-2'>Time</th>
+              <th className='text-left px-3 py-2'>When</th>
+              <th className='text-left px-3 py-2'>Scale</th>
+              <th className='text-left px-3 py-2'>Date</th>
+              <th className='px-3 py-2' />
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map(s => (
+              <tr key={s.id} className={`border-t border-gray-100 whitespace-nowrap ${selected.has(s.id) ? 'bg-[#178da6]/5' : ''} ${isScaled(s) && !scaledOnly ? 'text-gray-500' : ''}`}>
+                <td className='px-2 py-1.5 text-center'>
+                  <input type='checkbox' checked={selected.has(s.id)} onChange={() => toggle(s.id)} aria-label={`Select ${nameOf(s)}`} />
+                </td>
+                <td className='px-3 py-1.5'>
+                  {nameOf(s)}
+                  {!s.member_id && <span className='ml-1.5 text-[10px] text-gray-400' title='Imported from the old note — not a member'>(ex)</span>}
+                  {s.note && <span className='block text-xs text-gray-500 whitespace-normal'>{s.note}</span>}
+                </td>
+                <td className='px-3 py-1.5 font-mono tabular-nums'>{fmtTime(s.time_seconds)}</td>
+                <td className='px-3 py-1.5'><span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${TAG[freshness(s.round_phase, s.round_place)]}`}>{whenText(s)}</span></td>
+                <td className='px-3 py-1.5'>{s.scaling || '–'}</td>
+                <td className='px-3 py-1.5 font-mono tabular-nums'>
+                  {s.score_date ? (
+                    <button onClick={() => onOpenDate(s.score_date!)} className='text-[#178da6] underline underline-offset-2' title='Open that day in the calendar'>
+                      {showDate(s.score_date)}
+                    </button>
+                  ) : '–'}
+                </td>
+                <td className='px-2 py-1.5'>
+                  <div className='flex gap-1 justify-end'>
+                    <button onClick={() => onEdit(s)} className='p-1 text-gray-500 hover:text-gray-900' aria-label='Edit score'><Edit2 size={14} /></button>
+                    <button onClick={() => remove([s.id], `${nameOf(s)}'s ${fmtTime(s.time_seconds)}`)} className='p-1 text-gray-500 hover:text-red-600' aria-label='Delete score'><Trash2 size={14} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -607,7 +745,6 @@ function TaskModal({ editing, library, onClose, onSaved }: {
     onSaved();
   };
 
-  const input = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm';
   return (
     <FocusTrap>
       <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4'>
@@ -618,7 +755,7 @@ function TaskModal({ editing, library, onClose, onSaved }: {
           </div>
           <label className='grid gap-1 text-sm font-medium'>
             Movement <span className='text-xs font-normal text-gray-500'>from the Exercise Library</span>
-            <input list='pacing-library' value={movement} onChange={e => setMovement(e.target.value)} placeholder='e.g. Run 400m' className={input} autoFocus />
+            <input list='pacing-library' value={movement} onChange={e => setMovement(e.target.value)} placeholder='e.g. Run 400m' className={inputCls} autoFocus />
             <datalist id='pacing-library'>{library.map(e => <option key={e.id} value={e.name} />)}</datalist>
           </label>
           <label className='flex items-center gap-2 text-sm'>
@@ -626,24 +763,24 @@ function TaskModal({ editing, library, onClose, onSaved }: {
           </label>
           {split ? (
             <div className='grid grid-cols-2 gap-3'>
-              <label className='grid gap-1 text-sm font-medium'>♀ amount<input value={amountF} onChange={e => setAmountF(e.target.value)} placeholder='800 m' className={input} /></label>
-              <label className='grid gap-1 text-sm font-medium'>♂ amount<input value={amountM} onChange={e => setAmountM(e.target.value)} placeholder='1000 m' className={input} /></label>
+              <label className='grid gap-1 text-sm font-medium'>♀ amount<input value={amountF} onChange={e => setAmountF(e.target.value)} placeholder='800 m' className={inputCls} /></label>
+              <label className='grid gap-1 text-sm font-medium'>♂ amount<input value={amountM} onChange={e => setAmountM(e.target.value)} placeholder='1000 m' className={inputCls} /></label>
             </div>
           ) : (
             <label className='grid gap-1 text-sm font-medium'>
               Amount <span className='text-xs font-normal text-gray-500'>leave empty when the name says it (Run 400m)</span>
-              <input value={amount} onChange={e => setAmount(e.target.value)} placeholder='30 reps, 500 m…' className={input} />
+              <input value={amount} onChange={e => setAmount(e.target.value)} placeholder='30 reps, 500 m…' className={inputCls} />
             </label>
           )}
           <label className='grid gap-1 text-sm font-medium'>
             Group
-            <select value={category} onChange={e => setCategory(e.target.value)} className={input}>
+            <select value={category} onChange={e => setCategory(e.target.value)} className={inputCls}>
               {CATEGORIES.map(c => <option key={c}>{c}</option>)}
             </select>
           </label>
           <label className='grid gap-1 text-sm font-medium'>
             Note <span className='text-xs font-normal text-gray-500'>optional</span>
-            <input value={note} onChange={e => setNote(e.target.value)} placeholder='e.g. 5 × (10 m forwards + 10 m backwards)' className={input} />
+            <input value={note} onChange={e => setNote(e.target.value)} placeholder='e.g. 5 × (10 m forwards + 10 m backwards)' className={inputCls} />
           </label>
           {error && <div className='text-sm text-red-600'>{error}</div>}
           <div className='flex justify-end gap-2'>
@@ -654,18 +791,6 @@ function TaskModal({ editing, library, onClose, onSaved }: {
       </div>
     </FocusTrap>
   );
-}
-
-/** Resolve a typed/pasted name to a member: full name, whiteboard name, or a unique first name. */
-function resolveMember(name: string, members: MemberLite[]): MemberLite | null {
-  const n = name.trim().toLowerCase();
-  if (!n) return null;
-  const exact = members.filter(m => m.label.toLowerCase() === n);
-  if (exact.length === 1) return exact[0];
-  const wb = members.filter(m => (m.whiteboard ?? '').toLowerCase() === n);
-  if (wb.length === 1) return wb[0];
-  const first = members.filter(m => m.first.toLowerCase() === n);
-  return first.length === 1 ? first[0] : null;
 }
 
 interface PasteRow { raw: string; member: MemberLite | null; name: string; times: number[]; date: string | null; bad?: string }
@@ -687,160 +812,142 @@ function parsePaste(text: string, members: MemberLite[], defaultDate: string | n
   });
 }
 
-function ScoreModal({ tasks, taskId, editing, members, onClose, onSaved }: {
+type EntryRow = { athlete: string; time: string; sc: string };
+const EMPTY_ROW: EntryRow = { athlete: '', time: '', sc: '' };
+
+/**
+ * Add scores for ONE workout at a time: date / round / place / scale are set
+ * once at the top and apply to every athlete row below (Chris, S421).
+ */
+function AddScoresModal({ tasks, taskId, members, onClose, onSaved }: {
   tasks: PacingTask[];
   taskId: string | null;
-  editing: PacingScore | null;
   members: MemberLite[];
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [mode, setMode] = useState<'one' | 'paste'>('one');
+  const [mode, setMode] = useState<'rows' | 'paste'>('rows');
   const [task, setTask] = useState(taskId ?? tasks[0]?.id ?? '');
-  const editingName = editing?.member_id ? members.find(m => m.id === editing.member_id)?.label ?? '' : editing?.legacy_name ?? '';
-  const [athlete, setAthlete] = useState(editingName);
-  const [time, setTime] = useState(editing ? fmtTime(editing.time_seconds) : '');
-  const [position, setPosition] = useState<string>(editing?.position ?? '');
-  const [scaling, setScaling] = useState(editing?.scaling ?? '');
-  const [date, setDate] = useState(editing ? editing.score_date ?? '' : formatDate(new Date()));
-  const [note, setNote] = useState(editing?.note ?? '');
+  const [date, setDate] = useState(formatDate(new Date()));
+  const [phase, setPhase] = useState('');
+  const [place, setPlace] = useState('');
+  const [scaling, setScaling] = useState('');
+  const [rows, setRows] = useState<EntryRow[]>([EMPTY_ROW, EMPTY_ROW, EMPTY_ROW]);
   const [paste, setPaste] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const pasteRows = useMemo(() => parsePaste(paste, members, date || null), [paste, members, date]);
 
+  const setRow = (i: number, patch: Partial<EntryRow>) =>
+    setRows(rs => {
+      const next = rs.map((r, j) => (j === i ? { ...r, ...patch } : r));
+      const last = next[next.length - 1];
+      return last.athlete || last.time ? [...next, EMPTY_ROW] : next;
+    });
+
+  const filled = rows.filter(r => r.athlete.trim() || r.time.trim());
+  const rowError = (r: EntryRow) =>
+    !resolveMember(r.athlete, members) ? 'member' : parseTime(r.time) === null ? 'time' : '';
+
   const save = async () => {
     setError('');
     if (!task) { setError('Pick a task.'); return; }
-    if (mode === 'one') {
-      const secs = parseTime(time);
-      if (secs === null) { setError('Write the time as minutes:seconds, e.g. 2:18.'); return; }
-      const member = resolveMember(athlete, members);
-      const keepLegacy = editing && !editing.member_id && athlete.trim() === editingName;
-      if (!member && !keepLegacy) { setError('Pick the athlete from the members list.'); return; }
-      const row = {
-        task_id: task,
-        member_id: member?.id ?? null,
-        legacy_name: member ? null : editing?.legacy_name ?? null,
-        time_seconds: secs,
-        position: position || null,
-        scaling: scaling || null,
+    const shared = { task_id: task, round_place: place || null };
+    let insert: Record<string, unknown>[] = [];
+    if (mode === 'rows') {
+      if (!filled.length) { setError('Add at least one athlete and time.'); return; }
+      if (filled.some(r => rowError(r))) { setError('Fix the boxes marked in red: pick a member from the list, and write times as min:sec.'); return; }
+      insert = filled.map(r => ({
+        ...shared,
+        member_id: resolveMember(r.athlete, members)!.id,
+        time_seconds: parseTime(r.time)!,
+        round_phase: phase || null,
+        scaling: r.sc || scaling || null,
         score_date: date || null,
-        note: note.trim() || null,
-      };
-      setSaving(true);
-      const { error: err } = editing
-        ? await supabase.from('pacing_scores').update(row).eq('id', editing.id)
-        : await supabase.from('pacing_scores').insert(row);
-      setSaving(false);
-      if (err) { console.error(err); setError('Failed to save the score.'); return; }
-      toast.success(editing ? 'Score updated' : 'Score added');
-      onSaved();
-      return;
+      }));
+    } else {
+      if (!pasteRows.length) { setError('Paste at least one line like “Chris: 2:18”.'); return; }
+      if (pasteRows.some(r => r.bad)) { setError('Fix the red lines first (use the member’s full name if the first name is shared).'); return; }
+      insert = pasteRows.flatMap(r => r.times.map((secs, i) => ({
+        ...shared,
+        member_id: r.member!.id,
+        time_seconds: secs,
+        round_phase: r.times.length > 1 ? (i === 0 ? 'first' : i === r.times.length - 1 ? 'last' : 'middle') : phase || null,
+        scaling: scaling || null,
+        score_date: r.date,
+      })));
     }
-    if (!pasteRows.length) { setError('Paste at least one line like “Chris: 2:18”.'); return; }
-    if (pasteRows.some(r => r.bad)) { setError('Fix the red lines first (use the member’s full name if the first name is shared).'); return; }
-    const rows = pasteRows.flatMap(r => r.times.map((secs, i) => ({
-      task_id: task,
-      member_id: r.member!.id,
-      time_seconds: secs,
-      position: r.times.length > 1 ? (i === 0 ? 'first' : i === r.times.length - 1 ? 'last' : null) : position || null,
-      scaling: scaling || null,
-      score_date: r.date,
-    })));
     setSaving(true);
-    const { error: err } = await supabase.from('pacing_scores').insert(rows);
+    const { error: err } = await supabase.from('pacing_scores').insert(insert);
     setSaving(false);
     if (err) { console.error(err); setError('Failed to save the scores.'); return; }
-    toast.success(`${rows.length} score${rows.length === 1 ? '' : 's'} added`);
+    toast.success(`${insert.length} score${insert.length === 1 ? '' : 's'} added`);
     onSaved();
   };
 
-  const input = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm';
   return (
     <FocusTrap>
       <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4'>
-        <div className='bg-white rounded-lg p-4 sm:p-6 w-full max-w-lg grid gap-3 max-h-[95vh] overflow-y-auto'>
+        <div className='bg-white rounded-lg p-4 sm:p-6 w-full max-w-xl grid gap-3 max-h-[95vh] overflow-y-auto'>
           <div className='flex items-center justify-between'>
-            <h3 className='text-lg font-bold'>{editing ? 'Edit score' : 'Add scores'}</h3>
+            <h3 className='text-lg font-bold'>Add scores</h3>
             <button onClick={onClose} className='p-1 text-gray-500' aria-label='Close'><X size={20} /></button>
           </div>
-          {!editing && (
-            <div className='flex gap-1.5'>
-              {(['one', 'paste'] as const).map(m => (
-                <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full text-sm border ${mode === m ? 'bg-[#178da6]/10 border-[#178da6] text-[#178da6] font-semibold' : 'border-gray-200'}`}>
-                  {m === 'one' ? 'One score' : 'Paste a list'}
-                </button>
-              ))}
-            </div>
-          )}
           <label className='grid gap-1 text-sm font-medium'>
             Task
-            <select value={task} onChange={e => setTask(e.target.value)} className={input}>
+            <select value={task} onChange={e => setTask(e.target.value)} className={inputCls}>
               {[...tasks].sort((a, b) => taskTitle(a).localeCompare(taskTitle(b), undefined, { numeric: true })).map(t => <option key={t.id} value={t.id}>{taskTitle(t)}</option>)}
             </select>
           </label>
 
-          {mode === 'one' ? (
-            <div className='grid sm:grid-cols-2 gap-3'>
-              <label className='grid gap-1 text-sm font-medium sm:col-span-2'>
-                Athlete
-                <input list='pacing-members' value={athlete} onChange={e => setAthlete(e.target.value)} placeholder='Start typing a name…' className={input} autoFocus={!editing} />
-                <datalist id='pacing-members'>{members.map(m => <option key={m.id} value={m.label} />)}</datalist>
-              </label>
-              <label className='grid gap-1 text-sm font-medium'>
-                Time <span className='text-xs font-normal text-gray-500'>min:sec</span>
-                <input value={time} onChange={e => setTime(e.target.value)} placeholder='2:18' inputMode='numeric' className={`${input} font-mono`} />
-              </label>
-              <label className='grid gap-1 text-sm font-medium'>
-                When in the workout
-                <select value={position} onChange={e => setPosition(e.target.value)} className={input}>
-                  <option value=''>Not recorded</option>
-                  {Object.entries(POSITION_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
-              </label>
-              <label className='grid gap-1 text-sm font-medium'>
-                Scale
-                <select value={scaling} onChange={e => setScaling(e.target.value)} className={input}>
-                  <option value=''>–</option><option>Rx</option><option>Sc</option>
-                </select>
-              </label>
-              <label className='grid gap-1 text-sm font-medium'>
-                Date
-                <input type='date' value={date} onChange={e => setDate(e.target.value)} className={input} />
-              </label>
-              <label className='grid gap-1 text-sm font-medium sm:col-span-2'>
-                Note <span className='text-xs font-normal text-gray-500'>optional</span>
-                <input value={note} onChange={e => setNote(e.target.value)} className={input} />
-              </label>
+          <div className='bg-gray-50 rounded-lg p-3 grid gap-2'>
+            <div className='text-xs font-semibold text-gray-600 uppercase tracking-wide'>For every athlete below</div>
+            <div className='grid grid-cols-2 gap-2'>
+              <label className='grid gap-1 text-xs font-medium'>Date<input type='date' value={date} onChange={e => setDate(e.target.value)} className={inputCls} /></label>
+              <label className='grid gap-1 text-xs font-medium'>Scale<ScaleSelect value={scaling} onChange={setScaling} /></label>
+              <label className='grid gap-1 text-xs font-medium'>Round<PhaseSelect value={phase} onChange={setPhase} /></label>
+              <label className='grid gap-1 text-xs font-medium'>Place in round<PlaceSelect value={place} onChange={setPlace} /></label>
+            </div>
+          </div>
+
+          <div className='flex gap-1.5'>
+            {(['rows', 'paste'] as const).map(m => (
+              <button key={m} onClick={() => setMode(m)} className={`px-3 py-1 rounded-full text-sm border ${mode === m ? 'bg-[#178da6]/10 border-[#178da6] text-[#178da6] font-semibold' : 'border-gray-200'}`}>
+                {m === 'rows' ? 'Type names & times' : 'Paste a list'}
+              </button>
+            ))}
+          </div>
+
+          {mode === 'rows' ? (
+            <div className='grid gap-1.5'>
+              <div className='grid grid-cols-[minmax(0,1fr)_80px_88px] gap-1.5 text-xs font-semibold text-gray-500'>
+                <span>Athlete</span><span>Time</span><span>Scale</span>
+              </div>
+              {rows.map((r, i) => {
+                const err = (r.athlete.trim() || r.time.trim()) ? rowError(r) : '';
+                return (
+                  <div key={i} className='grid grid-cols-[minmax(0,1fr)_80px_88px] gap-1.5'>
+                    <input list='pacing-members' value={r.athlete} onChange={e => setRow(i, { athlete: e.target.value })} placeholder='Name…'
+                      className={`${inputCls} ${err === 'member' ? 'border-red-400' : ''}`} autoFocus={i === 0} />
+                    <input value={r.time} onChange={e => setRow(i, { time: e.target.value })} placeholder='2:18' inputMode='numeric'
+                      className={`${inputCls} font-mono ${err === 'time' ? 'border-red-400' : ''}`} />
+                    <select value={r.sc} onChange={e => setRow(i, { sc: e.target.value })} className={`${inputCls} px-1.5`} title='Only if different from the scale above'>
+                      <option value=''>as above</option><option>Rx</option><option>Sc</option>
+                    </select>
+                  </div>
+                );
+              })}
+              <datalist id='pacing-members'>{members.map(m => <option key={m.id} value={m.label} />)}</datalist>
+              <div className='text-xs text-gray-500'>A new row appears as you fill the last one. Empty rows are ignored.</div>
             </div>
           ) : (
-            <div className='grid gap-3'>
+            <div className='grid gap-2'>
               <label className='grid gap-1 text-sm font-medium'>
                 One athlete per line
                 <span className='text-xs font-normal text-gray-500'>Same as your old note: “Claudia: 1:15, 1:55”. Two times = 1st and last round. A date on a line, e.g. “Lena (14/10/26): 1:40”, applies to the lines below it too.</span>
-                <textarea value={paste} onChange={e => setPaste(e.target.value)} rows={7} placeholder={'Claudia: 1:15, 1:55\nChris: 1:15, 1:56\nLena (14/10/26): 1:40'} className={`${input} font-mono`} autoFocus />
+                <textarea value={paste} onChange={e => setPaste(e.target.value)} rows={7} placeholder={'Claudia: 1:15, 1:55\nChris: 1:15, 1:56\nLena (14/10/26): 1:40'} className={`${inputCls} font-mono`} autoFocus />
               </label>
-              <div className='grid grid-cols-2 gap-3'>
-                <label className='grid gap-1 text-sm font-medium'>
-                  Date <span className='text-xs font-normal text-gray-500'>until a line gives one</span>
-                  <input type='date' value={date} onChange={e => setDate(e.target.value)} className={input} />
-                </label>
-                <label className='grid gap-1 text-sm font-medium'>
-                  Scale for all
-                  <select value={scaling} onChange={e => setScaling(e.target.value)} className={input}>
-                    <option value=''>–</option><option>Rx</option><option>Sc</option>
-                  </select>
-                </label>
-                <label className='grid gap-1 text-sm font-medium col-span-2'>
-                  When (lines with one time)
-                  <select value={position} onChange={e => setPosition(e.target.value)} className={input}>
-                    <option value=''>Not recorded</option>
-                    {Object.entries(POSITION_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                  </select>
-                </label>
-              </div>
               {pasteRows.length > 0 && (
                 <div className='bg-gray-50 rounded-lg p-2.5 text-sm grid gap-1'>
                   {pasteRows.map((r, i) => (
@@ -855,6 +962,84 @@ function ScoreModal({ tasks, taskId, editing, members, onClose, onSaved }: {
             </div>
           )}
 
+          {error && <div className='text-sm text-red-600'>{error}</div>}
+          <div className='flex justify-end gap-2'>
+            <button onClick={onClose} className='px-4 py-2 border border-gray-300 rounded-lg text-sm'>Cancel</button>
+            <button onClick={save} disabled={saving} className='px-4 py-2 bg-[#178da6] text-white rounded-lg text-sm font-medium disabled:opacity-50'>{saving ? 'Saving…' : 'Save'}</button>
+          </div>
+        </div>
+      </div>
+    </FocusTrap>
+  );
+}
+
+function EditScoreModal({ score, members, nameOf, onClose, onSaved }: {
+  score: PacingScore;
+  members: MemberLite[];
+  nameOf: (s: PacingScore) => string;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const originalName = nameOf(score);
+  const [athlete, setAthlete] = useState(originalName);
+  const [time, setTime] = useState(fmtTime(score.time_seconds));
+  const [phase, setPhase] = useState<string>(score.round_phase ?? '');
+  const [place, setPlace] = useState<string>(score.round_place ?? '');
+  const [scaling, setScaling] = useState(score.scaling ?? '');
+  const [date, setDate] = useState(score.score_date ?? '');
+  const [note, setNote] = useState(score.note ?? '');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setError('');
+    const secs = parseTime(time);
+    if (secs === null) { setError('Write the time as minutes:seconds, e.g. 2:18.'); return; }
+    const member = resolveMember(athlete, members);
+    const keepLegacy = !score.member_id && athlete.trim() === originalName;
+    if (!member && !keepLegacy) { setError('Pick the athlete from the members list.'); return; }
+    setSaving(true);
+    const { error: err } = await supabase.from('pacing_scores').update({
+      member_id: member?.id ?? null,
+      legacy_name: member ? null : score.legacy_name,
+      time_seconds: secs,
+      round_phase: phase || null,
+      round_place: place || null,
+      scaling: scaling || null,
+      score_date: date || null,
+      note: note.trim() || null,
+    }).eq('id', score.id);
+    setSaving(false);
+    if (err) { console.error(err); setError('Failed to save the score.'); return; }
+    toast.success('Score updated');
+    onSaved();
+  };
+
+  return (
+    <FocusTrap>
+      <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4'>
+        <div className='bg-white rounded-lg p-4 sm:p-6 w-full max-w-lg grid gap-3 max-h-[95vh] overflow-y-auto'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-bold'>Edit score</h3>
+            <button onClick={onClose} className='p-1 text-gray-500' aria-label='Close'><X size={20} /></button>
+          </div>
+          <div className='grid sm:grid-cols-2 gap-3'>
+            <label className='grid gap-1 text-sm font-medium sm:col-span-2'>
+              Athlete
+              <input list='pacing-members-edit' value={athlete} onChange={e => setAthlete(e.target.value)} className={inputCls} />
+              <datalist id='pacing-members-edit'>{members.map(m => <option key={m.id} value={m.label} />)}</datalist>
+            </label>
+            <label className='grid gap-1 text-sm font-medium'>Time <span className='text-xs font-normal text-gray-500'>min:sec</span>
+              <input value={time} onChange={e => setTime(e.target.value)} inputMode='numeric' className={`${inputCls} font-mono`} />
+            </label>
+            <label className='grid gap-1 text-sm font-medium'>Scale<ScaleSelect value={scaling} onChange={setScaling} /></label>
+            <label className='grid gap-1 text-sm font-medium'>Round<PhaseSelect value={phase} onChange={setPhase} /></label>
+            <label className='grid gap-1 text-sm font-medium'>Place in round<PlaceSelect value={place} onChange={setPlace} /></label>
+            <label className='grid gap-1 text-sm font-medium'>Date<input type='date' value={date} onChange={e => setDate(e.target.value)} className={inputCls} /></label>
+            <label className='grid gap-1 text-sm font-medium'>Note <span className='text-xs font-normal text-gray-500'>e.g. after 30 Up-Downs</span>
+              <input value={note} onChange={e => setNote(e.target.value)} className={inputCls} />
+            </label>
+          </div>
           {error && <div className='text-sm text-red-600'>{error}</div>}
           <div className='flex justify-end gap-2'>
             <button onClick={onClose} className='px-4 py-2 border border-gray-300 rounded-lg text-sm'>Cancel</button>
