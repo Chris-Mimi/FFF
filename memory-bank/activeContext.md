@@ -174,7 +174,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 
 **Chris's rule (S417):** load = ONE set's weight → lift from the **Lifts modal**. Load = TOTAL → exercise from the **Exercise Library** + Load chip. Only `section.lifts` triggers Lifts entries ([useScoreEntry.ts:45-54](hooks/coach/useScoreEntry.ts#L45-L54)).
 
-**🔔 REMIND CHRIS on the Windows PC (S415):** add `"claudeCode.initialPermissionMode": "acceptEdits",` to VS Code user settings (Ctrl+Shift+P → "Preferences: Open User Settings (JSON)"). Mac already fixed. Remove this line once done. **S418: Chris will take the Mac to the box and do it there — keep reminding each session start.**
+**✅ Windows PC caught up (S421, 2026-10-17):** `acceptEdits` set in VS Code user settings ("Edit automatically" confirmed), `~/.claude/settings.json` matches Mac (+ PowerShell allow), `.env.local` replaced (was 3/18 keys → 18), 42 auto-memory notes imported. Reminder retired.
 
 **🔔 Open with Chris (S416):**
 - **Michael Weber (S418, done):** on wife Marion's Wellpass for now → Pay with switched ten_card → wellpass, 09.10 + 11.10 bookings un-flagged. Card 5/10 has no purchase date (paper card) so app bookings never counted. When he returns to the 10-card: switch Pay with back + enter the purchase date.
