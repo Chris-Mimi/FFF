@@ -9,6 +9,7 @@ import ReferencesTab from '@/components/coach/ReferencesTab';
 import ProgrammingNotesTab from '@/components/coach/ProgrammingNotesTab';
 import TracksTab from '@/components/coach/TracksTab';
 import AchievementsTab from '@/components/coach/AchievementsTab';
+import PacingTab from '@/components/coach/PacingTab';
 import { getCurrentUser } from '@/lib/auth';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -23,7 +24,7 @@ import { useWorkoutTypesCrud } from '@/hooks/coach/useWorkoutTypesCrud';
 
 export default function BenchmarksLiftsManagementPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references' | 'tracks' | 'notes' | 'achievements'>('benchmarks');
+  const [activeTab, setActiveTab] = useState<'benchmarks' | 'forge' | 'lifts' | 'exercises' | 'references' | 'tracks' | 'notes' | 'pacing' | 'achievements'>('benchmarks');
   const [loading, setLoading] = useState(true);
 
   // Domain hooks
@@ -198,6 +199,16 @@ export default function BenchmarksLiftsManagementPage() {
             Aids
           </button>
           <button
+            onClick={() => setActiveTab('pacing')}
+            className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
+              activeTab === 'pacing'
+                ? 'bg-[#178da6] text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Pacing
+          </button>
+          <button
             onClick={() => setActiveTab('achievements')}
             className={`px-1.5 sm:px-2 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg font-medium transition text-[10px] sm:text-xs md:text-base whitespace-nowrap ${
               activeTab === 'achievements'
@@ -332,6 +343,8 @@ export default function BenchmarksLiftsManagementPage() {
         )}
 
         {activeTab === 'notes' && <ProgrammingNotesTab />}
+
+        {activeTab === 'pacing' && <PacingTab />}
 
         {activeTab === 'achievements' && <AchievementsTab />}
       </div>
