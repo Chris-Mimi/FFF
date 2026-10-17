@@ -133,6 +133,8 @@ export default function PacingTab() {
 
   const [helper, setHelper] = useState<{ id: string; n: number }[]>([]);
   const [transition, setTransition] = useState(10);
+  // CrossFit programs the cap for the FASTEST athletes; everyone else scales or gets capped.
+  const [margin, setMargin] = useState(10);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const [taskModal, setTaskModal] = useState<{ editing: PacingTask | null } | null>(null);
@@ -226,6 +228,8 @@ export default function PacingTab() {
       helper={helper}
       setHelper={setHelper}
       transition={transition}
+      margin={margin}
+      setMargin={setMargin}
       setTransition={setTransition}
       onClose={() => setSheetOpen(false)}
     />
@@ -477,13 +481,15 @@ function RangeStrip({ rows, sum, nameOf }: { rows: PacingScore[]; sum: Summary; 
   );
 }
 
-function HelperPanel({ tasks, scoresByTask, helper, setHelper, transition, setTransition, onClose }: {
+function HelperPanel({ tasks, scoresByTask, helper, setHelper, transition, setTransition, margin, setMargin, onClose }: {
   tasks: PacingTask[];
   scoresByTask: Map<string, PacingScore[]>;
   helper: { id: string; n: number }[];
   setHelper: React.Dispatch<React.SetStateAction<{ id: string; n: number }[]>>;
   transition: number;
   setTransition: (n: number) => void;
+  margin: number;
+  setMargin: (n: number) => void;
   onClose: () => void;
 }) {
   let fast = 0, med = 0, slow = 0, count = 0;
@@ -524,6 +530,11 @@ function HelperPanel({ tasks, scoresByTask, helper, setHelper, transition, setTr
         <input type='number' min={0} step={5} value={transition} onChange={e => setTransition(Math.max(0, Number(e.target.value) || 0))} className='w-16 border border-gray-200 rounded-md px-2 py-1 font-mono' />
         sec
       </label>
+      <label className='flex items-center gap-2 text-sm text-gray-600'>
+        Margin for the fastest
+        <input type='number' min={0} step={5} value={margin} onChange={e => setMargin(Math.max(0, Number(e.target.value) || 0))} className='w-16 border border-gray-200 rounded-md px-2 py-1 font-mono' />
+        %
+      </label>
       {items.length > 0 && (
         <>
           <div className='grid grid-cols-3 gap-1.5'>
@@ -537,9 +548,9 @@ function HelperPanel({ tasks, scoresByTask, helper, setHelper, transition, setTr
           <div className='border-2 border-[#178da6] rounded-lg px-3 py-2 flex items-center justify-between gap-2'>
             <div>
               <div className='font-semibold text-sm'>Suggested time cap</div>
-              <div className='text-xs text-gray-500'>Slowest + transitions + 10%</div>
+              <div className='text-xs text-gray-500'>Fastest + transitions + {margin}%. Everyone else scales to fit or gets capped.</div>
             </div>
-            <div className='text-2xl font-bold text-[#178da6] font-mono'>{Math.ceil(((slow + tr) * 1.1) / 60)} min</div>
+            <div className='text-2xl font-bold text-[#178da6] font-mono'>{Math.ceil(((fast + tr) * (1 + margin / 100)) / 60)} min</div>
           </div>
         </>
       )}
