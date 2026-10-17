@@ -34,7 +34,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * Bench Press we did last in Week 38 but it doesn't show up in the Planner in Upper Body Horizontal Press
 * Pendlay Row in my app: May 29 2026 220kg was an accumulated score but it went in the app as a 5rm
 * Lenny's mum (mausibrueckner) has Lenny as her login name
-* Check Dimi's logins against his, Regina's and kids sessions
+* Whiteboard protocol for 2026 Week 42.2 I added another 2 workouts scores from 14.10 17.15 & 18.30. The barbells obscure the names at the bottom: Anfisa, Anneke, Julia, Paul, ThomasG, ThomasS, Senol. 
 * 
 
 

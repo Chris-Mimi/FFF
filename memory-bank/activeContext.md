@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 288
-**Updated:** 2026-10-12 (Session 419 — Opus 5.5. **Dead coach tabs root cause found + fixed (muted Athletes filter render loop, NOT login). German athlete pushes. Planner detector: position-based overlap + "no guessing". Movement false-flag audit script + to-do list. Jan Huelbig Stripe block diagnosed.**)
+**Version:** 289
+**Updated:** 2026-10-17 (Session 420 — Opus 5.5. **Week 41 whiteboard finished (167 WSR + 21 Good Morning lift entries) + Week 42.2 (14.10 09:30 Snatch). Score save no longer rejects load totals > 500 kg (+ toast shows the reason). Whiteboard tab week dropdown + 53-week fix. Benchmark card icons always visible. German pushes verified.**)
+
+<!-- Older S419: 2026-10-12 (Session 419 — Opus 5.5. **Dead coach tabs root cause found + fixed (muted Athletes filter render loop, NOT login). German athlete pushes. Planner detector: position-based overlap + "no guessing". Movement false-flag audit script + to-do list. Jan Huelbig Stripe block diagnosed.**) -->
 
 <!-- Older S418: 2026-10-10 (Session 418 continued after first close — Opus 5.5. **Wellpass sign-in + credit badges in Session Management; coach Remove now promotes the waitlist; kids' scores reach athlete pages; Members → Subscriptions shows €8/€10/yearly totals incl. cash; Library edit-form + athlete-filter scroll fixes; 10-card cash-renewal help in the modal; Custom Movements groups filled (+4 new groups).**) -->
 
@@ -145,10 +147,12 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S419 (2026-10-11) — Chris confirmed ✅ all S418, S416 and S415 live checks.** Nothing outstanding from those sessions.
-
-**First — Claude to verify from the DB, don't ask Chris (S419):** read the newest `notification_log` rows — bookings made after the deploy (12.10 13:42 Berlin) must show title "Buchung bestätigt" and a body ending "um HH:MM Uhr". No booking had happened yet when checked on 12.10. Chris: "if nobody notices anything, it's all good."
-1. Athlete pushes are now German ([lib/notifications.ts](lib/notifications.ts)) — next booking push reads "Buchung bestätigt / Platz gesichert – Di., 13. Okt. um 18:30 Uhr" (time no longer shows seconds). Coach-facing pushes stay English. **Not translated:** the notification-preference labels in `components/ui/NotificationPrompt.tsx` and the non-10-card booking messages.
+**S420 (2026-10-13→17) — first action: nothing to verify by DB. Three coach-facing fixes want a glance from Chris (he may already have used them):**
+1. **Score save > 500 kg (`6ff1f79`):** Snatch EMOM totals (reps × kg summed) were rejected by the save route's 500 kg cap, and because the modal saves the whole session, ONE total blocked every edit (Chris couldn't add scaling reasons for Steven/Christian/Thomas G on 30.09). Cap now 10,000 kg in `app/api/score-entry/save/route.ts` (Lifts entries keep 500 in `/api/lift-records`); failure toast now shows the server's reason. **Ask Chris: did the three 30.09 reasons save?**
+2. **Whiteboard week dropdown (`bb42ec2`):** week label = select of every week with photos (newest first, photo count) via paged `GET /api/whiteboard-photos?summary=1`; Prev/Next step via the ISO Thursday so **2026-W53 (28.12–03.01) is no longer skipped**.
+3. **Benchmark card icons (`99cf0cc`):** edit/delete were hover-only → invisible on touch; now always visible (Benchmarks + Forge Benchmarks).
+- **Whiteboard:** Week 41 complete; Week 42 has only 42.2 (14.10 09:30) entered. Next boards = rest of Week 42. Boards `boards/2026-W41-part2/3.json`, `boards/2026-W42-2.json`.
+- ✅ German pushes verified from `notification_log` (10 "Buchung bestätigt" since deploy). **Not translated:** `components/ui/NotificationPrompt.tsx` preference labels + non-10-card booking messages.
 
 **Planner "last programmed" fix (S419):** Bench Press showed 22.07 instead of 16.09. `addKnownMovements` in [utils/movement-extraction.ts](utils/movement-extraction.ts) dropped a short name whenever a longer name containing it was on the same line ("Bench Press superset with DB Bench Press" → only DB Bench Press). Now judged per position. Old-vs-new over all 632 sessions: 22 sessions gain a movement, none lose one (Burpee ×2, Bar Hanging Knee Raise ×2, Clean, Power Clean, Rope Climb, GHD Hip Extension, Bench Press). Chris to glance at "KB Basics: Clean & Press" now counting a plain Clean.
 
@@ -291,6 +295,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 420 (2026-10-13→17 — Opus 5.5) — WEEK 41 DONE, SCORE-SAVE CAP, WHITEBOARD WEEK PICKER, BENCHMARK ICONS (all pushed, build exit 0)**
+- Week 41 finished: 7.10 evening (GM 5RM + AMRAP), 9.10 09:00 + evening couplets (Pt.1–5, tracks by class), 11.10 HPC AMRAP, 12.10 10:00 (bottom of the 41.3 board) — 167 WSR + 21 lift entries; Petra/Justine "!" "Did not count". Week 42.2 (14.10 09:30 Snatch totals) 6 rows.
+- Save route rejected loads > 500 kg → Snatch totals blocked whole-session saves; cap 10,000 + toast shows reason (`6ff1f79`).
+- Whiteboard tab: week dropdown + W53 fix (`bb42ec2`). Benchmark card icons always visible (`99cf0cc`).
+- German pushes verified from `notification_log`.
+
 **Session 419 (2026-10-11→12 — Opus 5.5) — DEAD TABS ROOT CAUSE, GERMAN PUSHES, PLANNER DETECTION "NO GUESSING" (all pushed, build exit 0)**
 - Dead coach tabs: muted Athletes filter passed a fresh `[]` each render → endless re-render → `router.push` starved (`108ae5f`). Not login, not VPN. Rule added to claude-rules.
 - Athlete pushes German, times without seconds (`3408525`); coach pushes stay English. Verify via `notification_log`, don't ask Chris.
@@ -326,15 +336,7 @@ Athlete Tools
 - **Week 40 whiteboard:** DL 10RM + metcon (28–29.09), Snatch Σ reps×kg (30.09), 30.09 09:30 DB Man Maker repeat, Filthy Fifty 02.10 (TC-N → no time + reps 500−N). Boards `boards/2026-W40*.json`.
 - Auto mode blocking → `claudeCode.initialPermissionMode: acceptEdits` on Mac.
 
-**Session 414 (2026-09-30 — Opus 5.5) — COUNT FIX, PASTE UNDO, SCORE RESTORE, KIDS SELF-BOOKING, RECENCY TOOLING (all pushed, tsc+lint+build clean)**
-- **Workouts-page athlete count (`bd5786e`)** now counts only confirmed bookings in sessions with a **published** workout (was `get_all_members_attendance`, which counts Open Gym). Paginated. Other callers of the RPC (Members, Wellpass, Admin) untouched on purpose.
-- **Paste-over Undo (`b00a1c9`)** in `handleCopyWOD`: Calendar-event delete + orphaned-wod delete deferred until a 15s "Workout replaced — Undo" toast closes; Undo restores each session's `workout_id/status/workout_type`, deletes created sessions + the pasted wod.
-- **27.07 17:15 — 9 scores restored** from `backups/2026-08-26` onto current wod `1e37d80b`. Lost 27 Aug when a paste hard-deleted wod `100f5d44` (the S404 bug). Backup sweep 26 May→27 Sep: only loss.
-- **Under-18 self-booking (`70ea7bc`)**: new `isMinor(dob)` in `lib/bookingRules.ts` (Berlin date; no DOB = adult); server + book-page guard. Deleted Fabian's duplicate "Fabi" family profile — ⚠️ also deleted its late-cancel booking (mistake; Chris re-created it on Fabian).
-- **Movement recency:** `memory-bank/movement-recency-queries.md` (scopes: WOD = WOD+Pt.1–6; staple ≥10 in 10 mo, Chris-edited) + `scripts/movement-recency.ts`. Answered: overdue staples, barbell lifts not done in 6 wks, 10 snatch warm-ups.
-- Closed: S399–S402 prod checks, Karen 26/01 (already done). `.claude/settings.json` allow rule for the whiteboard writer.
-
-**Older sessions (57-413):** See `project-history/` folder.
+**Older sessions (57-414):** See `project-history/` folder.
 
 ---
 
@@ -367,7 +369,8 @@ Athlete Tools
 ## 📋 Next Immediate Steps
 
 1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
-1. **S419 — German athlete pushes:** verify from `notification_log` (see ⚡ Kickoff).
+1. **S420 — ask Chris:** did the 30.09 Snatch scaling reasons (Steven, Christian, Thomas G) save after `6ff1f79`? Whiteboard dropdown + benchmark icons OK on his phone?
+1. **S420 — Whiteboard Week 42** remaining boards (only 42.2 entered).
 1. ✅ **S418, S416 and S415 live checks all confirmed OK by Chris (S419).**
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.

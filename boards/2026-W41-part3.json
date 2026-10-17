@@ -1,0 +1,17 @@
+{
+ "note": "2026 Week 41.4 / 41.5 — Petra (9.10 18:30) and Justine (11.10 10:00): on the board with a dash for the score. Chris: flag + comment 'Did not count'.",
+ "sessions": [
+  { "date": "2026-10-09", "time": "18:30", "sectionId": "section-1791551952082", "rows": [
+   { "member": "Petra", "scaling_level": "Sc2", "track": 2, "modified": true, "modified_note": "Did not count" } ] },
+  { "date": "2026-10-09", "time": "18:30", "sectionId": "section-1791552067728", "rows": [
+   { "member": "Petra", "weight_result": 5, "scaling_level": "Sc2", "track": 2, "modified": true, "modified_note": "Did not count" } ] },
+  { "date": "2026-10-09", "time": "18:30", "sectionId": "section-1791552047900", "rows": [
+   { "member": "Petra", "weight_result": 12, "track": 2, "modified": true, "modified_note": "Did not count" } ] },
+  { "date": "2026-10-09", "time": "18:30", "sectionId": "section-1791552003798", "rows": [
+   { "member": "Petra", "scaling_level": "Sc2", "track": 2, "modified": true, "modified_note": "Did not count" } ] },
+  { "date": "2026-10-09", "time": "18:30", "sectionId": "section-1791552447043", "rows": [
+   { "member": "Petra", "weight_result": 5, "weight_result_2": 12, "track": 2, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "scaling_level_3": "Sc2", "modified": true, "modified_note": "Did not count" } ] },
+  { "date": "2026-10-11", "time": "10:00", "sectionId": "section-1768229555752", "rows": [
+   { "member": "Justine", "weight_result": 27.5, "scaling_level": "Sc2", "scaling_level_2": "Sc1", "modified": true, "modified_note": "Did not count" } ] }
+ ]
+}

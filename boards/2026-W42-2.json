@@ -1,0 +1,13 @@
+{
+ "note": "2026 Week 42.2 — 14.10 09:30 Snatch EMOM 5x1min. Score = sum of reps x weight (weight carries until a new one is written).",
+ "sessions": [
+  { "date": "2026-10-14", "time": "09:30", "sectionId": "section-1790778760039", "rows": [
+   { "member": "Aline",    "weight_result": 437.5, "scaling_level": "Rx" },
+   { "member": "Carmine",  "weight_result": 720,   "scaling_level": "Rx" },
+   { "member": "David",    "weight_result": 560,   "scaling_level": "Sc1", "modified": true, "modified_note": "Heels raised + depth" },
+   { "member": "Städele",  "weight_result": 1275,  "scaling_level": "Rx" },
+   { "member": "Sven",     "weight_result": 765,   "scaling_level": "Rx" },
+   { "member": "Chris",    "weight_result": 1110,  "scaling_level": "Rx" }
+  ] }
+ ]
+}
