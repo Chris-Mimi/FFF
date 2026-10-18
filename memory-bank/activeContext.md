@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 289
-**Updated:** 2026-10-17 (Session 420 — Opus 5.5. **Week 41 whiteboard finished (167 WSR + 21 Good Morning lift entries) + Week 42.2 (14.10 09:30 Snatch). Score save no longer rejects load totals > 500 kg (+ toast shows the reason). Whiteboard tab week dropdown + 53-week fix. Benchmark card icons always visible. German pushes verified.**)
+**Version:** 290
+**Updated:** 2026-10-18 (Session 421 — Opus 5.5. **Windows PC caught up with the Mac (acceptEdits, Claude settings, `.env.local`, memory notes). NEW Toolkit → Split Times tab (pacing_tasks/pacing_scores): fastest/median/slowest from Rx only, round + place-in-round freshness, time-cap helper built on the fastest, one-workout entry form + bulk edit; Aids "Endurance scores" note imported (13 tasks, 107 scores).**)
+
+<!-- Older S420: 2026-10-17 (Session 420 — Opus 5.5. **Week 41 whiteboard finished (167 WSR + 21 Good Morning lift entries) + Week 42.2 (14.10 09:30 Snatch). Score save no longer rejects load totals > 500 kg (+ toast shows the reason). Whiteboard tab week dropdown + 53-week fix. Benchmark card icons always visible. German pushes verified.**) -->
 
 <!-- Older S419: 2026-10-12 (Session 419 — Opus 5.5. **Dead coach tabs root cause found + fixed (muted Athletes filter render loop, NOT login). German athlete pushes. Planner detector: position-based overlap + "no guessing". Movement false-flag audit script + to-do list. Jan Huelbig Stripe block diagnosed.**) -->
 
@@ -147,7 +149,14 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S420 (2026-10-13→17) — first action: nothing to verify by DB. Three coach-facing fixes want a glance from Chris (he may already have used them):**
+**S421 (2026-10-17→18) — first action: ask Chris how Split Times looks live** (Toolkit → Split Times; commits `538178c` → `e1571a7`). He was about to set Round / Place on the imported scores via the new tick-box bulk edit.
+- **Tables:** `pacing_tasks` (exercise_id + movement name snapshot, amount OR amount_female/male, category, note) and `pacing_scores` (member_id OR legacy_name, time_seconds, round_phase first/middle/last/single, round_place first/middle/last, scaling, score_date, note). Coach-only RLS (anon read = 0 verified). Old `position` column kept but unused. Migrations `20261018000000` + `…01` (both run by Chris; force-added because `*.sql` is gitignored).
+- **Chris's rules:** athletes = members only (5 ex-athletes kept as `legacy_name` "(ex)" until he deletes them); stats + time cap from **Rx only** (unmarked = Rx; scaled listed below in grey); time cap = **fastest** + transitions + adjustable margin (CrossFit programs for the fastest); dates matter (date link → `/coach?date=`).
+- **Name map used for the import** (`scripts/import-pacing-from-note.ts`): Amelie → Kirch (Chris: the "Amelie Krautwald" record is really **Anna** Krautwald — not changed, ask if he wants it renamed), Lena → Jähn, MichiS → Michael Städele, Dani → Daniela Simm, Franzi → Franziska Herndorf, Niko → Nikolina Vlasalija, Dimi → Dimitar Peresyov.
+- **Bear Crawl task** uses "Bear Crawl Forwards" (no plain Bear Crawl in the library) — Chris may change it.
+- **Windows PC is set up** — see the ✅ line below. Work on one machine at a time.
+
+**S420 carry-over (not yet asked):**
 1. **Score save > 500 kg (`6ff1f79`):** Snatch EMOM totals (reps × kg summed) were rejected by the save route's 500 kg cap, and because the modal saves the whole session, ONE total blocked every edit (Chris couldn't add scaling reasons for Steven/Christian/Thomas G on 30.09). Cap now 10,000 kg in `app/api/score-entry/save/route.ts` (Lifts entries keep 500 in `/api/lift-records`); failure toast now shows the server's reason. **Ask Chris: did the three 30.09 reasons save?**
 2. **Whiteboard week dropdown (`bb42ec2`):** week label = select of every week with photos (newest first, photo count) via paged `GET /api/whiteboard-photos?summary=1`; Prev/Next step via the ISO Thursday so **2026-W53 (28.12–03.01) is no longer skipped**.
 3. **Benchmark card icons (`99cf0cc`):** edit/delete were hover-only → invisible on touch; now always visible (Benchmarks + Forge Benchmarks).
@@ -295,6 +304,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 421 (2026-10-17→18 — Opus 5.5) — PC CATCH-UP + NEW SPLIT TIMES TAB (all pushed, build exit 0)**
+- Windows PC matched to the Mac: acceptEdits, `~/.claude/settings.json`, `.env.local` (was 3/18 keys), 42 memory notes via a Synology transfer folder (AI Development level — root doesn't sync). Session-start file: no `cd … &&` chains (they always prompt).
+- NEW Toolkit → **Split Times** (`components/coach/PacingTab.tsx`): task cards with fastest/median/slowest (Rx only), freshness dots (round + place in round), ♀/♂ split amounts, date → calendar link, time-cap helper (fastest + transitions + margin).
+- Entry: shared date/round/place/scale + name/time rows, or paste in the old note format (dates carry down); bulk edit/delete via tick boxes.
+- Aids note imported: 13 tasks / 107 scores; 23.05.23 added to the three undated tasks at Chris's request. Feature Overview updated.
+
 **Session 420 (2026-10-13→17 — Opus 5.5) — WEEK 41 DONE, SCORE-SAVE CAP, WHITEBOARD WEEK PICKER, BENCHMARK ICONS (all pushed, build exit 0)**
 - Week 41 finished: 7.10 evening (GM 5RM + AMRAP), 9.10 09:00 + evening couplets (Pt.1–5, tracks by class), 11.10 HPC AMRAP, 12.10 10:00 (bottom of the 41.3 board) — 167 WSR + 21 lift entries; Petra/Justine "!" "Did not count". Week 42.2 (14.10 09:30 Snatch totals) 6 rows.
 - Save route rejected loads > 500 kg → Snatch totals blocked whole-session saves; cap 10,000 + toast shows reason (`6ff1f79`).
@@ -320,23 +335,7 @@ Athlete Tools
 - Good Morning display names swapped, new lift "Barbell Good Morning", unique-name index + toast (`5df1b73`).
 - Pendlay Row 29.05 totals had become Lifts entries — 6 deleted; Chris swapped lift→exercise on 4 copies.
 
-**Session 416 (2026-10-05→06 — Opus 5.5) — 10-CARD END TO END + COPY-OVER SCORE SAFETY + NOTIFICATIONS (all pushed, build exit 0)**
-- **Athlete/parent 10-card chip on Book a Class** (`TenCardBalance` + `/api/bookings/ten-card-status` via `lib/tenCardStatus.ts`, service role for cross-household shares): coach-chip format `8+2/10`, German warnings, buy links → direct Stripe checkout; parent buys for own child; Kids card iff every card user is <18 (guardian-only holder excluded); checkout falls back to parent email. Old own-row banners removed.
-- **Renewal (`lib/tenCardRenewal.ts`)**: new card starts at exactly the carried sessions (no double count — Markus 01.07); unused sessions on a still-valid card → new card size 10+leftover; expired leftovers flagged. **Any card size 1–50**; window hints: Total Sessions GIVES, Sessions Used RECORDS.
-- **Booking rules**: 1 over then blocked (open waitlist spots count); expired card bookable 1 month then blocked; German confirmations. **Cancel Session refunds 10-card sessions** (Restore re-debits), cancel push only to affected. **No-show push** (German). **Kids' pushes → parent** with child's first name.
-- **Copy-over moves scores** to the new copy (`065555b`); 21.09 17:15/18:30 restored (24 WSR + 12 Back Squat lift records, backup 04.10, parity OK).
-- **10-card audit** `scripts/audit-ten-cards.ts` (pre-start / unflagged / drift / no-start / pay-with) → Chris fixed Emilia, Silvia, Franziska, Raffael, Viktoria, Aries, Markus (start 02.07); Emily → 11 sessions, no adjustment.
-- Week 40.3 (04.10 10:00/11:00 AMRAP, 23 rows) — Chris checked OK. Many magic links.
-
-**Session 415 (2026-10-04 — Opus 5.5) — 10-CARD OVERHAUL + PUSH LEAK + WEEK 40 WHITEBOARD (all pushed, tsc+lint+build clean)**
-- **Root cause of undercounted cards:** DB CHECK `ten_card_sessions_used <= 10` (Chris dropped it) + coach-add / waitlist-promote / whiteboard `book` never set `ten_card_consumed` (`a01f158`). Fixed 9 undercounted members + Jan + Aline; Aline's card renewed with 4 sessions carried.
-- **Carry-over (`8b397f4`):** `lib/tenCardRenewal.ts` `renewTenCard()` used by Close & Issue New and the Stripe 10-card webhook (idempotent via session id in notes) — archive first `total` sessions, new card starts on first overflow date, expiry = paid + 12 mo. Modal previews it; chip shows "+N over".
-- **Auto-recalc on start-date save (`c8fcfcf`)** (Gloria: paid Fri, entered Sun → chip 0). **Card sharing between any two members (`76b024e`)** — "Share a card…" picker; link/unlink recounts both cards (recalc `keepOffset` + explicit `recompute_ten_card_for_holder`). Unticking a membership type clears a stale Pay-with.
-- **Push leak (`f94291c`):** Chris's Chrome registered under Anfisa + 2 others (logged in as them in May) → got her "You're in". Removed 4 rows; logout now detaches the browser from that account.
-- **Week 40 whiteboard:** DL 10RM + metcon (28–29.09), Snatch Σ reps×kg (30.09), 30.09 09:30 DB Man Maker repeat, Filthy Fifty 02.10 (TC-N → no time + reps 500−N). Boards `boards/2026-W40*.json`.
-- Auto mode blocking → `claudeCode.initialPermissionMode: acceptEdits` on Mac.
-
-**Older sessions (57-414):** See `project-history/` folder.
+**Older sessions (57-416):** See `project-history/` folder.
 
 ---
 
@@ -368,6 +367,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+1. **S421 — Split Times:** ask Chris how it works live; offer to rename the "Amelie Krautwald" member to Anna Krautwald (he mentioned it; not changed); remind him he can delete the 5 "(ex)" scores when he has newer data.
 1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
 1. **S420 — ask Chris:** did the 30.09 Snatch scaling reasons (Steven, Christian, Thomas G) save after `6ff1f79`? Whiteboard dropdown + benchmark icons OK on his phone?
 1. **S420 — Whiteboard Week 42** remaining boards (only 42.2 entered).
