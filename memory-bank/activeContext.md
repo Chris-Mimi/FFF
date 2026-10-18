@@ -152,7 +152,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 **S421 (2026-10-17→18) — first action: ask Chris how Split Times looks live** (Toolkit → Split Times; commits `538178c` → `e1571a7`). He was about to set Round / Place on the imported scores via the new tick-box bulk edit.
 - **Tables:** `pacing_tasks` (exercise_id + movement name snapshot, amount OR amount_female/male, category, note) and `pacing_scores` (member_id OR legacy_name, time_seconds, round_phase first/middle/last/single, round_place first/middle/last, scaling, score_date, note). Coach-only RLS (anon read = 0 verified). Old `position` column kept but unused. Migrations `20261018000000` + `…01` (both run by Chris; force-added because `*.sql` is gitignored).
 - **Chris's rules:** athletes = members only (5 ex-athletes kept as `legacy_name` "(ex)" until he deletes them); stats + time cap from **Rx only** (unmarked = Rx; scaled listed below in grey); time cap = **fastest** + transitions + adjustable margin (CrossFit programs for the fastest); dates matter (date link → `/coach?date=`).
-- **Name map used for the import** (`scripts/import-pacing-from-note.ts`): Amelie → Kirch (Chris: the "Amelie Krautwald" record is really **Anna** Krautwald — not changed, ask if he wants it renamed), Lena → Jähn, MichiS → Michael Städele, Dani → Daniela Simm, Franzi → Franziska Herndorf, Niko → Nikolina Vlasalija, Dimi → Dimitar Peresyov.
+- **Name map used for the import** (`scripts/import-pacing-from-note.ts`): Amelie → Amelie Kirch (not Krautwald; Anna Krautwald = whiteboard "AnnaKr", a different person — nothing to rename), Lena → Jähn, MichiS → Michael Städele, Dani → Daniela Simm, Franzi → Franziska Herndorf, Niko → Nikolina Vlasalija, Dimi → Dimitar Peresyov.
 - **Bear Crawl task** uses "Bear Crawl Forwards" (no plain Bear Crawl in the library) — Chris may change it.
 - **Windows PC is set up** — see the ✅ line below. Work on one machine at a time.
 
@@ -367,7 +367,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **S421 — Split Times:** ask Chris how it works live; offer to rename the "Amelie Krautwald" member to Anna Krautwald (he mentioned it; not changed); remind him he can delete the 5 "(ex)" scores when he has newer data.
+1. **S421 — Split Times:** ask Chris how it works live; remind him he can delete the 5 "(ex)" scores when he has newer data.
 1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
 1. **S420 — ask Chris:** did the 30.09 Snatch scaling reasons (Steven, Christian, Thomas G) save after `6ff1f79`? Whiteboard dropdown + benchmark icons OK on his phone?
 1. **S420 — Whiteboard Week 42** remaining boards (only 42.2 entered).
