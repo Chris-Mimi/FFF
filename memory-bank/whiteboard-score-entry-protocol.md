@@ -97,6 +97,7 @@ So when replicating it by script, **always write BOTH tables together, as one un
      the two passes just because Chris can correct afterwards.
 
 4. **Resolve names → members** via the list above. Map each athlete to their **confirmed session** (via `bookings`) to get the correct `lift_date` / session. Surface anyone booked in two sessions, or not booked at all. **Not booked but on the board (S413, Chris's rule): don't ask — guess the class** (board position/block, the day's sessions), add `"book": true` to the row so the writer books them first, then list them in the report so Chris can move anyone who was guessed wrong.
+   **Before booking anyone, check the session's trial / drop-in names** (preflight prints them under the bookings). A name there is a trial → write a `"whiteboard": "<exact trial name>"` row, never `book` a member (S421: "AnnaM" was a listed trial; I had grepped that line out of the preflight output and booked a parked member with a similar name). Don't filter the preflight's booking/trial block.
 
 5. **Read each session's wod sections.** RM lift sections have `scoring_fields.load=true` and a `lifts[0]` carrying `{ name, rm_test }`. Map each board value to its section by **lift name + rm_test** (don't hardcode section IDs — they differ per wod, esp. after a copy).
 
