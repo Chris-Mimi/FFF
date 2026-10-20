@@ -12,13 +12,13 @@
    { "member": "Wayne",    "weight_result": 30, "scaling_level": "Rx",  "time_result": "23:50" }
   ] },
   { "date": "2026-10-14", "time": "18:30", "sectionId": "section-1791713484690-4", "rows": [
-   { "member": "Anfisa",   "weight_result_2": 10, "scaling_level": "Sc1", "time_result": "35:00" },
-   { "member": "Anneke",   "weight_result_2": 20, "scaling_level": "Rx",  "time_result": "28:35" },
-   { "member": "Julia",    "weight_result_2": 10, "scaling_level": "Sc1", "time_result": "31:36" },
-   { "member": "Paul",     "weight_result_2": 30, "scaling_level": "Rx",  "time_result": "30:22" },
-   { "member": "Graf",     "weight_result_2": 30, "scaling_level": "Rx",  "time_result": "33:42" },
-   { "member": "Thomas Spegele", "weight_result_2": 30, "scaling_level": "Rx", "time_result": "28:33" },
-   { "member": "Senol",    "weight_result_2": 30, "scaling_level": "Rx",  "time_result": "35:00", "modified": true, "modified_note": "Time cap: -30m Lunges, -10 Up-Down" }
+   { "member": "Anfisa",   "weight_result": 10, "scaling_level": "Sc1", "time_result": "35:00" },
+   { "member": "Anneke",   "weight_result": 20, "scaling_level": "Rx",  "time_result": "28:35" },
+   { "member": "Julia",    "weight_result": 10, "scaling_level": "Sc1", "time_result": "31:36" },
+   { "member": "Paul",     "weight_result": 30, "scaling_level": "Rx",  "time_result": "30:22" },
+   { "member": "Graf",     "weight_result": 30, "scaling_level": "Rx",  "time_result": "33:42" },
+   { "member": "Thomas Spegele", "weight_result": 30, "scaling_level": "Rx", "time_result": "28:33" },
+   { "member": "Senol",    "weight_result": 30, "scaling_level": "Rx",  "time_result": "35:00", "modified": true, "modified_note": "Time cap: -30m Lunges, -10 Up-Down" }
   ] }
  ]
 }
