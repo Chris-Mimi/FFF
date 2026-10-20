@@ -1,0 +1,24 @@
+{
+ "note": "2026 Week 42.2 (second photo) — 14.10 Endurance chipper. Board columns: Sandbag Lunge load + Time. Rx lunge = 20/30kg (W/M). 17:15: lunge = Load 1; 18:30: lunge = Load 2 (Load 1 = sled, not on board). Unfinished work written next to a capped time -> modified note.",
+ "sessions": [
+  { "date": "2026-10-14", "time": "17:15", "sectionId": "section-1791713484690-4", "rows": [
+   { "member": "Justine",  "weight_result": 10, "scaling_level": "Sc1", "time_result": "30:00", "modified": true, "modified_note": "Time cap: -Lunges, -30m Bear Crawl" },
+   { "member": "Lena",     "weight_result": 20, "scaling_level": "Rx",  "time_result": "21:45" },
+   { "member": "Nikolina", "weight_result": 10, "scaling_level": "Sc1", "time_result": "35:00", "modified": true, "modified_note": "Time cap: -40 Up-Down" },
+   { "member": "Sabrina",  "weight_result": 10, "scaling_level": "Sc1", "time_result": "27:37", "modified": true, "modified_note": "Scaled BBJ" },
+   { "member": "Soledad",  "weight_result": 10, "scaling_level": "Sc1", "time_result": "30:00", "modified": true, "modified_note": "Time cap: -Sled, -40m Bear Crawl" },
+   { "member": "Valerie",  "weight_result": 20, "scaling_level": "Rx",  "time_result": "24:40" },
+   { "member": "Lukas",    "weight_result": 30, "scaling_level": "Rx",  "time_result": "25:30" },
+   { "member": "Wayne",    "weight_result": 30, "scaling_level": "Rx",  "time_result": "23:50" }
+  ] },
+  { "date": "2026-10-14", "time": "18:30", "sectionId": "section-1791713484690-4", "rows": [
+   { "member": "Anfisa",   "weight_result_2": 10, "scaling_level": "Sc1", "time_result": "35:00" },
+   { "member": "Anneke",   "weight_result_2": 20, "scaling_level": "Rx",  "time_result": "28:35" },
+   { "member": "Julia",    "weight_result_2": 10, "scaling_level": "Sc1", "time_result": "31:36" },
+   { "member": "Paul",     "weight_result_2": 30, "scaling_level": "Rx",  "time_result": "30:22" },
+   { "member": "Graf",     "weight_result_2": 30, "scaling_level": "Rx",  "time_result": "33:42" },
+   { "member": "Thomas Spegele", "weight_result_2": 30, "scaling_level": "Rx", "time_result": "28:33" },
+   { "member": "Senol",    "weight_result_2": 30, "scaling_level": "Rx",  "time_result": "35:00", "modified": true, "modified_note": "Time cap: -30m Lunges, -10 Up-Down" }
+  ] }
+ ]
+}

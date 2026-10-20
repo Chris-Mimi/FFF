@@ -1,0 +1,36 @@
+{
+ "note": "2026 Week 42.3 — 16.10 3x5min AMRAP (score = sum of the 3 AMRAPs; Load 1 = DB OHP 15/22.5, Scaling 1 = DL, Load 2 = Slamball 15/20, Scaling 2 = HR push-up, Load 3 = plate 10/15; 'Rx' load = prescribed W/M weight) + 17.10 10:00 Endurance 36min AMRAP (Load 1 = DB 10/15, Scaling 1 = Lunge+Step-up, R+R).",
+ "sessions": [
+  { "date": "2026-10-16", "time": "09:00", "sectionId": "section-1791713489828-4", "rows": [
+   { "member": "Aline",   "reps_result": 139, "weight_result": 15,   "scaling_level": "Sc2", "weight_result_2": 10, "scaling_level_2": "Sc2", "weight_result_3": 10 },
+   { "member": "Gloria",  "reps_result": 142, "weight_result": 7.5,  "scaling_level": "Sc2", "weight_result_2": 8,  "scaling_level_2": "Sc2", "weight_result_3": 5 },
+   { "member": "Irene",   "reps_result": 140, "weight_result": 7.5,  "scaling_level": "Rx",  "weight_result_2": 15, "scaling_level_2": "Rx",  "weight_result_3": 10 },
+   { "member": "Julia",   "reps_result": 165, "weight_result": 7.5,  "scaling_level": "Sc1", "weight_result_2": 10, "scaling_level_2": "Sc2", "weight_result_3": 5 },
+   { "member": "David",   "reps_result": 138, "weight_result": 10,   "scaling_level": "Sc1", "weight_result_2": 15, "scaling_level_2": "Rx",  "weight_result_3": 10 },
+   { "member": "Lukas",   "reps_result": 182, "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 20, "scaling_level_2": "Rx",  "weight_result_3": 15 },
+   { "member": "Städele", "reps_result": 189, "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 20, "scaling_level_2": "Rx",  "weight_result_3": 15 }
+  ] },
+  { "date": "2026-10-16", "time": "17:15", "sectionId": "section-1791713489828-4", "rows": [
+   { "member": "Anja",     "reps_result": 180, "weight_result": 10,   "scaling_level": "Sc1", "weight_result_2": 10, "scaling_level_2": "Sc1", "weight_result_3": 5 },
+   { "member": "Carla",    "reps_result": 164, "weight_result": 12.5, "scaling_level": "Sc2", "weight_result_2": 10, "scaling_level_2": "Sc1", "weight_result_3": 10 },
+   { "member": "Justine",  "reps_result": 160, "weight_result": 10,   "scaling_level": "Sc1", "weight_result_2": 10, "scaling_level_2": "Sc2", "weight_result_3": 10 },
+   { "member": "Marion",   "weight_result_3": 5, "modified": true, "modified_note": "Did not count" },
+   { "member": "Nikolina", "reps_result": 144, "weight_result": 7.5,  "scaling_level": "Sc1", "weight_result_2": 10, "scaling_level_2": "Sc2", "weight_result_3": 5 },
+   { "member": "Valerie",  "reps_result": 194, "weight_result": 7.5,  "scaling_level": "Sc1", "weight_result_2": 15, "scaling_level_2": "Sc1", "weight_result_3": 5 },
+   { "member": "Carmine",  "reps_result": 140, "weight_result": 22.5, "scaling_level": "Sc1", "weight_result_2": 20, "scaling_level_2": "Sc1", "weight_result_3": 15 },
+   { "member": "Dimitar",  "reps_result": 194, "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 20, "scaling_level_2": "Rx",  "weight_result_3": 15 },
+   { "member": "Sven",     "reps_result": 176, "weight_result": 17.5, "scaling_level": "Sc1", "weight_result_2": 15, "scaling_level_2": "Sc2", "weight_result_3": 15 },
+   { "member": "Thomas",   "reps_result": 178, "weight_result": 17.5, "scaling_level": "Sc1", "weight_result_2": 20, "scaling_level_2": "Rx",  "weight_result_3": 15 },
+   { "member": "Tobias",   "reps_result": 158, "weight_result": 20,   "scaling_level": "Rx",  "weight_result_2": 20, "scaling_level_2": "Rx",  "weight_result_3": 15 },
+   { "member": "Wayne",    "reps_result": 195, "weight_result": 20,   "scaling_level": "Rx",  "weight_result_2": 20, "scaling_level_2": "Rx",  "weight_result_3": 15 }
+  ] },
+  { "date": "2026-10-17", "time": "10:00", "sectionId": "section-1791713491092-4", "rows": [
+   { "member": "Martina", "weight_result": 10, "scaling_level": "Sc2", "rounds_result": 1, "reps_result": 177 },
+   { "member": "Sabrina", "weight_result": 5,  "scaling_level": "Rx",  "rounds_result": 1, "reps_result": 16 },
+   { "member": "Chris Hiles", "weight_result": 15, "scaling_level": "Rx",  "rounds_result": 1, "reps_result": 130, "book": true },
+   { "member": "Senol",   "weight_result": 15, "scaling_level": "Rx",  "rounds_result": 1, "reps_result": 75 },
+   { "member": "Sergej",  "weight_result": 15, "scaling_level": "Rx",  "rounds_result": 1, "reps_result": 150 },
+   { "member": "Wayne",   "weight_result": 15, "scaling_level": "Rx",  "rounds_result": 2, "reps_result": 40 }
+  ] }
+ ]
+}

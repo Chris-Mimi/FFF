@@ -1,0 +1,41 @@
+{
+ "note": "2026 Week 42.1 — KB AMRAP 4x3min (Pistol=Scaling 1, KB=Load 1, DUs=Scaling 2, Impossible Plank=Scaling 3, R+R). 12.10 17:15+18:30 = Track 1; 13.10 18:30 Foundations = Trk2 except Amelie + Christian T (Trk1). Right-column arrows carry a value down to the arrow head.",
+ "sessions": [
+  { "date": "2026-10-12", "time": "17:15", "sectionId": "section-1791713480355-4", "rows": [
+   { "member": "Claudia",  "track": 1, "scaling_level": "Rx",  "weight_result": 12, "scaling_level_2": "Sc1", "scaling_level_3": "Sc2", "rounds_result": 3, "reps_result": 18 },
+   { "member": "Kathrin",  "track": 1, "scaling_level": "Rx",  "weight_result": 16, "scaling_level_2": "Sc1", "scaling_level_3": "Sc2", "rounds_result": 3, "reps_result": 6 },
+   { "member": "Nikolina", "track": 1, "scaling_level": "Sc2", "weight_result": 10, "scaling_level_2": "Sc2", "scaling_level_3": "Sc2", "rounds_result": 3, "reps_result": 28 },
+   { "member": "Sabrina",  "track": 1, "scaling_level": "Sc2", "weight_result": 6,  "scaling_level_2": "Sc1", "scaling_level_3": "Sc2", "modified": true, "modified_note": "Did not count" },
+   { "member": "Valerie",  "track": 1, "scaling_level": "Rx",  "weight_result": 12, "scaling_level_2": "Sc1", "scaling_level_3": "Sc2", "rounds_result": 3, "reps_result": 8 },
+   { "member": "Dimitar",  "track": 1, "scaling_level": "Sc2", "weight_result": 16, "scaling_level_2": "Sc1", "scaling_level_3": "Sc1", "rounds_result": 3, "reps_result": 0 },
+   { "member": "Lukas",    "track": 1, "scaling_level": "Sc1", "weight_result": 24, "scaling_level_2": "Rx",  "scaling_level_3": "Sc1", "rounds_result": 2, "reps_result": 12 },
+   { "member": "Sven",     "track": 1, "scaling_level": "Rx",  "weight_result": 16, "scaling_level_2": "Sc2", "scaling_level_3": "Sc2", "rounds_result": 3, "reps_result": 10 },
+   { "member": "Thomas",   "track": 1, "scaling_level": "Sc3", "weight_result": 12, "scaling_level_2": "Sc2", "scaling_level_3": "Sc2", "rounds_result": 3, "reps_result": 3 },
+   { "member": "Wayne",    "track": 1, "weight_result": 20, "scaling_level_2": "Rx", "scaling_level_3": "Sc2", "rounds_result": 4, "reps_result": 4, "modified": true, "modified_note": "Skater squat instead of pistol" }
+  ] },
+  { "date": "2026-10-12", "time": "18:30", "sectionId": "section-1791713480355-4", "rows": [
+   { "member": "Anfisa",   "track": 1, "scaling_level": "Sc3", "weight_result": 8,  "scaling_level_2": "Sc2", "scaling_level_3": "Sc2", "rounds_result": 3, "reps_result": 24 },
+   { "member": "Anneke",   "track": 1, "scaling_level": "Sc2", "weight_result": 16, "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 2, "reps_result": 94 },
+   { "member": "Carla",    "track": 1, "scaling_level": "Sc3", "weight_result": 12, "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 2, "reps_result": 104 },
+   { "member": "Lena",     "track": 1, "scaling_level": "Sc1", "weight_result": 16, "scaling_level_2": "Sc1", "scaling_level_3": "Sc1", "rounds_result": 3, "reps_result": 26 },
+   { "member": "Markus",   "track": 1, "scaling_level": "Sc1", "weight_result": 16, "scaling_level_2": "Sc1", "scaling_level_3": "Sc1", "rounds_result": 2, "reps_result": 54 },
+   { "member": "Paul",     "track": 1, "scaling_level": "Sc2", "weight_result": 24, "scaling_level_2": "Sc1", "scaling_level_3": "Sc1", "rounds_result": 2, "reps_result": 12 },
+   { "member": "Thomas",   "track": 1, "scaling_level": "Sc1", "weight_result": 20, "scaling_level_2": "Sc1", "scaling_level_3": "Sc1", "rounds_result": 3, "reps_result": 3 },
+   { "member": "Tobias",   "track": 1, "scaling_level": "Rx",  "weight_result": 24, "scaling_level_2": "Sc1", "scaling_level_3": "Rx",  "rounds_result": 2, "reps_result": 63 }
+  ] },
+  { "date": "2026-10-13", "time": "18:30", "sectionId": "section-1791713480355-4", "rows": [
+   { "member": "Amelie",    "track": 1, "scaling_level": "Sc2", "weight_result": 8,  "scaling_level_2": "Rx",  "scaling_level_3": "Sc3", "rounds_result": 4, "reps_result": 12 },
+   { "member": "Annerose",  "track": 2, "scaling_level": "Sc2", "weight_result": 8,  "scaling_level_2": "Sc3", "scaling_level_3": "Sc3", "rounds_result": 3, "reps_result": 27 },
+   { "member": "Jolanda",   "track": 2, "scaling_level": "Sc2", "weight_result": 6,  "scaling_level_2": "Sc3", "scaling_level_3": "Sc3", "rounds_result": 3, "reps_result": 24 },
+   { "member": "Julia",     "track": 2, "scaling_level": "Sc2", "weight_result": 8,  "scaling_level_2": "Sc3", "scaling_level_3": "Sc3", "rounds_result": 3, "reps_result": 34 },
+   { "member": "Magdalena", "track": 2, "scaling_level": "Sc2", "weight_result": 6,  "scaling_level_2": "Sc3", "scaling_level_3": "Sc3", "rounds_result": 3, "reps_result": 0 },
+   { "member": "Martina",   "track": 2, "scaling_level": "Sc2", "weight_result": 12, "scaling_level_2": "Sc3", "scaling_level_3": "Sc3", "rounds_result": 4, "reps_result": 6, "book": true },
+   { "member": "Nicole",    "track": 2, "scaling_level": "Sc2", "weight_result": 8,  "scaling_level_2": "Sc3", "scaling_level_3": "Sc3", "rounds_result": 3, "reps_result": 25 },
+   { "member": "Toni",      "track": 2, "scaling_level": "Sc2", "weight_result": 8,  "scaling_level_2": "Sc3", "scaling_level_3": "Sc3", "rounds_result": 3, "reps_result": 54 },
+   { "member": "Bodo",      "track": 2, "scaling_level": "Sc2", "weight_result": 16, "scaling_level_2": "Sc3", "scaling_level_3": "Sc3", "rounds_result": 3, "reps_result": 52 },
+   { "member": "Christian", "track": 1, "scaling_level": "Sc2", "weight_result": 16, "scaling_level_2": "Sc3", "scaling_level_3": "Rx",  "rounds_result": 4, "reps_result": 0 },
+   { "member": "Michael",   "track": 2, "scaling_level": "Sc2", "weight_result": 12, "scaling_level_2": "Sc3", "scaling_level_3": "Rx",  "rounds_result": 3, "reps_result": 18 },
+   { "member": "Stefan",    "track": 2, "scaling_level": "Sc2", "weight_result": 16, "scaling_level_2": "Sc3", "scaling_level_3": "Rx",  "rounds_result": 4, "reps_result": 18 }
+  ] }
+ ]
+}
