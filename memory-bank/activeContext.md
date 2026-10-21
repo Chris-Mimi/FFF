@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 290
-**Updated:** 2026-10-21 (Session 421 — Opus 5.5. **Week 42 whiteboard complete (90 WSR, 9 sessions). Windows PC caught up with the Mac (acceptEdits, Claude settings, `.env.local`, memory notes). NEW Toolkit → Split Times tab (pacing_tasks/pacing_scores): fastest/median/slowest from Rx only, round + place-in-round freshness, time-cap helper built on the fastest, one-workout entry form + bulk edit; Aids "Endurance scores" note imported (13 tasks, 107 scores).**)
+**Version:** 291
+**Updated:** 2026-10-21 (Session 422 — Opus 5.5, Windows PC. **Booking Rules: morning-lock exceptions by evening (Sunday later for the weekly release); configurable workout reveal time + exceptions by day (was hard-coded 2 h) and the Leaderboard no longer shows upcoming workouts early; rarely used sections fold away. PC git remote → Chris-Mimi/FFF. Permission prompts traced to compound commands → one-command rule.**)
+
+<!-- Older S421: 2026-10-21 (Session 421 — Opus 5.5. **Week 42 whiteboard complete (90 WSR, 9 sessions). Windows PC caught up with the Mac (acceptEdits, Claude settings, `.env.local`, memory notes). NEW Toolkit → Split Times tab (pacing_tasks/pacing_scores): fastest/median/slowest from Rx only, round + place-in-round freshness, time-cap helper built on the fastest, one-workout entry form + bulk edit; Aids "Endurance scores" note imported (13 tasks, 107 scores).**) -->
 
 <!-- Older S420: 2026-10-17 (Session 420 — Opus 5.5. **Week 41 whiteboard finished (167 WSR + 21 Good Morning lift entries) + Week 42.2 (14.10 09:30 Snatch). Score save no longer rejects load totals > 500 kg (+ toast shows the reason). Whiteboard tab week dropdown + 53-week fix. Benchmark card icons always visible. German pushes verified.**) -->
 
@@ -149,7 +151,13 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S421 (2026-10-17→18) — first action: ask Chris how Split Times looks live** (Toolkit → Split Times; commits `538178c` → `e1571a7`). He was about to set Round / Place on the imported scores via the new tick-box bulk edit.
+**S422 (2026-10-21, PC) — first action: ask Chris (a) is Sunday's evening exception meant to be 21:00 (DB has `{"0":"21:00:00"}`; we discussed 20:00), (b) did the Leaderboard check pass on Athlete Test 1** (a later-this-week published workout must not be listed until its reveal time).
+- **Booking rules now has two per-day maps** in `booking_rules`: `morning_lock_time_by_day` (key = JS getDay of the LOCK EVENING, value `HH:MM:SS`) and `workout_reveal_minutes_by_day` (key = getDay of the CLASS day, value minutes) + `workout_reveal_minutes` (default 120). Missing key = default. Migrations `20261021000000` + `…01` (Chris ran both). Helpers in `lib/bookingRules.ts`: `sessionAutoLockInstant` (reads the evening map) and `workoutRevealInstant` / `loadWorkoutRevealConfig` (Workouts tab, Logbook, Leaderboard).
+- **Deploy order for new `booking_rules` columns: SQL first, then push.** `getBookingRules()` selects a fixed column list; a missing column → error → silent fallback to `DEFAULT_BOOKING_RULES` (morning lock OFF).
+- **One plain command per tool call** — compound commands (`;`, `&&`, `$(…)`, `>`) caused 7 prompts on the PC; single commands didn't. Rule in claude-rules + session-start file. Reads of `~/.claude/**` now allowed in project settings.
+- PC remote is now `https://github.com/Chris-Mimi/FFF.git`. **Mac not checked** — run `git remote -v` there next Mac session; if it's Percepto25/FFF, `git remote set-url origin https://github.com/Chris-Mimi/FFF.git`.
+
+**S421 (2026-10-17→18) — still open: ask Chris how Split Times looks live** (Toolkit → Split Times; commits `538178c` → `e1571a7`). He was about to set Round / Place on the imported scores via the new tick-box bulk edit.
 - **Tables:** `pacing_tasks` (exercise_id + movement name snapshot, amount OR amount_female/male, category, note) and `pacing_scores` (member_id OR legacy_name, time_seconds, round_phase first/middle/last/single, round_place first/middle/last, scaling, score_date, note). Coach-only RLS (anon read = 0 verified). Old `position` column kept but unused. Migrations `20261018000000` + `…01` (both run by Chris; force-added because `*.sql` is gitignored).
 - **Chris's rules:** athletes = members only (5 ex-athletes kept as `legacy_name` "(ex)" until he deletes them); stats + time cap from **Rx only** (unmarked = Rx; scaled listed below in grey); time cap = **fastest** + transitions + adjustable margin (CrossFit programs for the fastest); dates matter (date link → `/coach?date=`).
 - **Name map used for the import** (`scripts/import-pacing-from-note.ts`): Amelie → Amelie Kirch (not Krautwald; Anna Krautwald = whiteboard "AnnaKr", a different person — nothing to rename), Lena → Jähn, MichiS → Michael Städele, Dani → Daniela Simm, Franzi → Franziska Herndorf, Niko → Nikolina Vlasalija, Dimi → Dimitar Peresyov.
@@ -307,6 +315,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 422 (2026-10-21 — Opus 5.5, Windows PC) — BOOKING RULES: EVENING EXCEPTIONS + WORKOUT REVEAL TIME (all pushed, build exit 0)**
+- Morning lock: per-evening exceptions (`83047fc`) — Sunday stays later so Wellpass-restricted members (release 15:00 + 180 min = 18:00) can still book Monday mornings.
+- Workout reveal: was hard-coded 2 h in two athlete files; now a setting + per-day exceptions. Leaderboard listed every published workout of the week incl. future days with full section text → now hidden until reveal time.
+- Admin → Booking Rules: session-type lead times, evening exceptions and day exceptions fold away with a "(N set)" count.
+- PC: stale Synology copies reset to origin; remote → Chris-Mimi/FFF; one-command rule; `Read(~/.claude/**)` allowed.
+
 **Session 421 (2026-10-17→18 — Opus 5.5) — PC CATCH-UP + NEW SPLIT TIMES TAB (all pushed, build exit 0)**
 - Windows PC matched to the Mac: acceptEdits, `~/.claude/settings.json`, `.env.local` (was 3/18 keys), 42 memory notes via a Synology transfer folder (AI Development level — root doesn't sync). Session-start file: no `cd … &&` chains (they always prompt).
 - NEW Toolkit → **Split Times** (`components/coach/PacingTab.tsx`): task cards with fastest/median/slowest (Rx only), freshness dots (round + place in round), ♀/♂ split amounts, date → calendar link, time-cap helper (fastest + transitions + margin).
@@ -335,11 +349,7 @@ Athlete Tools
 - Coach Remove promotes waitlist (`d76e5d1`); Members → Subscriptions €8/€10/yearly + cash totals (`402912c`); 10-card cash-renewal help (`201df0e`).
 - Fixes: Library edit form reset (`0f8c115`), athlete filter jump (`61377c1`). Custom Movements groups filled (+4 groups, +102 list entries).
 
-**Session 417 (2026-10-07→08 — Opus 5.5) — GOOD MORNING DUPLICATE + PENDLAY ACCUMULATED LOADS**
-- Good Morning display names swapped, new lift "Barbell Good Morning", unique-name index + toast (`5df1b73`).
-- Pendlay Row 29.05 totals had become Lifts entries — 6 deleted; Chris swapped lift→exercise on 4 copies.
-
-**Older sessions (57-416):** See `project-history/` folder.
+**Older sessions (57-417):** See `project-history/` folder.
 
 ---
 
@@ -371,6 +381,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+1. **S422 — Booking Rules:** confirm Sunday evening 21:00 vs 20:00; Leaderboard reveal check on Athlete Test 1; Mac `git remote -v` → Chris-Mimi/FFF.
 1. **S421 — Split Times:** ask Chris how it works live; remind him he can delete the 5 "(ex)" scores when he has newer data.
 1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
 1. **S420 — ask Chris:** did the 30.09 Snatch scaling reasons (Steven, Christian, Thomas G) save after `6ff1f79`? Whiteboard dropdown + benchmark icons OK on his phone?

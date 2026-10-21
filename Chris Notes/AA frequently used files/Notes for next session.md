@@ -19,6 +19,7 @@ http://192.168.178.75:3000
 * Some members who are parked are still showing up in the Athletes list on Workouts page.
 * Bear Crawl chase around the ring (battle rope), WB Squat Carries
 * Kids 1.7, 27.7 31.7 needs exercises
+* You asked me aboutthe Bash command again! PC
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
 * 
@@ -32,20 +33,19 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * Clicking on 10-card should open the 10-card modal in Members
 * Ask Claude about Ionos web hosting etc
 * Bench Press we did last in Week 38 but it doesn't show up in the Planner in Upper Body Horizontal Press
-* Pendlay Row in my app: May 29 2026 220kg was an accumulated score but it went in the app as a 5rm
-* Lenny's mum (mausibrueckner) has Lenny as her login name
-* Whiteboard protocol for 2026 Week 42.2 I added another 2 workouts scores from 14.10 17.15 & 18.30. The barbells obscure the names at the bottom: Anfisa, Anneke, Julia, Paul, ThomasG, ThomasS, Senol. 
+* 
+* 
+* 
 * 
 
 
 * At-Risk put the list in order from most recent to least recent attendance
-* Weekend WOD #26.2 not done by selected first showed correctly then did not appear
+* 
 * Michi asked about a way to search past workouts in the AThlete App
 
 
 * One thing I'd flag for later (not now): the parallel-session "move" still loses the athlete's whiteboard score for that day (the re-add doesn't carry it over) — only their PR is now safe. A proper one-click "move booking that keeps the score" is the real cure, but that's a feature, not a bug fix. Want me to note it in the memory bank for a future session? - I don't understand, explain in simple terms.
-* Macbook still has internet problem at the box. Old Macbook Pro works fine.
-Script works. Baseline + a sample capture both saved to ~/mac-incident-data/.
+* 
 
 When the problem next happens — here's exactly what to do:
 
