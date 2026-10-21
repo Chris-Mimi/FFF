@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 291
-**Updated:** 2026-10-21 (Session 422 — Opus 5.5, Windows PC. **Booking Rules: morning-lock exceptions by evening (Sunday later for the weekly release); configurable workout reveal time + exceptions by day (was hard-coded 2 h) and the Leaderboard no longer shows upcoming workouts early; rarely used sections fold away. PC git remote → Chris-Mimi/FFF. Permission prompts traced to compound commands → one-command rule.**)
+**Version:** 292
+**Updated:** 2026-10-21 (Session 423 — Opus 5.5, Mac. **Whiteboard Week 43.1 (FS 5RM + AMRAP, 5 sessions, 76 WSR + 36 lift entries) + 43.2 (19.10 10:00 endurance repeat, 8 WSR). Exercise renamed "Handstand 2-Footed Kick-Up" → "Handstand Kick-Up: 2-Footed" in library + 10 wods. Chris's stray FS 5RM 12 kg deleted. S420–S422 carry-overs all closed.**)
+
+<!-- Older S422: 2026-10-21 (Session 422 — Opus 5.5, Windows PC. **Booking Rules: morning-lock exceptions by evening (Sunday later for the weekly release); configurable workout reveal time + exceptions by day (was hard-coded 2 h) and the Leaderboard no longer shows upcoming workouts early; rarely used sections fold away. PC git remote → Chris-Mimi/FFF. Permission prompts traced to compound commands → one-command rule.**) -->
 
 <!-- Older S421: 2026-10-21 (Session 421 — Opus 5.5. **Week 42 whiteboard complete (90 WSR, 9 sessions). Windows PC caught up with the Mac (acceptEdits, Claude settings, `.env.local`, memory notes). NEW Toolkit → Split Times tab (pacing_tasks/pacing_scores): fastest/median/slowest from Rx only, round + place-in-round freshness, time-cap helper built on the fastest, one-workout entry form + bulk edit; Aids "Endurance scores" note imported (13 tasks, 107 scores).**) -->
 
@@ -150,6 +152,13 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 ## ⚡ Next Session Kickoff
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
+
+**S423 (2026-10-21, Mac) — first action: Week 43 boards from 21.10 17:15 onward** (43.1 + 43.2 done). Chris is checking 43.1's big 5RM jumps himself (Carmine 80→105, Julia 17.5→30, Susi 35→47.5) — don't chase.
+- **Parity check now shows 1 expected flag:** Martina Fenster 20.10 FS 5RM 35 kg = half squat, `modified` + no Lifts entry on purpose. Anything else is new.
+- **Week 43.1 metcon (all 5 FS wods):** Chris had left scoring fields off → switched on load/scaling/scaling_2/rounds_reps and tagged the Ham Curl lines "(Scaling 2)". DB "Rx" = 15/22.5.
+- **Never flag 1-vs-7 in a board report** (Chris: his 7s are always crossed). Protocol updated.
+- `whiteboard-preflight.ts --full` prints section text untruncated (needed to read scaling notes).
+- Exercise rename pattern: `scripts/rename-handstand-kick-up.ts` — renames `display_name` (slug `name` kept so links survive), rewrites wod text, and refuses to write unless the Planner detector's old-vs-new diff is exactly the name swap. Reuse for the next rename.
 
 **S422 (2026-10-21, PC) — ✅ closed S423 (Mac):** Sunday evening exception **21:00 is intended** (DB `{"0":"21:00:00"}` correct); Leaderboard reveal check passed; Mac remote already `Chris-Mimi/FFF`.
 - **Booking rules now has two per-day maps** in `booking_rules`: `morning_lock_time_by_day` (key = JS getDay of the LOCK EVENING, value `HH:MM:SS`) and `workout_reveal_minutes_by_day` (key = getDay of the CLASS day, value minutes) + `workout_reveal_minutes` (default 120). Missing key = default. Migrations `20261021000000` + `…01` (Chris ran both). Helpers in `lib/bookingRules.ts`: `sessionAutoLockInstant` (reads the evening map) and `workoutRevealInstant` / `loadWorkoutRevealConfig` (Workouts tab, Logbook, Leaderboard).
@@ -315,6 +324,13 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 423 (2026-10-21 — Opus 5.5, Mac) — WEEK 43.1–43.2 WHITEBOARD, EXERCISE RENAME, CARRY-OVERS CLOSED (all pushed, build exit 0)**
+- Mac: 9 Synology ghost-modified files (empty diff) restored; remote already Chris-Mimi/FFF. S420–S422 checks confirmed; Sunday evening lock 21:00 intended.
+- Week 43.1: FS 5RM + 12-min AMRAP across 19.10 17:15/18:30, 20.10 17:15/18:30, 21.10 09:30 — 76 WSR + 36 lift entries; metcon fields switched on + Ham Curl "(Scaling 2)"; Anfisa booked.
+- Week 43.2: 19.10 10:00 repeat of the 17.10 endurance AMRAP, 8 WSR (R+R only; Chris added loads/scaling himself).
+- Deleted Chris's stray FS 5RM 12 kg (20.04 lift entry + its WSR — he wasn't booked in that class).
+- Renamed "Handstand 2-Footed Kick-Up" → "Handstand Kick-Up: 2-Footed" (library + 10 wods, Planner diff verified).
+
 **Session 422 (2026-10-21 — Opus 5.5, Windows PC) — BOOKING RULES: EVENING EXCEPTIONS + WORKOUT REVEAL TIME (all pushed, build exit 0)**
 - Morning lock: per-evening exceptions (`83047fc`) — Sunday stays later so Wellpass-restricted members (release 15:00 + 180 min = 18:00) can still book Monday mornings.
 - Workout reveal: was hard-coded 2 h in two athlete files; now a setting + per-day exceptions. Leaderboard listed every published workout of the week incl. future days with full section text → now hidden until reveal time.
@@ -342,14 +358,7 @@ Athlete Tools
 - Jan Huelbig: in-app 10-card payment blocked by Stripe's own risk filter — no charge, app correct; pending his retry or cash.
 - Chris confirmed all S418 / S416 / S415 live checks OK; Wellpass "Link member" button declined (I link directly).
 
-**Session 418 (2026-10-08→10 — Opus 5.5) — LIFT-ENTRY CLEANUP, WEEK 41, KIDS' PAGES, WELLPASS BADGES, SUBSCRIPTION TOTALS (all pushed, build exit 0)**
-- Lift entries: writer + parity cover non-RM; paused bench → exercise (22 deleted); C&J 5x5 duplicates (30 deleted); GitHub failure email confirmed. Week 41.1+41.2 (97 WSR).
-- Kids' coach-entered scores now reach athlete pages (`82cf768`, 8 backfilled). 25.09 09:00 scores recovered from the kept original wod.
-- Wellpass: sync folds umlauts (`0c63c84`); Session Management sign-in + credit badges (`edf3033`/`77fce4f`/`22b7b1e`).
-- Coach Remove promotes waitlist (`d76e5d1`); Members → Subscriptions €8/€10/yearly + cash totals (`402912c`); 10-card cash-renewal help (`201df0e`).
-- Fixes: Library edit form reset (`0f8c115`), athlete filter jump (`61377c1`). Custom Movements groups filled (+4 groups, +102 list entries).
-
-**Older sessions (57-417):** See `project-history/` folder.
+**Older sessions (57-418):** See `project-history/` folder.
 
 ---
 
@@ -382,7 +391,7 @@ Athlete Tools
 ## 📋 Next Immediate Steps
 
 1. ✅ **S422 Booking Rules, S421 Split Times, S420 checks, Week 42 eyeball — all confirmed by Chris (S423).** Sunday evening = 21:00 intended. Optional reminder: the 5 "(ex)" Split Times scores can go once he has newer data.
-1. **Whiteboard — Week 43 next** (when Chris sends photos).
+1. **Whiteboard — Week 43.1 + 43.2 done (S423); next = 21.10 17:15 onward** (when Chris uploads). He's checking the 43.1 5RM jumps (Carmine/Julia/Susi) himself.
 1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
 1. ✅ **S418, S416 and S415 live checks all confirmed OK by Chris (S419).**
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).
