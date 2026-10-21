@@ -1,0 +1,15 @@
+{
+ "note": "2026 Week 43.2 — 'Endurance from 17.10.26' repeated 19.10 10:00 (36-min AMRAP, R+R only). Board carries no DB load or scaling, so those are left blank.",
+ "sessions": [
+  { "date": "2026-10-19", "time": "10:00", "sectionId": "section-1791713491092-4", "rows": [
+   { "member": "Sven",     "rounds_result": 1, "reps_result": 186 },
+   { "member": "Lukas",    "rounds_result": 1, "reps_result": 180 },
+   { "member": "Michael",  "rounds_result": 2, "reps_result": 22 },
+   { "member": "Irene",    "rounds_result": 1, "reps_result": 113 },
+   { "member": "Sabrina",  "rounds_result": 1, "reps_result": 127 },
+   { "member": "Aline",    "rounds_result": 1, "reps_result": 48 },
+   { "member": "Lena",     "rounds_result": 2, "reps_result": 45 },
+   { "member": "Mimi",     "rounds_result": 2, "reps_result": 7 }
+  ] }
+ ]
+}
