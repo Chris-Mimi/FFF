@@ -7,6 +7,7 @@
  *   npx tsx scripts/whiteboard-preflight.ts 2026-08-16
  *   npx tsx scripts/whiteboard-preflight.ts 16.08.26 10:00
  *   npx tsx scripts/whiteboard-preflight.ts 2026-08-16 --photos
+ *   npx tsx scripts/whiteboard-preflight.ts 2026-08-16 17:15 --full   # untruncated section text
  *
  * Prints, per session that day: ids, the WOD, every section with its id +
  * scoring_fields + body text, the confirmed booking list, and whether scores
@@ -29,6 +30,7 @@ const db = createClient(
 );
 
 const WANT_PHOTOS = process.argv.includes('--photos');
+const FULL_BODY = process.argv.includes('--full'); // print section text untruncated
 const args = process.argv.slice(2).filter(a => !a.startsWith('--'));
 
 /** Accepts 2026-08-16, 16.08.26, 16.08.2026 or 16.08 (assumes current year). */
@@ -141,7 +143,7 @@ async function main() {
           (lifts.some(l => l.rm_test) ? '   ← RM day: needs lift_records too' : ''));
       }
       const body = String(sec.content ?? '').replace(/\n/g, ' / ').trim();
-      if (body) console.log(`        body: ${body.slice(0, 260)}${body.length > 260 ? '…' : ''}`);
+      if (body) console.log(`        body: ${FULL_BODY ? body : body.slice(0, 260) + (body.length > 260 ? '…' : '')}`);
     }
 
     // --- Bookings: the name-resolution source of truth ---
