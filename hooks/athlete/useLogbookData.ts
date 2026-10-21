@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { sessionStartInstant } from '@/lib/bookingRules';
+import { workoutRevealInstant, loadWorkoutRevealConfig } from '@/lib/bookingRules';
 import { formatLocalDate, getWeekDates, getMonthCalendarDays, WOD } from '@/utils/logbook-utils';
 
 interface UseLogbookDataProps {
@@ -46,6 +46,7 @@ async function filterUserWorkouts(
   wodsData: WodRow[],
   userId: string
 ): Promise<WOD[]> {
+  const revealCfg = await loadWorkoutRevealConfig();
   const userWorkouts = await Promise.all(
     wodsData.map(async (workout) => {
       // Get session for this workout (including time)
@@ -68,12 +69,9 @@ async function filterUserWorkouts(
 
       if (!booking) return null;
 
-      // Parse session datetime as Berlin wall-clock (not device-local) and subtract
-      // 2 hours to determine if workout details should be visible
-      const sessionDateTime = sessionStartInstant(workout.date, sessionData.time);
-      const twoHoursBeforeSession = new Date(sessionDateTime.getTime() - 2 * 60 * 60 * 1000);
-      const now = new Date();
-      const shouldShowDetails = now >= twoHoursBeforeSession;
+      // Details become visible at the reveal time set in Admin → Booking Rules
+      // (Berlin wall-clock session start minus the reveal minutes for that weekday)
+      const shouldShowDetails = new Date() >= workoutRevealInstant(workout.date, sessionData.time, revealCfg);
 
       return {
         ...workout,

@@ -13,6 +13,8 @@ export interface BookingRules {
   morning_cutoff_time: string;           // 'HH:MM:SS' — a session is "morning" if its start time is before this (Berlin wall clock)
   morning_lock_time: string;             // 'HH:MM:SS' — Berlin wall-clock time on the PREVIOUS day when morning sessions lock
   morning_lock_time_by_day: Record<string, string>; // per-evening exceptions: key = JS getDay of the lock evening ('0'=Sun), value 'HH:MM:SS'
+  workout_reveal_minutes: number;        // booked athletes see the workout this many minutes before class start
+  workout_reveal_minutes_by_day: Record<string, number>; // per-day exceptions: key = JS getDay of the CLASS day ('0'=Sun)
 }
 
 export const DEFAULT_BOOKING_RULES: BookingRules = {
@@ -28,9 +30,11 @@ export const DEFAULT_BOOKING_RULES: BookingRules = {
   morning_cutoff_time: '12:00:00',
   morning_lock_time: '20:00:00',
   morning_lock_time_by_day: {},
+  workout_reveal_minutes: 120,
+  workout_reveal_minutes_by_day: {},
 };
 
-const RULES_COLUMNS = 'ten_card_refund_hours, auto_lock_lead_minutes, max_bookings_per_day, max_bookings_per_week, advance_booking_days, next_week_release_day_of_week, next_week_release_time, wellpass_restricted_release_offset_minutes, morning_lock_enabled, morning_cutoff_time, morning_lock_time, morning_lock_time_by_day';
+const RULES_COLUMNS = 'ten_card_refund_hours, auto_lock_lead_minutes, max_bookings_per_day, max_bookings_per_week, advance_booking_days, next_week_release_day_of_week, next_week_release_time, wellpass_restricted_release_offset_minutes, morning_lock_enabled, morning_cutoff_time, morning_lock_time, morning_lock_time_by_day, workout_reveal_minutes, workout_reveal_minutes_by_day';
 
 function adminClient() {
   return createClient(
@@ -184,6 +188,46 @@ export function sessionAutoLockInstant(
     if (morningLockAt < lockAt) lockAt = morningLockAt;
   }
   return lockAt;
+}
+
+// When booked athletes get to see a published workout: workout_reveal_minutes before
+// class start, unless the class's weekday has its own value in workout_reveal_minutes_by_day.
+export interface WorkoutRevealConfig {
+  workout_reveal_minutes: number;
+  workout_reveal_minutes_by_day?: Record<string, number> | null;
+}
+
+export function workoutRevealInstant(dateStr: string, timeStr: string, cfg?: WorkoutRevealConfig | null): Date {
+  const start = sessionStartInstant(dateStr, timeStr);
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  const dow = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0)).getUTCDay();
+  const minutes =
+    cfg?.workout_reveal_minutes_by_day?.[String(dow)] ??
+    cfg?.workout_reveal_minutes ??
+    DEFAULT_BOOKING_RULES.workout_reveal_minutes;
+  return new Date(start.getTime() - minutes * 60_000);
+}
+
+// Browser-side: load the reveal config once per page load from the public rules
+// endpoint (no auth). Falls back to the default (120 min) if the fetch fails.
+let revealConfigPromise: Promise<WorkoutRevealConfig> | null = null;
+export function loadWorkoutRevealConfig(): Promise<WorkoutRevealConfig> {
+  if (!revealConfigPromise) {
+    const fallback: WorkoutRevealConfig = {
+      workout_reveal_minutes: DEFAULT_BOOKING_RULES.workout_reveal_minutes,
+      workout_reveal_minutes_by_day: {},
+    };
+    revealConfigPromise = fetch('/api/booking-rules/public')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => (d && typeof d.workout_reveal_minutes === 'number'
+        ? { workout_reveal_minutes: d.workout_reveal_minutes, workout_reveal_minutes_by_day: d.workout_reveal_minutes_by_day ?? {} }
+        : fallback))
+      .catch(() => {
+        revealConfigPromise = null; // retry on the next call
+        return fallback;
+      });
+  }
+  return revealConfigPromise;
 }
 
 // Returns the release instant for the user's tier in the current Berlin week,

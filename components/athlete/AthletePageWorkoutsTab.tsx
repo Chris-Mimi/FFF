@@ -2,7 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { authFetch } from '@/lib/auth-fetch';
-import { sessionStartInstant } from '@/lib/bookingRules';
+import { workoutRevealInstant, loadWorkoutRevealConfig } from '@/lib/bookingRules';
 import { ChevronLeft, ChevronRight, Image as ImageIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ConfiguredLift, ConfiguredBenchmark, ConfiguredForgeBenchmark } from '@/types/movements';
@@ -285,6 +285,8 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         return;
       }
 
+      const revealCfg = await loadWorkoutRevealConfig();
+
       // Transform bookings into workout display format (skip unpublished workouts)
       /* eslint-disable @typescript-eslint/no-explicit-any */
       const workoutsFromBookings = (bookings || []).filter((booking: any) => {
@@ -295,12 +297,9 @@ export default function AthletePageWorkoutsTab({ userId, initialDate, onDateChan
         const session = booking.weekly_sessions;
         const workout = session?.wods;
 
-        // Parse session datetime as Berlin wall-clock (not device-local) and subtract
-        // 2 hours to determine if workout details should be visible
-        const sessionDateTime = sessionStartInstant(session.date, session.time);
-        const twoHoursBeforeSession = new Date(sessionDateTime.getTime() - 2 * 60 * 60 * 1000);
-        const now = new Date();
-        const shouldShowDetails = now >= twoHoursBeforeSession;
+        // Details become visible at the reveal time set in Admin → Booking Rules
+        // (Berlin wall-clock session start minus the reveal minutes for that weekday)
+        const shouldShowDetails = new Date() >= workoutRevealInstant(session.date, session.time, revealCfg);
 
         return {
           id: workout?.id || `session-${session.id}`,

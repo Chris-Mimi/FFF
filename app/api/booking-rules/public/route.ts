@@ -19,5 +19,7 @@ export async function GET() {
     morning_cutoff_time: rules.morning_cutoff_time,
     morning_lock_time: rules.morning_lock_time,
     morning_lock_time_by_day: rules.morning_lock_time_by_day ?? {},
+    workout_reveal_minutes: rules.workout_reveal_minutes,
+    workout_reveal_minutes_by_day: rules.workout_reveal_minutes_by_day ?? {},
   });
 }

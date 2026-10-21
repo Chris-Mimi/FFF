@@ -21,6 +21,8 @@ type FormState = {
   morning_cutoff_time: string; // 'HH:MM' for the input
   morning_lock_time: string;   // 'HH:MM' for the input
   morning_lock_time_by_day: Record<string, string>; // '0'..'6' (lock evening) → 'HH:MM'; missing = default
+  workout_reveal_minutes: string;
+  workout_reveal_minutes_by_day: Record<string, number>; // '0'..'6' (class day) → minutes; missing = default
 };
 
 const DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -31,6 +33,19 @@ const LOCK_TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
   const mins = 12 * 60 + i * 30;
   return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
 });
+// Reveal-time choices for a per-day exception, in minutes before class.
+const REVEAL_OPTIONS = [0, 15, 30, 60, 90, 120, 180, 240, 360, 480, 720, 1440, 2880];
+const formatRevealMinutes = (m: number): string => {
+  if (m === 0) return 'At class start';
+  if (m % 1440 === 0) return `${m / 1440} day${m === 1440 ? '' : 's'} before`;
+  if (m >= 60 && m % 60 === 0) return `${m / 60} h before`;
+  if (m > 60) return `${Math.floor(m / 60)} h ${m % 60} min before`;
+  return `${m} min before`;
+};
+
+const SUMMARY_CLASS = 'cursor-pointer select-none text-sm font-medium text-gray-700';
+const setCount = (n: number) =>
+  n > 0 ? <span className='ml-1 text-[#178da6]'>({n} set)</span> : null;
 
 type PerTypeRow = { session_type: string; value: string };
 
@@ -49,6 +64,8 @@ const toForm = (r: BookingRules): FormState => ({
   morning_lock_time_by_day: Object.fromEntries(
     Object.entries(r.morning_lock_time_by_day ?? {}).map(([day, t]) => [day, t.slice(0, 5)])
   ),
+  workout_reveal_minutes: String(r.workout_reveal_minutes ?? 120),
+  workout_reveal_minutes_by_day: { ...(r.workout_reveal_minutes_by_day ?? {}) },
 });
 
 const parseInput = (s: string, nullable: boolean): number | null | 'invalid' => {
@@ -111,6 +128,7 @@ export default function BookingRulesPage() {
       max_bookings_per_week: parseInput(form.max_bookings_per_week, true),
       advance_booking_days: parseInput(form.advance_booking_days, true),
       wellpass_restricted_release_offset_minutes: parseInput(form.wellpass_restricted_release_offset_minutes, false),
+      workout_reveal_minutes: parseInput(form.workout_reveal_minutes, false),
     };
 
     const invalid = Object.entries(parsed).filter(([, v]) => v === 'invalid').map(([k]) => k);
@@ -173,6 +191,7 @@ export default function BookingRulesPage() {
             morning_cutoff_time: form.morning_cutoff_time,
             morning_lock_time: form.morning_lock_time,
             morning_lock_time_by_day: form.morning_lock_time_by_day,
+            workout_reveal_minutes_by_day: form.workout_reveal_minutes_by_day,
           }),
         }),
         authFetch('/api/admin/booking-rules/session-types', {
@@ -269,11 +288,12 @@ export default function BookingRulesPage() {
             'Used when no per-workout-type override is set below. 0 = locks at class start.'
           )}
 
-          <div className='mb-5 border-t pt-5'>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>
+          <details className='mb-5 border-t pt-5'>
+            <summary className={SUMMARY_CLASS}>
               Auto-lock lead time by session type
-            </label>
-            <p className='text-xs text-gray-500 mb-3'>
+              {setCount(perType.filter((r) => r.value.trim() !== '').length)}
+            </summary>
+            <p className='text-xs text-gray-500 mt-2 mb-3'>
               Override the default for specific session types (WOD, Foundations, Kids & Teens, etc.). Leave blank to use the default above.
             </p>
             {perType.length === 0 ? (
@@ -300,7 +320,7 @@ export default function BookingRulesPage() {
                 ))}
               </div>
             )}
-          </div>
+          </details>
 
           <div className='mb-5 border-t pt-5'>
             <label className='flex items-center gap-2 text-sm font-medium text-gray-700 mb-1 cursor-pointer'>
@@ -340,9 +360,12 @@ export default function BookingRulesPage() {
                 <span className='text-sm text-gray-500'>booking closes at this time the day before</span>
               </div>
 
-              <div className='pt-3'>
-                <span className='block text-sm text-gray-700 mb-1'>Exceptions by evening</span>
-                <p className='text-xs text-gray-500 mb-2'>
+              <details className='pt-3'>
+                <summary className={SUMMARY_CLASS}>
+                  Exceptions by evening
+                  {setCount(Object.keys(form.morning_lock_time_by_day).length)}
+                </summary>
+                <p className='text-xs text-gray-500 mt-2 mb-2'>
                   Pick a different lock time for a particular evening, e.g. Sunday 20:00 when the
                   weekly schedule is released. &ldquo;Default&rdquo; follows the lock time above.
                 </p>
@@ -380,8 +403,73 @@ export default function BookingRulesPage() {
                     );
                   })}
                 </div>
-              </div>
+              </details>
             </div>
+          </div>
+
+          <div className='mb-5 border-t pt-5'>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Show workout to booked athletes
+            </label>
+            <p className='text-xs text-gray-500 mb-3'>
+              Athletes who booked a class see its published workout (Workouts tab, Logbook and
+              Leaderboard) this long before the class starts. Until then it stays hidden.
+            </p>
+            <div className='flex items-center gap-2'>
+              <input
+                type='number'
+                min={0}
+                value={form.workout_reveal_minutes}
+                onChange={(e) => setForm({ ...form, workout_reveal_minutes: e.target.value })}
+                className='w-40 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
+              />
+              <span className='text-sm text-gray-500'>minutes before class (120 = 2 hours)</span>
+            </div>
+
+            <details className='pt-3'>
+              <summary className={SUMMARY_CLASS}>
+                Exceptions by day
+                {setCount(Object.keys(form.workout_reveal_minutes_by_day).length)}
+              </summary>
+              <p className='text-xs text-gray-500 mt-2 mb-2'>
+                Pick a different time for classes on a particular day. &ldquo;Default&rdquo;
+                follows the setting above.
+              </p>
+              <div className='space-y-1.5'>
+                {EVENING_ORDER.map((dow) => {
+                  const key = String(dow);
+                  const value = form.workout_reveal_minutes_by_day[key];
+                  const options = value !== undefined && !REVEAL_OPTIONS.includes(value)
+                    ? [...REVEAL_OPTIONS, value].sort((a, b) => a - b)
+                    : REVEAL_OPTIONS;
+                  const defaultMins = Number(form.workout_reveal_minutes);
+                  return (
+                    <div key={dow} className='flex flex-wrap items-center gap-2'>
+                      <span className='w-56 text-sm text-gray-700'>{DAY_LABELS[dow]} classes</span>
+                      <select
+                        value={value === undefined ? '' : String(value)}
+                        onChange={(e) => {
+                          const next = { ...form.workout_reveal_minutes_by_day };
+                          if (e.target.value === '') delete next[key];
+                          else next[key] = Number(e.target.value);
+                          setForm({ ...form, workout_reveal_minutes_by_day: next });
+                        }}
+                        className={`w-52 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] ${
+                          value !== undefined ? 'border-[#178da6] text-[#178da6] font-medium' : 'border-gray-300 text-gray-500'
+                        }`}
+                      >
+                        <option value=''>
+                          Default ({Number.isInteger(defaultMins) && defaultMins >= 0 ? formatRevealMinutes(defaultMins) : '—'})
+                        </option>
+                        {options.map((m) => (
+                          <option key={m} value={m}>{formatRevealMinutes(m)}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })}
+              </div>
+            </details>
           </div>
 
           {field(

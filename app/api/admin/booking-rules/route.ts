@@ -86,6 +86,25 @@ export async function PUT(request: NextRequest) {
     return null;
   };
 
+  // Per-day workout-reveal exceptions: { '0'..'6': minutes }. A day left out = use workout_reveal_minutes.
+  const validateRevealByDay = (): string | null => {
+    if (!('workout_reveal_minutes_by_day' in body)) return null;
+    const v = body.workout_reveal_minutes_by_day;
+    if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+      return 'workout_reveal_minutes_by_day must be an object';
+    }
+    const clean: Record<string, number> = {};
+    for (const [day, mins] of Object.entries(v)) {
+      if (!/^[0-6]$/.test(day)) return 'workout_reveal_minutes_by_day keys must be 0-6';
+      if (typeof mins !== 'number' || !Number.isInteger(mins) || mins < 0) {
+        return 'workout_reveal_minutes_by_day values must be integers >= 0';
+      }
+      clean[day] = mins;
+    }
+    patch.workout_reveal_minutes_by_day = clean;
+    return null;
+  };
+
   const errors = [
     intField('ten_card_refund_hours'),
     intField('auto_lock_lead_minutes'),
@@ -93,8 +112,10 @@ export async function PUT(request: NextRequest) {
     intField('max_bookings_per_week', 1, true),
     intField('advance_booking_days', 1, true),
     intField('wellpass_restricted_release_offset_minutes'),
+    intField('workout_reveal_minutes'),
     validateRelease(),
     validateMorningLock(),
+    validateRevealByDay(),
   ].filter(Boolean);
 
   if (errors.length > 0) {

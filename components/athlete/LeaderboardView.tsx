@@ -20,6 +20,7 @@ import {
   type RawSectionResult,
   type RawLiftResult,
 } from '@/utils/leaderboard-utils';
+import { workoutRevealInstant, loadWorkoutRevealConfig } from '@/lib/bookingRules';
 
 interface ScoringFields {
   time?: boolean;
@@ -500,16 +501,27 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
 
   // Fetch published WODs for the selected week (Mon-Sun)
   const loadWods = useCallback(async () => {
-    const { data } = await supabase
-      .from('wods')
-      .select('id, date, title, workout_name, session_type, sections, weekly_sessions!inner(id)')
-      .gte('date', mondayStr)
-      .lte('date', sundayStr)
-      .eq('is_published', true)
-      // Private events are never visible to athletes, regardless of status — exclude their
-      // sessions from the inner join so the workout drops off the leaderboard (S399/S402).
-      .neq('weekly_sessions.is_private', true)
-      .order('date', { ascending: true });
+    const [{ data }, revealCfg] = await Promise.all([
+      supabase
+        .from('wods')
+        .select('id, date, title, workout_name, session_type, sections, weekly_sessions!inner(id, date, time)')
+        .gte('date', mondayStr)
+        .lte('date', sundayStr)
+        .eq('is_published', true)
+        // Private events are never visible to athletes, regardless of status — exclude their
+        // sessions from the inner join so the workout drops off the leaderboard (S399/S402).
+        .neq('weekly_sessions.is_private', true)
+        .order('date', { ascending: true }),
+      loadWorkoutRevealConfig(),
+    ]);
+
+    // Workouts stay off the leaderboard until their earliest class reaches the reveal time
+    // (Admin → Booking Rules) — the section text shown here would otherwise give it away early.
+    const nowMs = Date.now();
+    const revealed = ((data || []) as Array<WodData & { weekly_sessions?: { date: string; time: string }[] }>)
+      .filter(w => (w.weekly_sessions || []).some(s =>
+        s.date && s.time && workoutRevealInstant(s.date, s.time, revealCfg).getTime() <= nowMs
+      ));
 
     // Deduplicate WODs by workout_name ONLY (e.g., same workout at 17:15 and 18:30, or the
     // same workout run as both "WOD" and "Foundations" in one week). The session label
@@ -524,7 +536,7 @@ function WodLeaderboard({ userId, initialDate, onDateChange }: { userId: string;
     // notes there. Two identical-but-cloned sessions used to break ties non-deterministically.
     const totalContentLength = (w: WodData) =>
       w.sections.reduce((sum, s) => sum + (s.content?.length || 0), 0);
-    const allWods = (data || []) as WodData[];
+    const allWods = revealed as WodData[];
     const groups = new Map<string, { best: WodData; bestCount: number; bestContentLen: number; allIds: string[] }>();
     for (const w of allWods) {
       const trimmedName = (w.workout_name || '').trim();
