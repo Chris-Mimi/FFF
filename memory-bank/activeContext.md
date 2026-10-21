@@ -1,7 +1,7 @@
 # Active Context
 
 **Version:** 290
-**Updated:** 2026-10-18 (Session 421 — Opus 5.5. **Windows PC caught up with the Mac (acceptEdits, Claude settings, `.env.local`, memory notes). NEW Toolkit → Split Times tab (pacing_tasks/pacing_scores): fastest/median/slowest from Rx only, round + place-in-round freshness, time-cap helper built on the fastest, one-workout entry form + bulk edit; Aids "Endurance scores" note imported (13 tasks, 107 scores).**)
+**Updated:** 2026-10-21 (Session 421 — Opus 5.5. **Week 42 whiteboard complete (90 WSR, 9 sessions). Windows PC caught up with the Mac (acceptEdits, Claude settings, `.env.local`, memory notes). NEW Toolkit → Split Times tab (pacing_tasks/pacing_scores): fastest/median/slowest from Rx only, round + place-in-round freshness, time-cap helper built on the fastest, one-workout entry form + bulk edit; Aids "Endurance scores" note imported (13 tasks, 107 scores).**)
 
 <!-- Older S420: 2026-10-17 (Session 420 — Opus 5.5. **Week 41 whiteboard finished (167 WSR + 21 Good Morning lift entries) + Week 42.2 (14.10 09:30 Snatch). Score save no longer rejects load totals > 500 kg (+ toast shows the reason). Whiteboard tab week dropdown + 53-week fix. Benchmark card icons always visible. German pushes verified.**) -->
 
@@ -156,11 +156,14 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - **Bear Crawl task** uses "Bear Crawl Forwards" (no plain Bear Crawl in the library) — Chris may change it.
 - **Windows PC is set up** — see the ✅ line below. Work on one machine at a time.
 
+**Week 42 whiteboard (S421) — Chris to eyeball (written first, report given):** Justine + Sole 18.10 pull-up "Sc" → Sc3; Sabrina 12.10 smiley → "Did not count"; Wayne 12.10 "Skater!" → no pistol scaling + note; Irene 16.10 single "Rx" → SB 15 + push-up Rx; Anja 16.10 third AMRAP 48 (or 43); 14.10 capped times + notes (Anfisa 35:00, no note). Booked in: Martina 13.10 18:30, Chris 17.10 10:00. Booked but not on a board: Martina 14.10 18:30, Bettina Krämer 17.10. 18.10 11:00 trials **AnnaM + Ferdy** = whiteboard rows (I first booked Anna Maria Baur by mistake — undone; protocol now says check trial names before booking).
+- **14.10 18:30 was re-aligned to 17:15 by Chris after I wrote it** (Load 2 switched off → lunge weights wiped) → restored into Load 1. If a session's load fields differ from its sibling's, expect Chris to align them.
+
 **S420 carry-over (not yet asked):**
 1. **Score save > 500 kg (`6ff1f79`):** Snatch EMOM totals (reps × kg summed) were rejected by the save route's 500 kg cap, and because the modal saves the whole session, ONE total blocked every edit (Chris couldn't add scaling reasons for Steven/Christian/Thomas G on 30.09). Cap now 10,000 kg in `app/api/score-entry/save/route.ts` (Lifts entries keep 500 in `/api/lift-records`); failure toast now shows the server's reason. **Ask Chris: did the three 30.09 reasons save?**
 2. **Whiteboard week dropdown (`bb42ec2`):** week label = select of every week with photos (newest first, photo count) via paged `GET /api/whiteboard-photos?summary=1`; Prev/Next step via the ISO Thursday so **2026-W53 (28.12–03.01) is no longer skipped**.
 3. **Benchmark card icons (`99cf0cc`):** edit/delete were hover-only → invisible on touch; now always visible (Benchmarks + Forge Benchmarks).
-- **Whiteboard:** Week 41 complete; Week 42 has only 42.2 (14.10 09:30) entered. Next boards = rest of Week 42. Boards `boards/2026-W41-part2/3.json`, `boards/2026-W42-2.json`.
+- **Whiteboard:** Week 42 complete (S421). Next = Week 43 boards.
 - ✅ German pushes verified from `notification_log` (10 "Buchung bestätigt" since deploy). **Not translated:** `components/ui/NotificationPrompt.tsx` preference labels + non-10-card booking messages.
 
 **Planner "last programmed" fix (S419):** Bench Press showed 22.07 instead of 16.09. `addKnownMovements` in [utils/movement-extraction.ts](utils/movement-extraction.ts) dropped a short name whenever a longer name containing it was on the same line ("Bench Press superset with DB Bench Press" → only DB Bench Press). Now judged per position. Old-vs-new over all 632 sessions: 22 sessions gain a movement, none lose one (Burpee ×2, Bar Hanging Knee Raise ×2, Clean, Power Clean, Rope Climb, GHD Hip Extension, Bench Press). Chris to glance at "KB Basics: Clean & Press" now counting a plain Clean.
@@ -309,6 +312,7 @@ Athlete Tools
 - NEW Toolkit → **Split Times** (`components/coach/PacingTab.tsx`): task cards with fastest/median/slowest (Rx only), freshness dots (round + place in round), ♀/♂ split amounts, date → calendar link, time-cap helper (fastest + transitions + margin).
 - Entry: shared date/round/place/scale + name/time rows, or paste in the old note format (dates carry down); bulk edit/delete via tick boxes.
 - Aids note imported: 13 tasks / 107 scores; 23.05.23 added to the three undated tasks at Chris's request. Feature Overview updated.
+- **Week 42 whiteboard complete** (boards 42.1/42.2b/42.3/42.4, 90 WSR): AnnaM trial fix (`103e9b2`), 14.10 18:30 lunge loads restored to Load 1 (`1145366`).
 
 **Session 420 (2026-10-13→17 — Opus 5.5) — WEEK 41 DONE, SCORE-SAVE CAP, WHITEBOARD WEEK PICKER, BENCHMARK ICONS (all pushed, build exit 0)**
 - Week 41 finished: 7.10 evening (GM 5RM + AMRAP), 9.10 09:00 + evening couplets (Pt.1–5, tracks by class), 11.10 HPC AMRAP, 12.10 10:00 (bottom of the 41.3 board) — 167 WSR + 21 lift entries; Petra/Justine "!" "Did not count". Week 42.2 (14.10 09:30 Snatch totals) 6 rows.
@@ -370,7 +374,7 @@ Athlete Tools
 1. **S421 — Split Times:** ask Chris how it works live; remind him he can delete the 5 "(ex)" scores when he has newer data.
 1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
 1. **S420 — ask Chris:** did the 30.09 Snatch scaling reasons (Steven, Christian, Thomas G) save after `6ff1f79`? Whiteboard dropdown + benchmark icons OK on his phone?
-1. **S420 — Whiteboard Week 42** remaining boards (only 42.2 entered).
+1. **S421 — Whiteboard Week 42 done;** next = Week 43. Chris to eyeball the Week 42 uncertain cells (see Kickoff).
 1. ✅ **S418, S416 and S415 live checks all confirmed OK by Chris (S419).**
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.

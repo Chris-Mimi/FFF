@@ -40,3 +40,12 @@ Replaces the Aids note "Endurance scores for reference": times for PARTS of WODs
 - **`*.sql` is gitignored** — migrations need `git add -f`, as older ones were.
 - **`console.log` treats `%d` in a string as a format token** — a diagnostic printed garbage for an ILIKE pattern `%dele%`. Don't put `%` patterns in the first argument.
 - A mock-up with the user's real data got quick, concrete feedback (name, Rx rule, dates, when-criteria all came after seeing it live).
+
+## 3. Week 42 whiteboard (continued 20–21.10)
+Coverage sweep clean (kids / D&D / Thursday skipped). Boards `boards/2026-W42-1.json`, `-2b`, `-3`, `-4`; 90 WSR across 9 sessions, parity OK.
+- **42.1** KB AMRAP 12.10 17:15 + 18:30 (Track 1) and 13.10 18:30 Foundations (Trk2; Amelie + Christian T Trk1). Right-column arrows carry a value down to the arrow head. Impossible Plank → `scaling_3` switched on.
+- **42.2b** 14.10 endurance chipper: lunge load + time; capped athletes = cap time + "!" note listing what was missed.
+- **42.3** 16.10 3×5-min AMRAP (score = sum of AMRAPs, three loads + two scalings) + 17.10 endurance AMRAP (Chris booked in).
+- **42.4** 18.10 AMRAP; 11:00 trials AnnaM + Ferdy.
+- **Mistake 1:** booked parked member Anna Maria Baur for "AnnaM", who was a listed trial. Cause: I grepped the preflight output and dropped its trial-names line. Undone; protocol rule added.
+- **Mistake 2 (not mine, but worth knowing):** after I wrote 14.10 18:30 (Sled = Load 1, Lunge = Load 2), Chris aligned the section with 17:15 (Lunge = Load 1, Load 2 off). Turning Load 2 off wiped the weights → restored into Load 1.
