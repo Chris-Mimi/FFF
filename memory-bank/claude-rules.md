@@ -158,7 +158,12 @@ For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** 
 ### `next build` type-checks `scripts/` — check the exit code (S416)
 **Why:** a type error in a one-off script (`scripts/audit-ten-cards.ts`) failed two Vercel deploys; `npm run build 2>&1 | grep …` printed "Compiled successfully" and hid the failure.
 
-**How to apply:** run `npm run build > /tmp/…/build.log 2>&1; echo $?` and require `0` before pushing. Scripts must type-check like app code.
+**How to apply:** run `npm run build` as a single command (no `>` redirect / `; echo $?` — compound commands cause permission prompts, see below) and require the tool to report success (no "Exit code" error) before pushing. Scripts must type-check like app code.
+
+### One plain command per tool call — no chaining (S422)
+**Why:** S422 on the Windows PC — Chris got 7 "allow this bash command" prompts in one session despite `Bash` (project) and `PowerShell` (user) being allowed. Roughly 8 of that session's commands were compound (`a; b` chains, `$(…)` substitution, `>` redirects, `sed -i` on a scratchpad file) — the likely cause; which exact 7 prompted wasn't confirmed. If prompts continue with single commands, look elsewhere.
+
+**How to apply:** one command per Bash/PowerShell call. No `cd` prefix, `&&`, `;`, `|`, `$(…)`, or `>`. Independent commands → parallel tool calls in one message. Need a pipeline or loop → write a script in the scratchpad and run it with one command. Applies on both machines.
 
 ### Deleting a `wods` row cascades its `lift_records` (S416)
 **Why:** copy-over deleted the replaced workout → 12 Back Squat 5RM records vanished with it (21.09). Restored from backup.

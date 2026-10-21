@@ -8,7 +8,7 @@ Plus the most recent file in `project-history/` (run `ls -t project-history | he
 
 _(Paths are relative to the project root — works on both Macbook and Windows PC. Claude Code opens with the project as cwd.)_
 
-**Never prefix commands with `cd` to the project folder, and don't chain them with `&&`.** You're already in it, and a `cd … && …` chain triggers a permission prompt even though commands are allowed. Run each command on its own.
+**One plain command per tool call — no `cd` prefix, no chaining (`&&`, `;`, `|`), no `$(…)`, no `>` redirects.** You're already in the project folder. Compound commands trigger a permission prompt even though Bash/PowerShell are allowed (S422: 7 prompts on the PC in one session). Run each command on its own; send independent ones as parallel tool calls.
 
 Only read `memory-bank/workflow-protocols.md`, `memory-bank/techContext.md`, or `memory-bank/systemPatterns.md` if the task actually needs them.
 
