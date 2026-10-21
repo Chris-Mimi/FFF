@@ -151,23 +151,23 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S422 (2026-10-21, PC) — first action: ask Chris (a) is Sunday's evening exception meant to be 21:00 (DB has `{"0":"21:00:00"}`; we discussed 20:00), (b) did the Leaderboard check pass on Athlete Test 1** (a later-this-week published workout must not be listed until its reveal time).
+**S422 (2026-10-21, PC) — ✅ closed S423 (Mac):** Sunday evening exception **21:00 is intended** (DB `{"0":"21:00:00"}` correct); Leaderboard reveal check passed; Mac remote already `Chris-Mimi/FFF`.
 - **Booking rules now has two per-day maps** in `booking_rules`: `morning_lock_time_by_day` (key = JS getDay of the LOCK EVENING, value `HH:MM:SS`) and `workout_reveal_minutes_by_day` (key = getDay of the CLASS day, value minutes) + `workout_reveal_minutes` (default 120). Missing key = default. Migrations `20261021000000` + `…01` (Chris ran both). Helpers in `lib/bookingRules.ts`: `sessionAutoLockInstant` (reads the evening map) and `workoutRevealInstant` / `loadWorkoutRevealConfig` (Workouts tab, Logbook, Leaderboard).
 - **Deploy order for new `booking_rules` columns: SQL first, then push.** `getBookingRules()` selects a fixed column list; a missing column → error → silent fallback to `DEFAULT_BOOKING_RULES` (morning lock OFF).
 - **One plain command per tool call** — compound commands (`;`, `&&`, `$(…)`, `>`) caused 7 prompts on the PC; single commands didn't. Rule in claude-rules + session-start file. Reads of `~/.claude/**` now allowed in project settings.
-- PC remote is now `https://github.com/Chris-Mimi/FFF.git`. **Mac not checked** — run `git remote -v` there next Mac session; if it's Percepto25/FFF, `git remote set-url origin https://github.com/Chris-Mimi/FFF.git`.
+- Both machines' remote = `https://github.com/Chris-Mimi/FFF.git` (Mac confirmed S423).
 
-**S421 (2026-10-17→18) — still open: ask Chris how Split Times looks live** (Toolkit → Split Times; commits `538178c` → `e1571a7`). He was about to set Round / Place on the imported scores via the new tick-box bulk edit.
+**S421 (2026-10-17→18) — ✅ Split Times confirmed OK by Chris (S423)** (Toolkit → Split Times; commits `538178c` → `e1571a7`).
 - **Tables:** `pacing_tasks` (exercise_id + movement name snapshot, amount OR amount_female/male, category, note) and `pacing_scores` (member_id OR legacy_name, time_seconds, round_phase first/middle/last/single, round_place first/middle/last, scaling, score_date, note). Coach-only RLS (anon read = 0 verified). Old `position` column kept but unused. Migrations `20261018000000` + `…01` (both run by Chris; force-added because `*.sql` is gitignored).
 - **Chris's rules:** athletes = members only (5 ex-athletes kept as `legacy_name` "(ex)" until he deletes them); stats + time cap from **Rx only** (unmarked = Rx; scaled listed below in grey); time cap = **fastest** + transitions + adjustable margin (CrossFit programs for the fastest); dates matter (date link → `/coach?date=`).
 - **Name map used for the import** (`scripts/import-pacing-from-note.ts`): Amelie → Amelie Kirch (not Krautwald; Anna Krautwald = whiteboard "AnnaKr", a different person — nothing to rename), Lena → Jähn, MichiS → Michael Städele, Dani → Daniela Simm, Franzi → Franziska Herndorf, Niko → Nikolina Vlasalija, Dimi → Dimitar Peresyov.
 - **Bear Crawl task** uses "Bear Crawl Forwards" (no plain Bear Crawl in the library) — Chris may change it.
 - **Windows PC is set up** — see the ✅ line below. Work on one machine at a time.
 
-**Week 42 whiteboard (S421) — Chris to eyeball (written first, report given):** Justine + Sole 18.10 pull-up "Sc" → Sc3; Sabrina 12.10 smiley → "Did not count"; Wayne 12.10 "Skater!" → no pistol scaling + note; Irene 16.10 single "Rx" → SB 15 + push-up Rx; Anja 16.10 third AMRAP 48 (or 43); 14.10 capped times + notes (Anfisa 35:00, no note). Booked in: Martina 13.10 18:30, Chris 17.10 10:00. Booked but not on a board: Martina 14.10 18:30, Bettina Krämer 17.10. 18.10 11:00 trials **AnnaM + Ferdy** = whiteboard rows (I first booked Anna Maria Baur by mistake — undone; protocol now says check trial names before booking).
+**Week 42 whiteboard (S421) — ✅ Chris eyeballed OK (S423):** Justine + Sole 18.10 pull-up "Sc" → Sc3; Sabrina 12.10 smiley → "Did not count"; Wayne 12.10 "Skater!" → no pistol scaling + note; Irene 16.10 single "Rx" → SB 15 + push-up Rx; Anja 16.10 third AMRAP 48 (or 43); 14.10 capped times + notes (Anfisa 35:00, no note). Booked in: Martina 13.10 18:30, Chris 17.10 10:00. Booked but not on a board: Martina 14.10 18:30, Bettina Krämer 17.10. 18.10 11:00 trials **AnnaM + Ferdy** = whiteboard rows (I first booked Anna Maria Baur by mistake — undone; protocol now says check trial names before booking).
 - **14.10 18:30 was re-aligned to 17:15 by Chris after I wrote it** (Load 2 switched off → lunge weights wiped) → restored into Load 1. If a session's load fields differ from its sibling's, expect Chris to align them.
 
-**S420 carry-over (not yet asked):**
+**S420 carry-over — ✅ all confirmed OK by Chris (S423):**
 1. **Score save > 500 kg (`6ff1f79`):** Snatch EMOM totals (reps × kg summed) were rejected by the save route's 500 kg cap, and because the modal saves the whole session, ONE total blocked every edit (Chris couldn't add scaling reasons for Steven/Christian/Thomas G on 30.09). Cap now 10,000 kg in `app/api/score-entry/save/route.ts` (Lifts entries keep 500 in `/api/lift-records`); failure toast now shows the server's reason. **Ask Chris: did the three 30.09 reasons save?**
 2. **Whiteboard week dropdown (`bb42ec2`):** week label = select of every week with photos (newest first, photo count) via paged `GET /api/whiteboard-photos?summary=1`; Prev/Next step via the ISO Thursday so **2026-W53 (28.12–03.01) is no longer skipped**.
 3. **Benchmark card icons (`99cf0cc`):** edit/delete were hover-only → invisible on touch; now always visible (Benchmarks + Forge Benchmarks).
@@ -381,11 +381,9 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **S422 — Booking Rules:** confirm Sunday evening 21:00 vs 20:00; Leaderboard reveal check on Athlete Test 1; Mac `git remote -v` → Chris-Mimi/FFF.
-1. **S421 — Split Times:** ask Chris how it works live; remind him he can delete the 5 "(ex)" scores when he has newer data.
+1. ✅ **S422 Booking Rules, S421 Split Times, S420 checks, Week 42 eyeball — all confirmed by Chris (S423).** Sunday evening = 21:00 intended. Optional reminder: the 5 "(ex)" Split Times scores can go once he has newer data.
+1. **Whiteboard — Week 43 next** (when Chris sends photos).
 1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
-1. **S420 — ask Chris:** did the 30.09 Snatch scaling reasons (Steven, Christian, Thomas G) save after `6ff1f79`? Whiteboard dropdown + benchmark icons OK on his phone?
-1. **S421 — Whiteboard Week 42 done;** next = Week 43. Chris to eyeball the Week 42 uncertain cells (see Kickoff).
 1. ✅ **S418, S416 and S415 live checks all confirmed OK by Chris (S419).**
 1. **S415 answers closed in S416:** Alois/Michael = edge cases (leave); Marina/Max/Ole = one card per boy (both full, parent can now buy in app).
 1. **S410 — optional follow-ups.** (a) `notification_log` held only 4 of 12 bookings for that session — worth understanding before trusting it for recovery again. (b) Unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did — left alone deliberately, since hiding from athletes is the point of unpublishing. (c) Chip noise from naming variants ("Pull-up" / "Pull-ups" / "Pull-up Strict") — fix by tidying names, not code.
