@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Read",
+      "Read(~/.claude/**)",
       "Edit",
       "Write",
       "Glob",
