@@ -67,6 +67,22 @@ export async function PUT(request: NextRequest) {
         patch[key] = v.length === 5 ? `${v}:00` : v;
       }
     }
+    // Per-evening exceptions: { '0'..'6': 'HH:MM' }. A day left out = use the default lock time.
+    if ('morning_lock_time_by_day' in body) {
+      const v = body.morning_lock_time_by_day;
+      if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+        return 'morning_lock_time_by_day must be an object';
+      }
+      const clean: Record<string, string> = {};
+      for (const [day, time] of Object.entries(v)) {
+        if (!/^[0-6]$/.test(day)) return 'morning_lock_time_by_day keys must be 0-6';
+        if (typeof time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(time)) {
+          return 'morning_lock_time_by_day times must be HH:MM or HH:MM:SS';
+        }
+        clean[day] = time.length === 5 ? `${time}:00` : time;
+      }
+      patch.morning_lock_time_by_day = clean;
+    }
     return null;
   };
 

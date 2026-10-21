@@ -58,6 +58,7 @@ export function useSessionEditing({
     morning_lock_enabled: boolean;
     morning_cutoff_time: string;
     morning_lock_time: string;
+    morning_lock_time_by_day?: Record<string, string>;
   } | null>(null);
   useEffect(() => {
     fetch('/api/booking-rules/public')

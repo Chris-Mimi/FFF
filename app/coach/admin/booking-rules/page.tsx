@@ -20,9 +20,17 @@ type FormState = {
   morning_lock_enabled: boolean;
   morning_cutoff_time: string; // 'HH:MM' for the input
   morning_lock_time: string;   // 'HH:MM' for the input
+  morning_lock_time_by_day: Record<string, string>; // '0'..'6' (lock evening) → 'HH:MM'; missing = default
 };
 
 const DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+// Evenings listed Monday → Sunday (JS getDay values).
+const EVENING_ORDER = [1, 2, 3, 4, 5, 6, 0];
+// Lock-time choices for a per-evening exception: every 30 min from 12:00 to 23:30.
+const LOCK_TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
+  const mins = 12 * 60 + i * 30;
+  return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+});
 
 type PerTypeRow = { session_type: string; value: string };
 
@@ -38,6 +46,9 @@ const toForm = (r: BookingRules): FormState => ({
   morning_lock_enabled: r.morning_lock_enabled,
   morning_cutoff_time: r.morning_cutoff_time.slice(0, 5), // 'HH:MM'
   morning_lock_time: r.morning_lock_time.slice(0, 5),     // 'HH:MM'
+  morning_lock_time_by_day: Object.fromEntries(
+    Object.entries(r.morning_lock_time_by_day ?? {}).map(([day, t]) => [day, t.slice(0, 5)])
+  ),
 });
 
 const parseInput = (s: string, nullable: boolean): number | null | 'invalid' => {
@@ -161,6 +172,7 @@ export default function BookingRulesPage() {
             morning_lock_enabled: form.morning_lock_enabled,
             morning_cutoff_time: form.morning_cutoff_time,
             morning_lock_time: form.morning_lock_time,
+            morning_lock_time_by_day: form.morning_lock_time_by_day,
           }),
         }),
         authFetch('/api/admin/booking-rules/session-types', {
@@ -326,6 +338,48 @@ export default function BookingRulesPage() {
                   className='w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6]'
                 />
                 <span className='text-sm text-gray-500'>booking closes at this time the day before</span>
+              </div>
+
+              <div className='pt-3'>
+                <span className='block text-sm text-gray-700 mb-1'>Exceptions by evening</span>
+                <p className='text-xs text-gray-500 mb-2'>
+                  Pick a different lock time for a particular evening, e.g. Sunday 20:00 when the
+                  weekly schedule is released. &ldquo;Default&rdquo; follows the lock time above.
+                </p>
+                <div className='space-y-1.5'>
+                  {EVENING_ORDER.map((dow) => {
+                    const key = String(dow);
+                    const value = form.morning_lock_time_by_day[key] ?? '';
+                    const options = value && !LOCK_TIME_OPTIONS.includes(value)
+                      ? [...LOCK_TIME_OPTIONS, value].sort()
+                      : LOCK_TIME_OPTIONS;
+                    return (
+                      <div key={dow} className='flex flex-wrap items-center gap-2'>
+                        <span className='w-56 text-sm text-gray-700'>
+                          {DAY_LABELS[dow]} evening
+                          <span className='text-gray-400'> → {DAY_LABELS[(dow + 1) % 7]} mornings</span>
+                        </span>
+                        <select
+                          value={value}
+                          onChange={(e) => {
+                            const next = { ...form.morning_lock_time_by_day };
+                            if (e.target.value === '') delete next[key];
+                            else next[key] = e.target.value;
+                            setForm({ ...form, morning_lock_time_by_day: next });
+                          }}
+                          className={`w-44 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] ${
+                            value ? 'border-[#178da6] text-[#178da6] font-medium' : 'border-gray-300 text-gray-500'
+                          }`}
+                        >
+                          <option value=''>Default ({form.morning_lock_time || '—'})</option>
+                          {options.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

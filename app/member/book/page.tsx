@@ -96,6 +96,7 @@ export default function MemberBookingPage() {
     morning_lock_enabled: boolean;
     morning_cutoff_time: string;
     morning_lock_time: string;
+    morning_lock_time_by_day?: Record<string, string>;
   }>({
     next_week_release_day_of_week: DEFAULT_BOOKING_RULES.next_week_release_day_of_week,
     next_week_release_time: DEFAULT_BOOKING_RULES.next_week_release_time,
@@ -105,6 +106,7 @@ export default function MemberBookingPage() {
     morning_lock_enabled: DEFAULT_BOOKING_RULES.morning_lock_enabled,
     morning_cutoff_time: DEFAULT_BOOKING_RULES.morning_cutoff_time,
     morning_lock_time: DEFAULT_BOOKING_RULES.morning_lock_time,
+    morning_lock_time_by_day: DEFAULT_BOOKING_RULES.morning_lock_time_by_day,
   });
   // Tick every 60s so card countdowns refresh without a full re-fetch.
   const [nowMs, setNowMs] = useState<number>(() => Date.now());

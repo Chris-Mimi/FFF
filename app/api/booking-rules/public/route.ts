@@ -18,5 +18,6 @@ export async function GET() {
     morning_lock_enabled: rules.morning_lock_enabled,
     morning_cutoff_time: rules.morning_cutoff_time,
     morning_lock_time: rules.morning_lock_time,
+    morning_lock_time_by_day: rules.morning_lock_time_by_day ?? {},
   });
 }
