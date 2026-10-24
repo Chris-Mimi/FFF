@@ -1,0 +1,124 @@
+{
+ "note": "2026 Week 43 — new rows (S424). Photo 43.2 additions: 21.10 17:15 FS 5RM + AMRAP (Lena, Valerie, Lukas; DB Rx 15/22.5) + 21.10 17:10 GHDHE metcon (Claudia, Wayne; DBFP Rx 15/22.5 = Load 1, Pull-up = Scaling 1, V-Up = Scaling 2). Photo 43.3: 3-station HSPU/GHDSU/Ring Chin-up, 21.10 18:30 + 23.10 09:00 + 23.10 18:30 — per station cals = calories, movement reps = reps, scaling = Scaling 1; '—' = blank. Photo 43.4: 23.10 17:15 KB ladder — KB kg = Load 1, PP = Scaling 1, Roll-out = Scaling 2, board total reps converted to rounds+reps (after k rounds = 4k(k+1) reps).",
+ "sessions": [
+  { "date": "2026-10-21", "time": "17:15", "sectionId": "section-1792413176818", "rows": [
+   { "member": "Lena",    "weight_result": 47.5 },
+   { "member": "Valerie", "weight_result": 42.5 },
+   { "member": "Lukas",   "weight_result": 80 }
+  ] },
+  { "date": "2026-10-21", "time": "17:15", "sectionId": "section-1792326670462-4", "rows": [
+   { "member": "Lena",    "weight_result": 15,   "scaling_level": "Sc1", "scaling_level_2": "Rx", "rounds_result": 12, "reps_result": 4 },
+   { "member": "Valerie", "weight_result": 15,   "scaling_level": "Sc2", "scaling_level_2": "Rx", "rounds_result": 9,  "reps_result": 3 },
+   { "member": "Lukas",   "weight_result": 22.5, "scaling_level": "Rx",  "scaling_level_2": "Rx", "rounds_result": 12, "reps_result": 3 }
+  ] },
+  { "date": "2026-10-21", "time": "17:10", "sectionId": "section-1770216576384", "rows": [
+   { "member": "Claudia", "weight_result": 15,   "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 3, "reps_result": 40 },
+   { "member": "Wayne",   "weight_result": 22.5, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 3, "reps_result": 50 }
+  ] },
+
+  { "date": "2026-10-21", "time": "18:30", "sectionId": "section-1792585351650", "rows": [
+   { "member": "Anfisa",     "calories_result": 28 },
+   { "member": "Anja Götte", "calories_result": 32, "reps_result": 15, "scaling_level": "Sc1", "book": true },
+   { "member": "Julia",      "calories_result": 30, "reps_result": 30, "scaling_level": "Sc2" },
+   { "member": "Justine",    "calories_result": 30, "reps_result": 20, "scaling_level": "Sc2" },
+   { "member": "Martina",    "calories_result": 39, "reps_result": 12, "scaling_level": "Sc1" },
+   { "member": "Nikolina",   "calories_result": 30, "reps_result": 18, "scaling_level": "Sc2" },
+   { "member": "Soledad",    "calories_result": 24 },
+   { "member": "Carmine",    "calories_result": 37, "reps_result": 11, "scaling_level": "Sc1" },
+   { "member": "Christian",  "calories_result": 43, "reps_result": 37, "scaling_level": "Sc2" },
+   { "member": "Paul",       "calories_result": 51, "reps_result": 18, "scaling_level": "Sc1" },
+   { "member": "Tobias",     "calories_result": 43, "reps_result": 19, "scaling_level": "Rx" }
+  ] },
+  { "date": "2026-10-21", "time": "18:30", "sectionId": "section-1792585400677", "rows": [
+   { "member": "Anfisa",     "calories_result": 32 },
+   { "member": "Anja Götte", "calories_result": 36, "reps_result": 30, "scaling_level": "Rx", "book": true },
+   { "member": "Julia",      "calories_result": 36, "reps_result": 26, "scaling_level": "Rx" },
+   { "member": "Justine",    "calories_result": 29, "reps_result": 20, "scaling_level": "Sc2" },
+   { "member": "Martina",    "calories_result": 39, "reps_result": 16, "scaling_level": "Rx" },
+   { "member": "Nikolina",   "calories_result": 33, "reps_result": 13, "scaling_level": "Rx" },
+   { "member": "Soledad",    "calories_result": 26 },
+   { "member": "Carmine",    "calories_result": 25, "reps_result": 19, "scaling_level": "Rx" },
+   { "member": "Christian",  "calories_result": 46, "reps_result": 30, "scaling_level": "Rx" },
+   { "member": "Paul",       "calories_result": 45, "reps_result": 24, "scaling_level": "Rx" },
+   { "member": "Tobias",     "calories_result": 43, "reps_result": 20, "scaling_level": "Rx" }
+  ] },
+  { "date": "2026-10-21", "time": "18:30", "sectionId": "section-1792585434417", "rows": [
+   { "member": "Anfisa",     "calories_result": 30 },
+   { "member": "Anja Götte", "calories_result": 30, "reps_result": 15, "scaling_level": "Sc1", "book": true },
+   { "member": "Julia",      "calories_result": 31, "reps_result": 25, "scaling_level": "Sc2" },
+   { "member": "Justine",    "calories_result": 37, "reps_result": 22, "scaling_level": "Sc2" },
+   { "member": "Martina",    "calories_result": 29, "reps_result": 41, "scaling_level": "Sc2" },
+   { "member": "Nikolina",   "calories_result": 25, "reps_result": 16, "scaling_level": "Sc2" },
+   { "member": "Soledad",    "calories_result": 14, "reps_result": 8,  "scaling_level": "Sc2" },
+   { "member": "Carmine",    "calories_result": 51, "reps_result": 9,  "scaling_level": "Sc1" },
+   { "member": "Christian",  "calories_result": 46, "reps_result": 24, "scaling_level": "Sc2" },
+   { "member": "Paul",       "calories_result": 54, "reps_result": 18, "scaling_level": "Rx" },
+   { "member": "Tobias",     "calories_result": 53, "reps_result": 10, "scaling_level": "Rx" }
+  ] },
+
+  { "date": "2026-10-23", "time": "09:00", "sectionId": "section-1792585351650", "rows": [
+   { "member": "Irene",       "calories_result": 33, "reps_result": 7,  "scaling_level": "Sc2" },
+   { "member": "Mimi",        "calories_result": 36, "reps_result": 21, "scaling_level": "Sc1" },
+   { "member": "Soledad",     "calories_result": 24, "reps_result": 16, "scaling_level": "Sc2" },
+   { "member": "Chris Hiles", "calories_result": 42, "reps_result": 13, "scaling_level": "Rx" },
+   { "member": "Lukas",       "calories_result": 54, "reps_result": 14, "scaling_level": "Rx" },
+   { "member": "Michael",     "calories_result": 49, "reps_result": 9,  "scaling_level": "Rx" }
+  ] },
+  { "date": "2026-10-23", "time": "09:00", "sectionId": "section-1792585400677", "rows": [
+   { "member": "Irene",       "calories_result": 35, "reps_result": 26, "scaling_level": "Sc2" },
+   { "member": "Mimi",        "calories_result": 36, "reps_result": 66, "scaling_level": "Rx" },
+   { "member": "Soledad",     "calories_result": 24, "reps_result": 20, "scaling_level": "Sc1" },
+   { "member": "Chris Hiles", "calories_result": 43, "reps_result": 32, "scaling_level": "Rx" },
+   { "member": "Lukas",       "calories_result": 53, "reps_result": 45, "scaling_level": "Rx" },
+   { "member": "Michael",     "calories_result": 46, "reps_result": 45, "scaling_level": "Rx" }
+  ] },
+  { "date": "2026-10-23", "time": "09:00", "sectionId": "section-1792585434417", "rows": [
+   { "member": "Irene",       "calories_result": 27, "reps_result": 28, "scaling_level": "Sc2" },
+   { "member": "Mimi",        "calories_result": 41, "reps_result": 8,  "scaling_level": "Rx" },
+   { "member": "Soledad",     "calories_result": 17, "reps_result": 18, "scaling_level": "Sc2" },
+   { "member": "Chris Hiles", "calories_result": 48, "reps_result": 19, "scaling_level": "Rx" },
+   { "member": "Lukas",       "calories_result": 45, "reps_result": 15, "scaling_level": "Rx" },
+   { "member": "Michael",     "calories_result": 45, "reps_result": 21, "scaling_level": "Rx" }
+  ] },
+
+  { "date": "2026-10-23", "time": "18:30", "sectionId": "section-1792585351650", "rows": [
+   { "member": "Annerose",  "calories_result": 24, "reps_result": 18, "scaling_level": "Sc2" },
+   { "member": "Magdalena", "calories_result": 23, "reps_result": 8,  "scaling_level": "Sc2" },
+   { "member": "Marion",    "calories_result": 28, "reps_result": 24, "scaling_level": "Sc2" },
+   { "member": "Petra",     "scaling_level": "Sc1" },
+   { "member": "Susi",      "calories_result": 30, "reps_result": 7,  "scaling_level": "Sc2" },
+   { "member": "Bodo",      "calories_result": 30, "reps_result": 24, "scaling_level": "Sc1" },
+   { "member": "Stefan",    "calories_result": 44, "reps_result": 15, "scaling_level": "Sc1" }
+  ] },
+  { "date": "2026-10-23", "time": "18:30", "sectionId": "section-1792585400677", "rows": [
+   { "member": "Annerose",  "calories_result": 31, "reps_result": 33, "scaling_level": "Sc1" },
+   { "member": "Magdalena", "calories_result": 25, "reps_result": 17, "scaling_level": "Sc2" },
+   { "member": "Marion",    "calories_result": 31, "reps_result": 31, "scaling_level": "Sc2" },
+   { "member": "Petra",     "scaling_level": "Sc1" },
+   { "member": "Susi",      "calories_result": 24, "reps_result": 30, "scaling_level": "Rx" },
+   { "member": "Bodo",      "calories_result": 30, "reps_result": 39, "scaling_level": "Sc1" },
+   { "member": "Stefan",    "calories_result": 45, "reps_result": 43, "scaling_level": "Rx" }
+  ] },
+  { "date": "2026-10-23", "time": "18:30", "sectionId": "section-1792585434417", "rows": [
+   { "member": "Annerose",  "calories_result": 42, "reps_result": 35, "scaling_level": "Sc2" },
+   { "member": "Magdalena", "calories_result": 28, "reps_result": 14, "scaling_level": "Sc2" },
+   { "member": "Marion",    "calories_result": 39, "reps_result": 17, "scaling_level": "Sc2" },
+   { "member": "Petra",     "scaling_level": "Sc2" },
+   { "member": "Susi",      "calories_result": 33, "reps_result": 22, "scaling_level": "Sc2" },
+   { "member": "Bodo",      "calories_result": 53, "reps_result": 46, "scaling_level": "Sc1" },
+   { "member": "Stefan",    "calories_result": 41, "reps_result": 14, "scaling_level": "Rx" }
+  ] },
+
+  { "date": "2026-10-23", "time": "17:15", "sectionId": "section-1792326680875-4", "rows": [
+   { "member": "Anja",      "weight_result": 16, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 5, "reps_result": 36 },
+   { "member": "Franziska", "weight_result": 12, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 5, "reps_result": 31 },
+   { "member": "Julia",     "weight_result": 10, "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 5, "reps_result": 20 },
+   { "member": "Justine",   "weight_result": 12, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "rounds_result": 5, "reps_result": 28 },
+   { "member": "Nikolina",  "weight_result": 12, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 4, "reps_result": 32 },
+   { "member": "Carmine",   "weight_result": 24, "scaling_level": "Rx",  "scaling_level_2": "Sc1", "rounds_result": 5, "reps_result": 0 },
+   { "member": "Paul",      "weight_result": 24, "scaling_level": "Rx",  "scaling_level_2": "Rx",  "rounds_result": 5, "reps_result": 12 },
+   { "member": "Thomas",    "weight_result": 20, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 5, "reps_result": 20 },
+   { "member": "Tobias",    "weight_result": 24, "scaling_level": "Rx",  "scaling_level_2": "Rx",  "rounds_result": 5, "reps_result": 8 }
+  ] }
+ ]
+}

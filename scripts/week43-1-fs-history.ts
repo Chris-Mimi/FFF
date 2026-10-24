@@ -15,7 +15,7 @@ const db = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const NAMES = [
+const DEFAULT_NAMES = [
   'Amelie Kirch', 'Claudia Herrmann', 'Gloria Stoffer', 'Jolanda Greif', 'Dimitar Peresyov',
   'Michael Junkes', 'Wayne Lucas', 'Anfisa Bornemann', 'Anneke Spegele', 'Julia Weihe',
   'Nikolina Vlasalija', 'Carmine Carrozzo', 'Christian Tanner', 'Markus Fischer',
@@ -25,6 +25,8 @@ const NAMES = [
   'Toni Seitz', 'Bodo Lehmann', 'Michael Maier', 'Stefan G', 'Aline von Rüden',
   'Irene Koffler', 'Mimi Hiles', 'Sabrina Lucas', 'Michael Städele', 'Senol Özdilek',
 ];
+// Optional: pass member names as args to check others (S424).
+const NAMES = process.argv.length > 2 ? process.argv.slice(2) : DEFAULT_NAMES;
 
 async function main() {
   const { data: members, error } = await db.from('members').select('id, name, display_name').in('name', NAMES);
