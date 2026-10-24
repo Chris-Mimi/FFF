@@ -1165,6 +1165,7 @@ export default function SearchPanel({
                 return displayExercises.map(ex => {
                   const editGroup = editingGroupExercises ? exerciseGroups.find(g => g.id === editingGroupExercises) : null;
                   const isInEditGroup = editGroup ? editGroup.exercise_ids.includes(ex.id) : false;
+                  const memberOfGroups = exerciseGroups.filter(g => g.exercise_ids.includes(ex.id)).map(g => g.name);
 
                   return (
                     <div
@@ -1203,6 +1204,24 @@ export default function SearchPanel({
                         )}
                         <span className='truncate'>{ex.display_name || ex.name}</span>
                       </div>
+                      {!editingGroupExercises && (
+                        // inline-block stops the row's line-through reaching the label
+                        memberOfGroups.length > 0 ? (
+                          <span
+                            className='inline-block ml-1 px-1 rounded bg-gray-200 text-gray-600 text-[10px] leading-4 flex-shrink-0'
+                            title={`In: ${memberOfGroups.join(', ')}`}
+                          >
+                            {memberOfGroups.length === 1 ? '1 group' : `${memberOfGroups.length} groups`}
+                          </span>
+                        ) : (
+                          <span
+                            className='inline-block ml-1 px-1 rounded bg-red-50 text-red-600 text-[10px] leading-4 flex-shrink-0'
+                            title='Not in any group'
+                          >
+                            no group
+                          </span>
+                        )
+                      )}
                       {!editingGroupExercises && (
                         <button
                           onClick={e => { e.stopPropagation(); removeTracked(ex.id); }}
