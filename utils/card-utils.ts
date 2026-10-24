@@ -30,12 +30,13 @@ export const getCardState = (wod: WODFormData): CardState => {
   return 'published'; // Published workout
 };
 
-type SessionTier = 'standard' | 'foundations' | 'kids';
+type SessionTier = 'standard' | 'foundations' | 'kids' | 'specialty';
 
 // Keywords + input are normalized (strip spaces/hyphens/punctuation) so spelling
 // variants match — e.g. "Eltern-Kind-Turnen (2-6J)" and "ElternKind Turnen".
 const FOUNDATIONS_KEYWORDS = ['foundations', 'diapersdumbbells', 'diapersanddumbbells'];
 const KIDS_KEYWORDS = ['kids', 'kidsteens', 'kidsandteens', 'fitkidsturnen', 'elternkindturnen'];
+const SPECIALTY_KEYWORDS = ['specialty'];
 
 /**
  * Determine color tier based on session type title
@@ -45,6 +46,7 @@ const getSessionTier = (title?: string): SessionTier => {
   const norm = title.toLowerCase().replace(/[^a-z0-9]/g, '');
   if (KIDS_KEYWORDS.some((k) => norm.startsWith(k))) return 'kids';
   if (FOUNDATIONS_KEYWORDS.some((k) => norm.startsWith(k))) return 'foundations';
+  if (SPECIALTY_KEYWORDS.some((k) => norm.startsWith(k))) return 'specialty';
   return 'standard';
 };
 
@@ -62,5 +64,6 @@ export const getCardClasses = (state: CardState, title?: string): string => {
   const tier = getSessionTier(title);
   if (tier === 'kids') return 'bg-teal-400 border-2 border-teal-500 text-white';
   if (tier === 'foundations') return 'bg-[#3092a6] border-2 border-teal-700 text-white';
+  if (tier === 'specialty') return 'bg-amber-500 border-2 border-amber-600 text-white';
   return 'bg-teal-700 border-2 border-teal-300'; // standard (WOD, Endurance, etc.)
 };
