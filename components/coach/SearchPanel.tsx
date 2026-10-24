@@ -392,7 +392,7 @@ export default function SearchPanel({
               onSelectedMovementsChange([]);
               onSelectedWorkoutTypesChange([]);
               onSelectedTracksChange([]);
-              onSelectedSessionTypesChange([]);
+              // Session Types + Athletes are persisted filters — closing keeps them (S424)
               onIncludedSectionTypesChange([]);
               onSelectedSectionTypeFilterChange([]);
               onPrivateOnlyChange(false);
