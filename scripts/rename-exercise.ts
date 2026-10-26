@@ -1,14 +1,19 @@
 /**
- * S423 — rename exercise "Handstand 2-Footed Kick-Up" → "Handstand Kick-Up: 2-Footed"
- * in the Exercise Library AND in every workout text that names it.
+ * Rename an exercise in the Exercise Library AND in every workout text that names it.
+ * (S423: "Handstand 2-Footed Kick-Up" → "Handstand Kick-Up: 2-Footed";
+ *  S425: "Dead Stop Knees to Bar (BMU drill)" → "BMU Drill: Dead Stop Knees to Bar".)
  *
  * Dry run shows: the exercise row(s), every wod + section that contains the old
  * name (with the line before/after), and the Planner detector's credited
  * movements for each affected wod, old library + old text vs new library + new
  * text — the only allowed difference is the name swap (S419 rule).
  *
- *   npx tsx scripts/rename-handstand-kick-up.ts            # dry run
- *   npx tsx scripts/rename-handstand-kick-up.ts --commit
+ *   npx tsx scripts/rename-exercise.ts "<old name>" "<new name>"            # dry run
+ *   npx tsx scripts/rename-exercise.ts "<old name>" "<new name>" --commit
+ *
+ * --also "<text>" (repeatable): other spellings in workout text to change to the
+ * new name too (S425: "Dead Stop Knees to Bar" without the suffix). Those weren't
+ * credited before, so the Planner may GAIN the movement there — that's allowed.
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -23,14 +28,28 @@ const db = createClient(
 );
 
 const COMMIT = process.argv.includes('--commit');
-const OLD = 'Handstand 2-Footed Kick-Up';
-const NEW = 'Handstand Kick-Up: 2-Footed';
+const args = process.argv.slice(2).filter(a => a !== '--commit');
+const ALSO: string[] = [];
+for (let i = args.indexOf('--also'); i !== -1; i = args.indexOf('--also')) {
+  if (args[i + 1]) ALSO.push(args[i + 1]);
+  args.splice(i, 2);
+}
+const [OLD, NEW] = args;
+if (!OLD || !NEW) {
+  console.error('Usage: npx tsx scripts/rename-exercise.ts "<old name>" "<new name>" [--also "<text>"] [--commit]');
+  process.exit(1);
+}
 
 type Section = { id: string; content?: string; [k: string]: unknown };
 type Ex = { id: string; name: string; display_name: string | null };
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const OLD_RE = new RegExp(escape(OLD), 'gi');
+// Workout-text replacement. NEW is listed first so an alias that sits inside the
+// new name (e.g. "Dead Stop Knees to Bar" inside "BMU Drill: Dead Stop Knees to
+// Bar") is never re-replaced; OLD before the aliases so the longest form wins.
+const TEXT_RE = new RegExp([NEW, OLD, ...ALSO].map(escape).join('|'), 'gi');
+const renameText = (s: string) => s.replace(TEXT_RE, NEW);
 
 async function pageAll<T>(table: string, columns: string): Promise<T[]> {
   const out: T[] = [];
@@ -72,8 +91,10 @@ async function main() {
 
   const wods = await pageAll<{ id: string; date: string; workout_name: string | null; sections: Section[] | null }>(
     'wods', 'id, date, workout_name, sections');
-  const affected = wods.filter(w => (w.sections ?? []).some(s => OLD_RE.test(String(s.content ?? ''))));
-  OLD_RE.lastIndex = 0;
+  const affected = wods.filter(w => (w.sections ?? []).some(s => {
+    const c = String(s.content ?? '');
+    return renameText(c) !== c;
+  }));
   const nameHits = wods.filter(w => OLD_RE.test(w.workout_name ?? ''));
   OLD_RE.lastIndex = 0;
   console.log(`\nWorkouts with the name in section text: ${affected.length}`);
@@ -82,7 +103,7 @@ async function main() {
   let diffProblems = 0;
   const updates: { id: string; sections: Section[] }[] = [];
   for (const w of affected.sort((a, b) => a.date.localeCompare(b.date))) {
-    const newSections = (w.sections ?? []).map(s => ({ ...s, content: String(s.content ?? '').replace(OLD_RE, NEW) }));
+    const newSections = (w.sections ?? []).map(s => ({ ...s, content: renameText(String(s.content ?? '')) }));
     console.log(`\n${w.date}  ${w.workout_name}  (${w.id})`);
     for (const s of newSections) for (const line of String(s.content).split('\n')) if (line.includes(NEW)) console.log(`   → ${line.trim()}`);
 
@@ -90,8 +111,9 @@ async function main() {
     const after = extractMovementsFromWod({ sections: newSections } as never, newKnown);
     const lost = [...before].filter(m => !after.has(m));
     const gained = [...after].filter(m => !before.has(m));
-    const ok = lost.length === 1 && gained.length === 1 &&
-      lost[0].toLowerCase() === OLD.toLowerCase() && gained[0].toLowerCase() === NEW.toLowerCase();
+    // Allowed: OLD swaps to NEW, or (alias-only text) NEW is gained with nothing lost.
+    const ok = gained.length === 1 && gained[0].toLowerCase() === NEW.toLowerCase() &&
+      (lost.length === 0 || (lost.length === 1 && lost[0].toLowerCase() === OLD.toLowerCase()));
     console.log(`   Planner: ${ok ? '✅ only the name swaps' : `⚠️ lost [${lost.join(', ')}] gained [${gained.join(', ')}]`}`);
     if (!ok) diffProblems++;
     updates.push({ id: w.id, sections: newSections });
