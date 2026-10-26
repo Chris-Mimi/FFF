@@ -11,6 +11,7 @@ import PatternManager from './PatternManager';
 import PatternExercisePicker from './PatternExercisePicker';
 import PlannerInfoModal from './PlannerInfoModal';
 import UncategorizedExercises from './UncategorizedExercises';
+import PlannerBenchmarks from './PlannerBenchmarks';
 import { Info, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import PlanningGrid from './PlanningGrid';
@@ -57,6 +58,20 @@ const STEP_WEEKS = 4;
 function centeredStart(viewMonths: ViewMonths): string {
   const halfBack = Math.floor((VIEW_TO_WEEKS[viewMonths] - 1) / 2);
   return shiftMonday(formatDate(getMonday(new Date())), -halfBack);
+}
+
+// Session types left out of the Planner's analysis for the current Track /
+// Session toggles. Adults: exclude Kids & Teens. Kids: exclude everything except
+// Kids & Teens. Adults sub-filter: 'wod' keeps only WOD; 'foundations' keeps
+// Foundations + Foundations/WOD (by excluding the other adult types).
+function plannerExcludedSessionTypes(
+  filter: 'adults' | 'kids',
+  session: 'all' | 'wod' | 'foundations',
+): string[] {
+  if (filter === 'kids') return ['WOD', 'Foundations', 'Foundations/WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
+  if (session === 'wod') return ['Kids & Teens', 'Foundations', 'Foundations/WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
+  if (session === 'foundations') return ['Kids & Teens', 'WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
+  return ['Kids & Teens'];
 }
 
 export default function PlannerSection({ exercises }: PlannerSectionProps) {
@@ -227,20 +242,7 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
 
     setGapLoading(true);
 
-    // Adults: exclude Kids & Teens. Kids: exclude everything except Kids & Teens.
-    let excludeSessionTypes = filter === 'adults'
-      ? ['Kids & Teens']
-      : ['WOD', 'Foundations', 'Foundations/WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
-
-    // Adults-only session sub-filter. 'wod' keeps only WOD; 'foundations' keeps
-    // Foundations + Foundations/WOD. Achieved by excluding the other adult types.
-    if (filter === 'adults') {
-      if (session === 'wod') {
-        excludeSessionTypes = ['Kids & Teens', 'Foundations', 'Foundations/WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
-      } else if (session === 'foundations') {
-        excludeSessionTypes = ['Kids & Teens', 'WOD', 'Endurance', 'Session', 'Specialty/Party/Other'];
-      }
-    }
+    const excludeSessionTypes = plannerExcludedSessionTypes(filter, session);
 
     const weeks = generateWeeks(pastWeeks, futureWeeks, new Date(anchorTime));
     const startDate = weeks[0];
@@ -657,6 +659,12 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
     ? new Set(pickerPattern.exercises.map(e => e.id))
     : new Set<string>();
 
+  // Memoised so the Benchmarks panel only reloads when a toggle actually changes.
+  const benchmarkExcludedTypes = useMemo(
+    () => plannerExcludedSessionTypes(trackFilter, sessionFilter),
+    [trackFilter, sessionFilter],
+  );
+
   // All exercise IDs assigned to any pattern (for unassigned styling)
   const allPatternExerciseIds = useMemo(() => {
     const ids = new Set<string>();
@@ -846,6 +854,11 @@ export default function PlannerSection({ exercises }: PlannerSectionProps) {
         onLoadExerciseHistory={loadExerciseHistory}
         open={gridOpen}
         onToggle={toggleGrid}
+      />
+
+      <PlannerBenchmarks
+        excludeSessionTypes={benchmarkExcludedTypes}
+        viewMonths={viewMonths}
       />
 
       <UncategorizedExercises

@@ -164,6 +164,18 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
             </section>
 
             <section>
+              <h4 className='font-semibold text-gray-900 mb-1'>Benchmarks panel</h4>
+              <p>
+                Every Benchmark and Forge Benchmark in the library, with the date it was last
+                programmed (same colours as the exercise chips), how many times in the last
+                1/3/6/12 months (follows the grid&rsquo;s view length) and in total. Follows the
+                Adults / Kids and Session toggles. <b>Stalest first</b> puts never-programmed and
+                long-ago ones at the top. Click a row for every date; a date opens that day in the
+                calendar. A workout repeated within the same 2 weeks counts once.
+              </p>
+            </section>
+
+            <section>
               <h4 className='font-semibold text-gray-900 mb-1'>Uncategorised Exercises panel</h4>
               <p>
                 Below the planner you&rsquo;ll see exercises that aren&rsquo;t in any pattern yet.

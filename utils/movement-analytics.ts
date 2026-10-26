@@ -95,14 +95,23 @@ export interface LiftAnalysis extends MovementFrequency {
   mostCommonPercentage?: number;
 }
 
+/** One programmed occurrence (one per unique workout key — see getWorkoutKey). */
+export interface BenchmarkOccurrence {
+  date: string;
+  workout_name: string | null;
+  session_type: string;
+}
+
 export interface BenchmarkAnalysis extends MovementFrequency {
   type: string;
   mostCommonScaling?: string;
+  occurrences: BenchmarkOccurrence[]; // most-recent first; length === count
 }
 
 export interface ForgeBenchmarkAnalysis extends MovementFrequency {
   type: string;
   mostCommonScaling?: string;
+  occurrences: BenchmarkOccurrence[]; // most-recent first; length === count
 }
 
 export interface ExerciseFrequencyWorkout {
@@ -221,6 +230,20 @@ function getWorkoutKey(workout: PublishedWorkout): string {
   return workout.date;
 }
 
+function toOccurrence(workout: PublishedWorkout): BenchmarkOccurrence {
+  return { date: workout.date, workout_name: workout.workout_name, session_type: workout.session_type };
+}
+
+/** Keep the LATEST date per workout key (repeats within the 2-week window count once). */
+function addOccurrence(map: Map<string, BenchmarkOccurrence>, key: string, occ: BenchmarkOccurrence) {
+  const prev = map.get(key);
+  if (!prev || occ.date > prev.date) map.set(key, occ);
+}
+
+function sortOccurrences(map: Map<string, BenchmarkOccurrence>): BenchmarkOccurrence[] {
+  return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
+}
+
 // ============================================
 // Lift Frequency Analysis
 // ============================================
@@ -333,13 +356,14 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
     id: string;
     name: string;
     type: string;
-    uniqueWorkouts: Set<string>;
+    uniqueWorkouts: Map<string, BenchmarkOccurrence>;
     lastUsed: string;
     scalingOptions: string[];
   }>();
 
   workouts?.forEach(workout => {
     const workoutKey = getWorkoutKey(workout);
+    const occurrence = toOccurrence(workout);
 
     const sections = workout.sections as Array<{
       benchmarks?: ConfiguredBenchmark[];
@@ -350,7 +374,7 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
         const existing = benchmarkMap.get(benchmark.id);
 
         if (existing) {
-          existing.uniqueWorkouts.add(workoutKey);
+          addOccurrence(existing.uniqueWorkouts, workoutKey, occurrence);
           if (workout.date > existing.lastUsed) {
             existing.lastUsed = workout.date;
           }
@@ -362,7 +386,7 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
             id: benchmark.id,
             name: benchmark.name,
             type: benchmark.type,
-            uniqueWorkouts: new Set([workoutKey]),
+            uniqueWorkouts: new Map([[workoutKey, occurrence]]),
             lastUsed: workout.date,
             scalingOptions: benchmark.scaling_option ? [benchmark.scaling_option] : [],
           });
@@ -390,6 +414,7 @@ export async function getBenchmarkFrequency(filter?: DateRangeFilter): Promise<B
       count: benchmark.uniqueWorkouts.size,
       lastUsed: benchmark.lastUsed,
       mostCommonScaling,
+      occurrences: sortOccurrences(benchmark.uniqueWorkouts),
     };
   });
 
@@ -419,13 +444,14 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
     id: string;
     name: string;
     type: string;
-    uniqueWorkouts: Set<string>;
+    uniqueWorkouts: Map<string, BenchmarkOccurrence>;
     lastUsed: string;
     scalingOptions: string[];
   }>();
 
   workouts?.forEach(workout => {
     const workoutKey = getWorkoutKey(workout);
+    const occurrence = toOccurrence(workout);
 
     const sections = workout.sections as Array<{
       forge_benchmarks?: ConfiguredForgeBenchmark[];
@@ -436,7 +462,7 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
         const existing = forgeMap.get(forge.id);
 
         if (existing) {
-          existing.uniqueWorkouts.add(workoutKey);
+          addOccurrence(existing.uniqueWorkouts, workoutKey, occurrence);
           if (workout.date > existing.lastUsed) {
             existing.lastUsed = workout.date;
           }
@@ -448,7 +474,7 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
             id: forge.id,
             name: forge.name,
             type: forge.type,
-            uniqueWorkouts: new Set([workoutKey]),
+            uniqueWorkouts: new Map([[workoutKey, occurrence]]),
             lastUsed: workout.date,
             scalingOptions: forge.scaling_option ? [forge.scaling_option] : [],
           });
@@ -476,6 +502,7 @@ export async function getForgeBenchmarkFrequency(filter?: DateRangeFilter): Prom
       count: forge.uniqueWorkouts.size,
       lastUsed: forge.lastUsed,
       mostCommonScaling,
+      occurrences: sortOccurrences(forge.uniqueWorkouts),
     };
   });
 
