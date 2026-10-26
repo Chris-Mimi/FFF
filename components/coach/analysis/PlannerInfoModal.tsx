@@ -170,8 +170,8 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
                 programmed (same colours as the exercise chips), how many times in the last
                 1/3/6/12 months (follows the grid&rsquo;s view length) and in total. Follows the
                 Adults / Kids and Session toggles. <b>Stalest first</b> puts never-programmed and
-                long-ago ones at the top. Click a row for every date; a date opens that day in the
-                calendar. A workout repeated within the same 2 weeks counts once.
+                long-ago ones at the top. Click a name for its description; click elsewhere on the row
+                for every date (a date opens that day in the calendar). A workout repeated within the same 2 weeks counts once.
               </p>
             </section>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -26,6 +26,7 @@ type SortMode = 'stale' | 'most' | 'name';
 interface Row {
   id: string;
   name: string;
+  description: string | null;
   lastUsed: string | null;
   occurrences: BenchmarkOccurrence[];
 }
@@ -40,7 +41,7 @@ const OPEN_KEY = 'planner-benchmarks-open';
 async function loadRows(kind: Kind, excludeSessionTypes: string[]): Promise<Row[]> {
   const table = kind === 'benchmarks' ? 'benchmark_workouts' : 'forge_benchmarks';
   const [libRes, freq] = await Promise.all([
-    supabase.from(table).select('id, name'),
+    supabase.from(table).select('id, name, description'),
     kind === 'benchmarks'
       ? getBenchmarkFrequency({ excludeSessionTypes })
       : getForgeBenchmarkFrequency({ excludeSessionTypes }),
@@ -48,11 +49,14 @@ async function loadRows(kind: Kind, excludeSessionTypes: string[]): Promise<Row[
   if (libRes.error) throw libRes.error;
 
   const rows = new Map<string, Row>();
-  (libRes.data || []).forEach(b => rows.set(b.id, { id: b.id, name: b.name, lastUsed: null, occurrences: [] }));
+  (libRes.data || []).forEach(b => rows.set(b.id, {
+    id: b.id, name: b.name, description: b.description || null, lastUsed: null, occurrences: [],
+  }));
   // Programmed items win; one deleted from the library still shows under its workout name.
   freq.forEach(f => rows.set(f.id, {
     id: f.id,
     name: rows.get(f.id)?.name || f.name,
+    description: rows.get(f.id)?.description || null,
     lastUsed: f.lastUsed,
     occurrences: f.occurrences,
   }));
@@ -66,6 +70,18 @@ export default function PlannerBenchmarks({ excludeSessionTypes, viewMonths }: P
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [descId, setDescId] = useState<string | null>(null);
+  const descRef = useRef<HTMLDivElement | null>(null);
+
+  // Close the description popover on any outside click.
+  useEffect(() => {
+    if (!descId) return;
+    const onDoc = (e: MouseEvent) => {
+      if (descRef.current && !descRef.current.contains(e.target as Node)) setDescId(null);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [descId]);
 
   useEffect(() => {
     try {
@@ -169,7 +185,7 @@ export default function PlannerBenchmarks({ excludeSessionTypes, viewMonths }: P
           ) : sorted.length === 0 ? (
             <p className='text-xs text-gray-500'>None found.</p>
           ) : (
-            <div className='overflow-x-auto'>
+            <div /* no overflow-x-auto — it would clip the description popover */>
               <table className='w-full text-xs'>
                 <thead>
                   <tr className='text-left text-gray-500 border-b border-gray-200'>
@@ -187,14 +203,30 @@ export default function PlannerBenchmarks({ excludeSessionTypes, viewMonths }: P
                         <tr
                           onClick={() => r.occurrences.length > 0 && setExpandedId(isOpen ? null : r.id)}
                           className={`border-b border-gray-100 ${r.occurrences.length > 0 ? 'cursor-pointer hover:bg-gray-50' : ''}`}
-                          title={formatExerciseRecency(r.lastUsed)}
                         >
                           <td className='py-1.5 pr-2'>
-                            <span className={`inline-block px-1.5 py-0.5 rounded border ${getExerciseRecencyPillColor(r.lastUsed)}`}>
-                              {r.name}
-                            </span>
+                            <div className='relative inline-block' ref={descId === r.id ? descRef : undefined}>
+                              <button
+                                type='button'
+                                onClick={e => { e.stopPropagation(); setDescId(descId === r.id ? null : r.id); }}
+                                className={`inline-block px-1.5 py-0.5 rounded border text-left ${getExerciseRecencyPillColor(r.lastUsed)}`}
+                                title='Show description'
+                              >
+                                {r.name}
+                              </button>
+                              {descId === r.id && (
+                                <div
+                                  onClick={e => e.stopPropagation()}
+                                  className='absolute left-0 top-full mt-1 z-30 w-72 max-w-[80vw] max-h-60 overflow-y-auto bg-gray-800 text-white text-[11px] leading-snug rounded px-2.5 py-2 shadow-lg whitespace-pre-wrap cursor-default'
+                                >
+                                  {r.description?.trim() || 'No description in the library.'}
+                                </div>
+                              )}
+                            </div>
                           </td>
-                          <td className='py-1.5 px-2 text-gray-700 whitespace-nowrap'>{r.lastUsed ? fmt(r.lastUsed) : 'Never'}</td>
+                          <td className='py-1.5 px-2 text-gray-700 whitespace-nowrap' title={formatExerciseRecency(r.lastUsed)}>
+                            {r.lastUsed ? fmt(r.lastUsed) : 'Never'}
+                          </td>
                           <td className='py-1.5 px-2 text-right text-gray-700'>{r.periodCount}</td>
                           <td className='py-1.5 pl-2 text-right text-gray-700'>{r.occurrences.length}</td>
                         </tr>
@@ -224,7 +256,7 @@ export default function PlannerBenchmarks({ excludeSessionTypes, viewMonths }: P
             </div>
           )}
           <p className='text-[10px] text-gray-400'>
-            A workout repeated within the same 2 weeks counts once. Click a row for every date; a date opens that day in the calendar.
+            Click a name for its description; click elsewhere on the row for every date (a date opens that day in the calendar). A workout repeated within the same 2 weeks counts once.
           </p>
         </div>
       )}
