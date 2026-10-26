@@ -124,11 +124,11 @@ export default function PatternExerciseChips({
     <div className='space-y-2'>
       <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5'>
         <div className='col-span-2 md:col-span-3 lg:col-span-4 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-gray-500 pb-0.5'>
-          <span className='text-green-600'>● ≤14 days</span>
-          <span className='text-yellow-500'>● 15–28 days</span>
-          <span className='text-orange-500'>● 29–60 days</span>
-          <span className='text-red-600'>● 61–90 days</span>
-          <span className='text-gray-400'>● 90+ days</span>
+          <span className='text-green-600'>● ≤3 weeks</span>
+          <span className='text-yellow-500'>● ≤6 weeks</span>
+          <span className='text-orange-500'>● ≤9 weeks</span>
+          <span className='text-red-600'>● ≤12 weeks</span>
+          <span className='text-gray-400'>● 3 months+</span>
           <span className='text-gray-700'>● Never</span>
           <button
             type='button'

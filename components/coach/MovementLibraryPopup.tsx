@@ -1003,10 +1003,10 @@ function MovementLibraryPopup({
               {currentRecencyLoaded && (
                 <div className='mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500'>
                   <span className='font-medium text-gray-600'>Last used:</span>
-                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-green-500' />≤2 wk</span>
-                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-yellow-400' />≤4 wk</span>
-                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-orange-400' />≤2 mo</span>
-                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-red-500' />≤3 mo</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-green-500' />≤3 wk</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-yellow-400' />≤6 wk</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-orange-400' />≤9 wk</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-red-500' />≤12 wk</span>
                   <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-400' />3 mo+</span>
                   <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-300' />never</span>
                 </div>

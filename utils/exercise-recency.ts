@@ -10,7 +10,7 @@ import {
 // last programmed this?" colour coding. Used by the Planner pattern chips AND the
 // Movement Library popup in the workout create/edit modal, so the two surfaces can
 // never drift apart. Bands (days since last programmed):
-//   ≤14 fresh · ≤28 recent · ≤60 aging · ≤90 stale · 90+ old · no date = never.
+//   ≤3 wk fresh · ≤6 wk recent · ≤9 wk aging · ≤12 wk stale · 12 wk+ old · no date = never.
 // "Never" is a genuine retire/never-used cue.
 // ============================================================================
 
@@ -19,10 +19,10 @@ export type RecencyBand = 'never' | 'fresh' | 'recent' | 'aging' | 'stale' | 'ol
 export function exerciseRecencyBand(date: string | undefined | null): RecencyBand {
   if (!date) return 'never';
   const days = Math.floor((Date.now() - new Date(date + 'T00:00:00').getTime()) / 86400000);
-  if (days <= 14) return 'fresh';
-  if (days <= 28) return 'recent';
-  if (days <= 60) return 'aging';
-  if (days <= 90) return 'stale';
+  if (days <= 21) return 'fresh';
+  if (days <= 42) return 'recent';
+  if (days <= 63) return 'aging';
+  if (days <= 84) return 'stale';
   return 'old';
 }
 

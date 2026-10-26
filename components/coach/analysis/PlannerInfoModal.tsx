@@ -108,11 +108,11 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
                 last programmed, across your <b>full history</b>:
               </p>
               <ul className='list-disc ml-5 space-y-0.5'>
-                <li><b>Green</b> — ≤14 days</li>
-                <li><b>Yellow</b> — 15–28 days</li>
-                <li><b>Orange</b> — 29–60 days</li>
-                <li><b>Red</b> — 61–90 days</li>
-                <li><b>Light grey</b> — 90+ days</li>
+                <li><b>Green</b> — ≤3 weeks</li>
+                <li><b>Yellow</b> — ≤6 weeks</li>
+                <li><b>Orange</b> — ≤9 weeks</li>
+                <li><b>Red</b> — ≤12 weeks</li>
+                <li><b>Light grey</b> — 3 months+ (over 12 weeks)</li>
                 <li><b>Faded dark grey</b> — never programmed (a candidate to retire)</li>
               </ul>
               <ul className='list-disc ml-5 space-y-0.5 mt-1.5'>
