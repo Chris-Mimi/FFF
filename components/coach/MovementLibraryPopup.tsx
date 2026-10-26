@@ -1007,7 +1007,7 @@ function MovementLibraryPopup({
                   <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-yellow-400' />≤6 wk</span>
                   <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-orange-400' />≤9 wk</span>
                   <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-red-500' />≤12 wk</span>
-                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-400' />3 mo+</span>
+                  <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-400' />12 wk+</span>
                   <span className='flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-gray-300' />never</span>
                 </div>
               )}

@@ -101,15 +101,15 @@ export default function MovementTrackingPanel({
               <td className='px-2 py-0.5 text-[9px] text-gray-600 italic w-[120px] sticky left-0 bg-gray-100 z-20 group cursor-help'>
                 <span className='truncate block'>last programmed</span>
                 <div className='absolute left-0 top-full mt-1 hidden group-hover:block bg-gray-800 text-white text-[10px] rounded px-2 py-1.5 whitespace-nowrap z-50 shadow-lg'>
-                  <span className='text-green-400'>Green: ≤21 days</span>
+                  <span className='text-green-400'>Green: ≤3 weeks</span>
                   <span className='mx-1'>|</span>
-                  <span className='text-yellow-400'>Yellow: 22–42 days</span>
+                  <span className='text-yellow-400'>Yellow: ≤6 weeks</span>
                   <span className='mx-1'>|</span>
-                  <span className='text-orange-400'>Orange: 43–63 days</span>
+                  <span className='text-orange-400'>Orange: ≤9 weeks</span>
                   <span className='mx-1'>|</span>
-                  <span className='text-red-400'>Red: 64–84 days</span>
+                  <span className='text-red-400'>Red: ≤12 weeks</span>
                   <span className='mx-1'>|</span>
-                  <span className='text-gray-300'>Grey: 85+ days</span>
+                  <span className='text-gray-300'>Grey: 12 weeks+</span>
                 </div>
               </td>
               {exerciseNames.map(name => {

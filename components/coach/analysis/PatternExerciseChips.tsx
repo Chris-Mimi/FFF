@@ -128,7 +128,7 @@ export default function PatternExerciseChips({
           <span className='text-yellow-500'>● ≤6 weeks</span>
           <span className='text-orange-500'>● ≤9 weeks</span>
           <span className='text-red-600'>● ≤12 weeks</span>
-          <span className='text-gray-400'>● 3 months+</span>
+          <span className='text-gray-400'>● 12 weeks+</span>
           <span className='text-gray-700'>● Never</span>
           <button
             type='button'

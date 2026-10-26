@@ -112,7 +112,7 @@ export default function PlannerInfoModal({ isOpen, onClose }: PlannerInfoModalPr
                 <li><b>Yellow</b> — ≤6 weeks</li>
                 <li><b>Orange</b> — ≤9 weeks</li>
                 <li><b>Red</b> — ≤12 weeks</li>
-                <li><b>Light grey</b> — 3 months+ (over 12 weeks)</li>
+                <li><b>Light grey</b> — 12 weeks+</li>
                 <li><b>Faded dark grey</b> — never programmed (a candidate to retire)</li>
               </ul>
               <ul className='list-disc ml-5 space-y-0.5 mt-1.5'>
