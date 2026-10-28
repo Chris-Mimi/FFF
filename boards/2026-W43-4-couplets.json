@@ -1,0 +1,50 @@
+{
+  "note": "2026 Week 43.4 lower half — 25.10 10:00 Hold/Move couplets. Score = 10 per hold + every rep (section note); board 'n+p' = n full rounds + p points into the next round → 10n + n(n+1)/2 + p. GS 'Rx' = 16/24kg (Load 1). No track marks on the board → track left empty for all.",
+  "sessions": [
+    { "date": "2026-10-25", "time": "10:00", "sectionId": "section-1791551952082",
+      "rows": [
+        { "member": "Martina", "reps_result": 98, "scaling_level": "Sc2" },
+        { "member": "Nikolina", "reps_result": 94, "scaling_level": "Sc2" },
+        { "member": "Ruby", "reps_result": 108, "scaling_level": "Sc1" },
+        { "member": "Valerie", "reps_result": 98, "scaling_level": "Sc1" },
+        { "member": "Lukas", "reps_result": 98, "scaling_level": "Sc1" },
+        { "member": "Tobias Schiegg", "reps_result": 91, "scaling_level": "Sc1" }
+      ] },
+    { "date": "2026-10-25", "time": "10:00", "sectionId": "section-1791552067728",
+      "rows": [
+        { "member": "Martina", "reps_result": 104, "scaling_level": "Sc3" },
+        { "member": "Nikolina", "reps_result": 65, "scaling_level": "Sc2" },
+        { "member": "Ruby", "reps_result": 91, "scaling_level": "Sc1" },
+        { "member": "Valerie", "reps_result": 81, "scaling_level": "Sc1" },
+        { "member": "Lukas", "reps_result": 79, "scaling_level": "Rx" },
+        { "member": "Tobias Schiegg", "reps_result": 60, "scaling_level": "Sc2" }
+      ] },
+    { "date": "2026-10-25", "time": "10:00", "sectionId": "section-1791552047900",
+      "rows": [
+        { "member": "Martina", "reps_result": 98, "weight_result": 16 },
+        { "member": "Nikolina", "reps_result": 81, "weight_result": 16 },
+        { "member": "Ruby", "reps_result": 116, "weight_result": 16 },
+        { "member": "Valerie", "reps_result": 112, "weight_result": 16 },
+        { "member": "Lukas", "reps_result": 126, "weight_result": 24 },
+        { "member": "Tobias Schiegg", "reps_result": 113, "weight_result": 24 }
+      ] },
+    { "date": "2026-10-25", "time": "10:00", "sectionId": "section-1791552003798",
+      "rows": [
+        { "member": "Martina", "reps_result": 83, "scaling_level": "Sc2" },
+        { "member": "Nikolina", "reps_result": 36, "scaling_level": "Rx" },
+        { "member": "Ruby", "reps_result": 36, "scaling_level": "Rx" },
+        { "member": "Valerie", "reps_result": 46, "scaling_level": "Rx" },
+        { "member": "Lukas", "reps_result": 61, "scaling_level": "Rx" },
+        { "member": "Tobias Schiegg", "reps_result": 33, "scaling_level": "Sc1" }
+      ] },
+    { "date": "2026-10-25", "time": "10:00", "sectionId": "section-1791552447043",
+      "rows": [
+        { "member": "Martina", "reps_result": 383, "scaling_level": "Sc2", "scaling_level_2": "Sc3", "scaling_level_3": "Sc2", "weight_result_2": 16 },
+        { "member": "Nikolina", "reps_result": 276, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "scaling_level_3": "Rx", "weight_result_2": 16 },
+        { "member": "Ruby", "reps_result": 351, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "scaling_level_3": "Rx", "weight_result_2": 16 },
+        { "member": "Valerie", "reps_result": 337, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "scaling_level_3": "Rx", "weight_result_2": 16 },
+        { "member": "Lukas", "reps_result": 364, "scaling_level": "Sc1", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "weight_result_2": 24 },
+        { "member": "Tobias Schiegg", "reps_result": 297, "scaling_level": "Sc1", "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "weight_result_2": 24 }
+      ] }
+  ]
+}
