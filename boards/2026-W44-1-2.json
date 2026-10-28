@@ -1,0 +1,86 @@
+{
+  "note": "2026 Week 44.1 (26.10 10:00 KB ladder) + 44.2 (2km Ski / 2km Row / 5km Airbike speed test, 26.10–28.10)",
+  "sessions": [
+    {
+      "date": "2026-10-26", "time": "10:00", "sectionId": "section-1792326680875-4",
+      "rows": [
+        { "member": "Michael Städele", "weight_result": 24, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 6, "reps_result": 40 },
+        { "member": "David Montgomery", "weight_result": 16, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 5, "reps_result": 27, "modified": true, "modified_note": "Push Press modified" },
+        { "member": "Irene Koffler", "weight_result": 16, "scaling_level": "Sc2", "scaling_level_2": "Sc1", "rounds_result": 5, "reps_result": 46 },
+        { "member": "Anna Kr", "weight_result": 8, "scaling_level": "Sc2", "scaling_level_2": "Sc1", "rounds_result": 7, "reps_result": 32 },
+        { "member": "Mimi Hiles", "weight_result": 16, "scaling_level": "Sc1", "scaling_level_2": "Rx", "rounds_result": 5, "reps_result": 47 }
+      ]
+    },
+
+    { "date": "2026-10-26", "time": "17:15", "sectionId": "section-1793023954719",
+      "rows": [
+        { "member": "Justine", "time_result": "9:54.1" },
+        { "member": "Ruby", "time_result": "8:39.1" },
+        { "member": "Valerie", "time_result": "8:37.0" },
+        { "member": "Lukas", "time_result": "7:00.1" },
+        { "member": "Sven", "time_result": "7:29.7" }
+      ] },
+    { "date": "2026-10-26", "time": "17:15", "sectionId": "section-1792931490035-4",
+      "rows": [
+        { "member": "Dimitar", "time_result": "7:41.8" },
+        { "member": "Sven", "time_result": "7:59.0" }
+      ] },
+
+    { "date": "2026-10-26", "time": "18:30", "sectionId": "section-1793023956591",
+      "rows": [
+        { "member": "Aline", "time_result": "9:36" },
+        { "member": "Paul", "time_result": "7:08" }
+      ] },
+    { "date": "2026-10-26", "time": "18:30", "sectionId": "section-1793023954719",
+      "rows": [
+        { "member": "Anfisa", "time_result": "10:32.1" },
+        { "member": "Nikolina", "time_result": "9:57.6" }
+      ] },
+    { "date": "2026-10-26", "time": "18:30", "sectionId": "section-1792931490035-4",
+      "rows": [
+        { "member": "Anneke", "time_result": "8:52.2" },
+        { "member": "Senol", "time_result": "7:52.8" },
+        { "member": "Thomas Spegele", "time_result": "7:56.2" },
+        { "member": "Tobias Götte", "time_result": "8:11.5" }
+      ] },
+
+    { "date": "2026-10-27", "time": "17:15", "sectionId": "section-1792931490035-4",
+      "rows": [
+        { "member": "Franziska", "time_result": "10:36.9" },
+        { "member": "Martina", "time_result": "10:02.7" }
+      ] },
+    { "date": "2026-10-27", "time": "17:15", "sectionId": "section-1793023956591",
+      "rows": [
+        { "member": "Stefan", "time_result": "7:45" },
+        { "member": "Steven", "time_result": "8:11" }
+      ] },
+
+    { "date": "2026-10-27", "time": "18:30", "sectionId": "section-1793023954719",
+      "rows": [
+        { "member": "Angela", "time_result": "9:32.7" },
+        { "member": "Annerose", "time_result": "9:34.9" },
+        { "member": "Magdalena", "time_result": "10:17.5" },
+        { "member": "Nicole", "time_result": "9:36.3" },
+        { "member": "Daniel Braatz", "book": true, "time_result": "8:21.3" }
+      ] },
+    { "date": "2026-10-27", "time": "18:30", "sectionId": "section-1792931490035-4",
+      "rows": [
+        { "member": "Bodo", "time_result": "9:46.4" }
+      ] },
+
+    { "date": "2026-10-28", "time": "09:30", "sectionId": "section-1793023954719",
+      "rows": [
+        { "member": "Anna Kr", "time_result": "8:21.0" },
+        { "member": "Irene", "time_result": "9:12.0" }
+      ] },
+    { "date": "2026-10-28", "time": "09:30", "sectionId": "section-1793023956591",
+      "rows": [
+        { "member": "Michael Städele", "time_result": "7:55" },
+        { "member": "Chris Hiles", "time_result": "7:37" }
+      ] },
+    { "date": "2026-10-28", "time": "09:30", "sectionId": "section-1792931490035-4",
+      "rows": [
+        { "member": "Chris Hiles", "time_result": "8:06.9" }
+      ] }
+  ]
+}

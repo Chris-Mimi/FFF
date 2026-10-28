@@ -11,6 +11,8 @@
  *   - missing scoring_fields are switched ON automatically (safe direction only)
  *   - lift sections (RM and non-RM, e.g. 5x5) get their paired `lift_records`
  *     written in the same pass, exactly as the coach save route does (S386/S418)
+ *   - benchmark / forge-benchmark sections get their paired `benchmark_results`
+ *     (athlete Benchmarks / Forge Benchmarks / Records), as the save route does (S425)
  *   - refuses to overwrite rows that already exist
  *
  * See memory-bank/whiteboard-score-entry-protocol.md.
@@ -331,6 +333,51 @@ async function doSession(spec: SessionSpec) {
       if (lrErr) throw new Error(`insert lift_records: ${lrErr.message}`);
     }
     console.log(`✅ ${fresh.length} lift_records (${liftRecords.length - fresh.length} already present)`);
+  }
+
+  // --- Benchmark / Forge Benchmark sections: the paired benchmark_results write ---
+  // Mirrors the save route's cascade (S339): without it the score is on the
+  // leaderboard but missing from the athlete's Benchmarks / Forge Benchmarks / Records.
+  type SectionBm = { id: string; name: string; type: string };
+  const bm = ((section.benchmarks as SectionBm[] | undefined) || [])[0];
+  const fbm = ((section.forge_benchmarks as SectionBm[] | undefined) || [])[0];
+  if (bm || fbm) {
+    let written = 0;
+    for (const r of records) {
+      if (!r.user_id) continue;
+      const time = typeof r.time_result === 'string' ? r.time_result.trim() : '';
+      const resultValue = time
+        || (r.rounds_result != null ? `${r.rounds_result}+${r.reps_result ?? 0}` : '')
+        || (r.reps_result != null ? String(r.reps_result) : '')
+        || (r.weight_result != null ? String(r.weight_result) : '')
+        || (r.metres_result != null ? String(r.metres_result) : '')
+        || (r.calories_result != null ? String(r.calories_result) : '');
+      if (!resultValue) continue;
+      for (const t of [bm && { col: 'benchmark_id', ...bm }, fbm && { col: 'forge_benchmark_id', ...fbm }].filter(Boolean) as (SectionBm & { col: string })[]) {
+        const { data: ex, error: exErr } = await db.from('benchmark_results').select('id')
+          .eq('user_id', r.user_id).eq('result_date', spec.date).eq(t.col, t.id).maybeSingle();
+        if (exErr) throw new Error(`benchmark_results read: ${exErr.message}`);
+        if (ex) continue;
+        const { error: bErr2 } = await db.from('benchmark_results').insert({
+          user_id: r.user_id,
+          benchmark_id: t.col === 'benchmark_id' ? t.id : null,
+          forge_benchmark_id: t.col === 'forge_benchmark_id' ? t.id : null,
+          benchmark_name: t.name,
+          benchmark_type: t.type,
+          time_result: time || null,
+          reps_result: (r.rounds_result ?? r.reps_result ?? null),
+          weight_result: r.weight_result ?? null,
+          result_value: resultValue,
+          scaling_level: r.scaling_level || null,
+          scaling_level_2: r.scaling_level_2 || null,
+          scaling_level_3: r.scaling_level_3 || null,
+          result_date: spec.date,
+        });
+        if (bErr2) throw new Error(`insert benchmark_results: ${bErr2.message}`);
+        written++;
+      }
+    }
+    console.log(`✅ ${written} benchmark_results (${(fbm || bm)!.name})`);
   }
 
   // publish_sections gates visibility in the coach modal AND the leaderboard.
