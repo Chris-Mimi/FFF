@@ -140,7 +140,10 @@ export default function CoachAthletesPage() {
               ) : athletes.length === 0 ? (
                 <p className='text-gray-500 text-center py-4'>No athletes found</p>
               ) : (
-                <div className='space-y-1 md:space-y-2 max-h-[200px] md:max-h-none overflow-y-auto'>
+                <div /* mobile: fill the screen until an athlete is picked, then shrink so the details show below */
+                  className={`space-y-1 md:space-y-2 md:max-h-none overflow-y-auto ${
+                  selectedAthlete ? 'max-h-[200px]' : 'max-h-[calc(100dvh-180px)]'
+                }`}>
                   {athletes.map(athlete => (
                     <button
                       key={athlete.id}
