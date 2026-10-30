@@ -95,6 +95,9 @@ Fix = reword, or use an abbreviation (the Planner never reads abbreviations from
 - `Handstand Push-ups` → Handstand Push-up Kipping
 - plus barbell shorthand (`Clean` → Barbell Clean, etc.), only where such a library name exists
 
+**S427:** Pull-up / Push-up / HSPU / Sit-up / Row defaults removed. **S428 check:** the barbell + Muscle-up entries are dead (no "Barbell …" / "Ring Muscle-up (Kipping)" in the library — text matches the plain library name directly). Only 5 defaults still act: Knees to Elbows → Bar Hanging Knees to Elbows · KB Swing → KB Swing American · Back Extension → GHD Back Extension · Double-Unders → Jump Rope Double-Unders · Walking Lunge → Lunge Walking.
+**✅ DECIDED S428 (Chris: "wouldn't be necessary if the exercises were written correctly"):** `genericToCanonical` removed entirely. Only 1 line depended on it (30 Jul Hyrox warm-up "Walking Lunges" → "Lunge Walking", rewritten). Old-vs-new Planner diff: 671 wods, 0 differ.
+
 
 ---
 
@@ -233,5 +236,6 @@ Lines starting with a bullet / count / distance, outside Whiteboard Intro + Fina
 **New library:** Split Hold, Headstand, Dip Squat (also now counts on 27/28 Apr + 4 May), 3-Point Jump, Cartwheel. Split Hold + 3-Point Jump have no description (meaning not verified — Chris to fill in).
 **Leave (Chris):** Wrist Warm-Up on the floor, Weight plate pull, Ring Toss / Sack hopping / Egg balance game (FitKids games); all cue / structure / shorthand lines.
 **Library naming oddity (not touched):** "M-up Drill: Hip Pop to WB" sits next to "BMU Drill: Hip Pop to Wall".
-**Next:** Diapers & Dumbbells audit + defaults decision (item 21).
+**Defaults (item 21):** decided + removed (see section E).
+**Next:** Diapers & Dumbbells — Chris to choose: treat like Turnen (never check) or fix like the other classes.
 - Gotcha: some lines contain a non-breaking space (U+00A0) — exact-line edits must include it.

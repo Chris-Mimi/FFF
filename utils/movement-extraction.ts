@@ -22,67 +22,12 @@ const excludeWords = new Set([
   'kcal', 'kg', 'lbs', 'lb', 'ft', 'km', 'mi', 'hr', 'hrs',
 ]);
 
-// Failsafe mapping: common generic CrossFit terms → canonical DB exercise names.
-// Catches old WOD JSONB snapshots that used generic terminology before descriptions
-// were updated to use exact DB names. All keys and values are lowercase.
-const genericToCanonical: Record<string, string> = {
-  // No defaults for generic Pull-up / Push-up / HSPU / Sit-up / Row (S427, Chris):
-  // workout text names the library variant ("Push-up Strict", "C2 Rower").
-  // Generic barbell movements → explicit barbell prefix
-  'deadlift': 'barbell deadlift',
-  'deadlifts': 'barbell deadlift',
-  'thruster': 'barbell thruster',
-  'thrusters': 'barbell thruster',
-  'clean': 'barbell clean',
-  'cleans': 'barbell clean',
-  'snatch': 'barbell snatch',
-  'snatches': 'barbell snatch',
-  'push press': 'barbell push press',
-  'push jerk': 'barbell push jerk',
-  'push jerks': 'barbell push jerk',
-  'hang power clean': 'barbell hang power clean',
-  'hang power cleans': 'barbell hang power clean',
-  'clean & jerk': 'barbell clean & jerk',
-  'clean & jerks': 'barbell clean & jerk',
-  'clean and jerk': 'barbell clean & jerk',
-  'clean and jerks': 'barbell clean & jerk',
-  'bench press': 'barbell bench press',
-  'back squat': 'barbell back squat',
-  'back squats': 'barbell back squat',
-  'front squat': 'barbell front squat',
-  'front squats': 'barbell front squat',
-  'overhead squat': 'barbell overhead squat',
-  'overhead squats': 'barbell overhead squat',
-  'strict overhead shoulder press': 'barbell strict oh press',
-  // Gymnastics
-  'ring muscle-up': 'ring muscle-up (kipping)',
-  'ring muscle-ups': 'ring muscle-up (kipping)',
-  'muscle-up': 'ring muscle-up (kipping)',
-  'muscle-ups': 'ring muscle-up (kipping)',
-  'knees to elbows': 'bar hanging knees to elbows',
-  'knee to elbow': 'bar hanging knees to elbows',
-  // KB
-  'kb swing': 'kb swing american',
-  'kb swings': 'kb swing american',
-  'kettlebell swing': 'kb swing american',
-  'kettlebell swings': 'kb swing american',
-  // Bodyweight — need prefix
-  'back extension': 'ghd back extension',
-  'back extensions': 'ghd back extension',
-  // Jump rope — naming convention uses "Jump Rope" prefix
-  'double-under': 'jump rope double-unders',
-  'double-unders': 'jump rope double-unders',
-  'double under': 'jump rope double-unders',
-  'double unders': 'jump rope double-unders',
-  // Lunges — old convention "Walking Lunge" → new "Lunge Walking"
-  'walking lunge': 'lunge walking',
-  'walking lunges': 'lunge walking',
-};
+// No built-in translations of generic words ("KB Swing" → KB Swing American etc.)
+// — removed S427/S428 (Chris): workout text uses the library name.
 
 /**
  * Runtime-loaded acronym map (tag lowercase → exercise display_name lowercase).
- * Built from exercises.tags at load time in useCoachData. Acronyms beyond the
- * hardcoded genericToCanonical set (e.g. "dl" for Barbell Deadlift) come from here.
+ * Built from exercises.tags at load time in useCoachData (e.g. "dl" for Deadlift).
  */
 export type AcronymMap = Map<string, string>;
 
@@ -129,20 +74,12 @@ const findMatchingExercise = (
   // ("Deep Squat Knee Circle" → "Deep Squat Knee Circles").
   if (knownExercisesLower.has(`${lower}s`)) return normalizeMovement(`${lower}s`);
 
-  // 3. Generic term failsafe — maps common shorthand to canonical DB names
-  const canonical = genericToCanonical[lower] || genericToCanonical[depluralized];
-  if (canonical && knownExercisesLower.has(canonical)) {
-    return normalizeMovement(canonical);
-  }
-
-  // 3.5. Strip parenthetical and retry steps 1-3 (handles "Barbell Bench Press (Bodyweight)")
+  // 3. Strip parenthetical and retry steps 1-2 (handles "Barbell Bench Press (Bodyweight)")
   const withoutParen = lower.replace(/\s*\([^)]*\)\s*$/, '').trim();
   if (withoutParen !== lower && withoutParen.length >= 3) {
     if (knownExercisesLower.has(withoutParen)) return normalizeMovement(withoutParen);
     const wpDeplural = withoutParen.replace(/s$/, '');
     if (wpDeplural !== withoutParen && knownExercisesLower.has(wpDeplural)) return normalizeMovement(wpDeplural);
-    const wpCanonical = genericToCanonical[withoutParen] || genericToCanonical[wpDeplural];
-    if (wpCanonical && knownExercisesLower.has(wpCanonical)) return normalizeMovement(wpCanonical);
   }
 
   // 4. Substring matching — a known exercise written inside the candidate (e.g.
@@ -422,13 +359,10 @@ export const extractMovementsWithMetadata = (
       // exercise name (e.g. lift "Strict Overhead Shoulder Press" → "Strict OHP").
       const viaLink = liftExerciseMap?.get(liftLower);
       const viaTag = acronymMap?.get(liftLower);
-      const canonical = genericToCanonical[liftLower];
       if (viaLink && knownLower?.has(viaLink)) {
         emitted.push(normalizeMovement(viaLink));
       } else if (viaTag && knownLower?.has(viaTag)) {
         emitted.push(normalizeMovement(viaTag));
-      } else if (canonical && knownLower?.has(canonical)) {
-        emitted.push(normalizeMovement(canonical));
       } else {
         let resolved = false;
         if (knownLower && knownList) {
@@ -523,15 +457,10 @@ export const extractMovementsFromWod = (
         return;
       }
       // Acronym shortcut — barbell_lifts may store short codes ("BS", "DL", "PP").
-      // findMatchingExercise rejects < 3 chars, so resolve via tags/genericToCanonical first.
+      // findMatchingExercise rejects < 3 chars, so resolve via tags first.
       const viaTag = acronymMap?.get(liftLower);
       if (viaTag && knownLower?.has(viaTag)) {
         movements.add(normalizeMovement(viaTag));
-        return;
-      }
-      const canonical = genericToCanonical[liftLower];
-      if (canonical && knownLower?.has(canonical)) {
-        movements.add(normalizeMovement(canonical));
         return;
       }
       // Try matching with "Barbell" prefix first (since lifts are from barbell_lifts table)
