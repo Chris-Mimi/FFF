@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 295
-**Updated:** 2026-10-30 (Session 426 — Opus 5.5, Mac. **Trimmed this file (old commented session entries + superseded kickoff blocks — all already in `project-history/`). Chris confirmed the S424/S425 checks; homepage "Hier" → timetable anchor link.** Previous: S425 — recency bands 3/6/9/12 wk, fra1, Planner Benchmarks, `/stundenplan`, Week 44.1/44.2.)
+**Version:** 296
+**Updated:** 2026-10-30 (Session 428 — Opus 5.5, Mac. **Closed S427 retroactively from git history: Planner flags rounds 1–3 + Section F batch 1 applied, generic Planner defaults removed.** Previous: S426 — activeContext trim, homepage timetable link, Planner flags re-check.)
 
 ---
 
@@ -42,8 +42,11 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
+**S427 (2026-10-30, Mac) — Planner flags applied (closed in S428):** S426 list + runs + Section F batch 1 (F1–F25) done; generic Pull-up/Push-up/HSPU/Sit-up/Row defaults gone; C&J also credits a Clean. Rewrite tool: `scripts/rewrite-workout-lines.ts` (exact-line, Planner before/after per workout — watch for U+00A0 non-breaking spaces in lines).
+- **Next: Planner flags** — (1) ask Chris: delete the "Pendlay Rows" muscle notes in the 7 Oct 17:15 + 18:30 Whiteboard Intro too (he did 12 Oct)? (2) Section F batch 2 (F26–F97). (3) Diapers & Dumbbells audit + defaults decision (item 21). Detail: S427 section of `memory-bank/planner-false-flags-todo.md`. Plural fixes only where the movement has no other credit in the WOD.
+
 **S426 (2026-10-30, Mac) — Chris's answers to the S425/S424 lists:** `/stundenplan` is live on the website ✅ · home-page "Hier" link → `/training-kurs-buchen#stundenplan` (Chris added `<div id="stundenplan" style="scroll-margin-top:100px;"></div>` above the iframe in the Squarespace Code block) · fra1 speed: "not sure" yet · Planner Benchmarks: he'll check · mobile Athletes list ✅ · Wed 28.10 18:00 WOD: deleted by Chris · S424 eyeball (dusty-gold cards, Custom Movements labels, Session Types survive close) ✅ · activeContext trimmed (466 lines → this; old entries were all in `project-history/`).
-- **Next: Planner flags** — see the S426 section at the bottom of `memory-bank/planner-false-flags-todo.md`. (1) Chris replies `<n> OK` to the 21-item list, apply them + approved Bear Crawl → Bear Crawl Forwards (show Planner old-vs-new diff before writing; S240 batch rule). (2) Rewrite the 11 "400m Run"-style workouts to the library "Run 400m". (3) Section F (97 uncounted texts) in batches: rename text or add to library. **Never check FitKids Turnen / Eltern-Kind-Turnen** (Mimi's notes). Shorthand is fine if the library name is elsewhere in the same WOD. Plurals already tolerated. Write dates as "9 Feb", not "09.02".
+- Planner flags rules: show Planner old-vs-new diff before writing (S240 batch rule). **Never check FitKids Turnen / Eltern-Kind-Turnen** (Mimi's notes). Shorthand is fine if the library name is elsewhere in the same WOD. Write dates as "9 Feb", not "09.02".
 
 **S425 carry-forward:**
 - **First action: 28.10 17:15 + 18:30 boards (+ rest of Week 44) when Chris uploads.** Scored through 28.10 09:30.
@@ -146,6 +149,13 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 427 (2026-10-30 — Opus 5.5, Mac) — PLANNER FLAGS APPLIED + SECTION F BATCH 1 (all pushed; closed in S428)**
+- S426 21-item list + Bear Crawl Forwards + all "400m Run"-style lines → library names in 72 wods (`2e68b69`); NEW `scripts/rewrite-workout-lines.ts`.
+- Generic Pull-up/Push-up/HSPU/Sit-up/Row defaults removed from the Planner detector — text names the library variant now.
+- Clean & Jerk also credits a Clean (`26c8753`); plural fixes only where no other credit in the WOD; 18 Aug wallball progression on library names.
+- Round 3 + Section F F1–F25 in 40 wods (`081700b`); new library: Strict Rings Hanging L-Sit High Raise, DB Bent Over Row Double, Wallball Deadlift, Push-Up Bottom Position Hold, High Frogger.
+- Open: 7 Oct evening "Pendlay Rows" Intro notes (ask Chris), Section F batch 2 (F26–F97).
+
 **Session 425 (2026-10-26→30 — Opus 5.5, Mac) — RECENCY BANDS, FRA1 REGION, PLANNER BENCHMARKS, PUBLIC TIMETABLE, WEEK 44 (all pushed, build clean)**
 - Recency bands 21/42/63/84 days (+ grey 12 wk+) everywhere incl. Movement Tracking; legends in weeks (`31630ce`, `337dbd8`, `3825533`).
 - Vercel functions iad1 → fra1 (`9e08abb`). NEW Planner **Benchmarks** panel: last programmed, count in view period + total, every date → calendar, click name = description (`4efc123`, `149f819`).
@@ -174,14 +184,7 @@ Athlete Tools
 - Admin → Booking Rules: session-type lead times, evening exceptions and day exceptions fold away with a "(N set)" count.
 - PC: stale Synology copies reset to origin; remote → Chris-Mimi/FFF; one-command rule; `Read(~/.claude/**)` allowed.
 
-**Session 421 (2026-10-17→18 — Opus 5.5) — PC CATCH-UP + NEW SPLIT TIMES TAB (all pushed, build exit 0)**
-- Windows PC matched to the Mac: acceptEdits, `~/.claude/settings.json`, `.env.local` (was 3/18 keys), 42 memory notes via a Synology transfer folder (AI Development level — root doesn't sync). Session-start file: no `cd … &&` chains (they always prompt).
-- NEW Toolkit → **Split Times** (`components/coach/PacingTab.tsx`): task cards with fastest/median/slowest (Rx only), freshness dots (round + place in round), ♀/♂ split amounts, date → calendar link, time-cap helper (fastest + transitions + margin).
-- Entry: shared date/round/place/scale + name/time rows, or paste in the old note format (dates carry down); bulk edit/delete via tick boxes.
-- Aids note imported: 13 tasks / 107 scores; 23.05.23 added to the three undated tasks at Chris's request. Feature Overview updated.
-- **Week 42 whiteboard complete** (boards 42.1/42.2b/42.3/42.4, 90 WSR): AnnaM trial fix (`103e9b2`), 14.10 18:30 lunge loads restored to Load 1 (`1145366`).
-
-**Older sessions (57-420):** See `project-history/` folder.
+**Older sessions (57-421):** See `project-history/` folder.
 
 ---
 
@@ -214,7 +217,7 @@ Athlete Tools
 
 1. **Whiteboard Week 44** — next = 28.10 17:15/18:30 + rest of the week (when Chris uploads).
 2. **S425 checks still open (Chris):** pages faster after fra1? (not sure yet) · Planner Benchmarks panel numbers (he'll check). Everything else from S424/S425 confirmed (S426).
-3. **Planner false flags — in progress (S426):** 21-item list awaiting Chris's OKs, runs (11 workouts), section F (97 uncounted texts) — all in the S426 section of `memory-bank/planner-false-flags-todo.md`. Then the Diapers & Dumbbells audit (`--exclude`/`--only` now take a regex) and the defaults decision (item 21).
+3. **Planner false flags — in progress (S427):** S426 list, runs and Section F batch 1 done. Left: 7 Oct evening "Pendlay Rows" Intro notes (ask Chris), Section F batch 2 (F26–F97), then the Diapers & Dumbbells audit (`--exclude`/`--only` take a regex) and the defaults decision (item 21). Detail: S427 section of `memory-bank/planner-false-flags-todo.md`.
 4. **Sunday Wellpass sync (weekly, Chris):** `/coach/members` → Wellpass → Sync from Excel before sessions go live. Skim `blocks_applied`/`blocks_cleared`.
 5. **Optional, only if Chris asks:** delete the 5 "(ex)" Split Times scores · X-on-grouped-exercise warning · tidy Box Jump + Squat Box Jump (no group) · confirm/undo guard for copy-over of a published single-session WOD · deeper pale palette picks (`#C2DFFF`,`#F4CDE0`,`#E8F86D`).
 6. **S410 optional follow-ups:** (a) `notification_log` held only 4 of 12 bookings for a deleted session — understand before trusting it for recovery. (b) Unpublishing still clears `publish_sections` (deliberate). (c) Chip noise from naming variants ("Pull-up"/"Pull-ups"/"Pull-up Strict") — fix names, not code.
