@@ -1,7 +1,9 @@
 # Active Context
 
-**Version:** 293
-**Updated:** 2026-10-24 (Session 424 — Opus 5.5, Mac. **Week 43 whiteboard complete (6 more sessions, 89 WSR + 3 FS lift entries). New dash rule ("—" = "!" + "Did not score"). Specialty/Party/Other calendar cards = dusty gold. Custom Movements rows show "N groups" / "no group". Closing the Workouts panel no longer clears Session Types. Warm-up recency list for a Push Press/KB WOD.**)
+**Version:** 294
+**Updated:** 2026-10-30 (Session 425 — Opus 5.5, Mac. **Planner recency bands → 3/6/9/12 weeks (all legends in weeks, Movement Tracking too). Vercel functions moved iad1 → fra1 (next to Supabase Frankfurt). NEW Planner Benchmarks panel. Exercise rename → "BMU Drill: Dead Stop Knees to Bar" (12 wods; generic `scripts/rename-exercise.ts`). Week 44.1/44.2 + 25.10 couplets entered; writer now writes benchmark_results. Mobile Athletes list fix. NEW public `/stundenplan` timetable for the Squarespace website.**)
+
+<!-- Older S424: 2026-10-24 (Session 424 — Opus 5.5, Mac. **Week 43 whiteboard complete (6 more sessions, 89 WSR + 3 FS lift entries). New dash rule ("—" = "!" + "Did not score"). Specialty/Party/Other calendar cards = dusty gold. Custom Movements rows show "N groups" / "no group". Closing the Workouts panel no longer clears Session Types. Warm-up recency list for a Push Press/KB WOD.**) -->
 
 <!-- Older S423: 2026-10-21 (Session 423 — Opus 5.5, Mac. **Whiteboard Week 43.1 (FS 5RM + AMRAP, 5 sessions, 76 WSR + 36 lift entries) + 43.2 (19.10 10:00 endurance repeat, 8 WSR). Exercise renamed "Handstand 2-Footed Kick-Up" → "Handstand Kick-Up: 2-Footed" in library + 10 wods. Chris's stray FS 5RM 12 kg deleted. S420–S422 carry-overs all closed.**) -->
 
@@ -155,7 +157,14 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S424 (2026-10-24, Mac) — first action: Week 44 boards** (Week 43 complete; 25.10 Sunday not yet checked — run the coverage sweep for it with Week 44). Ask Chris about the S424 uncertain list only if he raises it (Mimi 23.10 GHD 66, Carmine 21.10 Row 25 cals, Lena FS 5RM 47.5 > Feb 1RM 45, Anja booked 21.10 18:30 by guess).
+**S425 (2026-10-26→30, Mac) — first action: 28.10 17:15 + 18:30 boards (+ rest of Week 44) when Chris uploads.** Coverage sweep 25–28.10 done; everything up to 28.10 09:30 is scored (Chris did Sven + Aline's DL himself).
+- **`/stundenplan` (public timetable, `app/stundenplan/page.tsx`):** Chris was adding it to Squarespace "Kurs buchen" via a **Code** block (iframe snippet in project-history S425). Ask if it shows live + on phone (raise iframe height if cut off). Only that path is framable (`next.config.ts` CSP frame-ancestors: website + `*.squarespace.com`). **Chris asked for FAKE attendance numbers — declined (UWG misleading advertising); agreed instead: no counts, badge only when true (≥70% "Nur noch wenige Plätze", full "Ausgebucht – Warteliste").** Don't build fake social proof if asked again. Side-by-side offset classes (≤10 min apart) merge into the quarter-hour one. Open: a Wed 28.10 18:00 WOD appeared (wasn't there on 27.10) — told Chris, unanswered.
+- **Slowness (Chris: up to 8 s, all pages, phone too):** Vercel functions were in iad1 (Washington) with Supabase in Frankfurt → `vercel.json` `"regions": ["fra1"]` (`9e08abb`), verified `fra1::fra1`. Ask if it feels faster. Browser-direct Supabase queries are unaffected — if a page is still slow, count its queries next.
+- **Disk is NOT full** (Chris corrected — the S358 "98%" ignored reclaimable iCloud Photos). Don't blame it.
+- **Writer (`scripts/enter-whiteboard-scores.ts`) now writes `benchmark_results`** for benchmark / forge-benchmark sections, like the save route. Times with tenths (`9:54.1`) stored as written.
+- **Board-order vs booking:** Chris on board in 27.10 17:15 but booked 28.10 09:30 → I followed the booking; he'd actually trained 27.10 (added himself, moved). Sven on board once with 2 machines → I put both on one day; Chris fixed it. When a booked name sits in another session's block, **ask nothing, but expect board position to be the truth for coaches.**
+
+**S424 (2026-10-24, Mac) — ✅ superseded by S425 (Week 43 + 25.10 done).** (Week 43 complete; 25.10 Sunday not yet checked — run the coverage sweep for it with Week 44). Ask Chris about the S424 uncertain list only if he raises it (Mimi 23.10 GHD 66, Carmine 21.10 Row 25 cals, Lena FS 5RM 47.5 > Feb 1RM 45, Anja booked 21.10 18:30 by guess).
 - **Dash rule (Chris, S424):** a "—" score cell → `"modified": true, "modified_note": "Did not score"` on that row; write the rest. In the protocol legend.
 - **Photo labels 43.1/43.2 were swapped vs S423's notes** (43.1 = endurance, 43.2 = FS board) — always open the photo, don't trust the label order.
 - **Board shapes that worked:** 3-station boards = one WSR row per station section (cals → `calories_result`, movement reps → `reps_result`, scaling). Ladder AMRAP with total reps on the board → convert to rounds + reps (KB ladder: after k rounds = 4k(k+1)).
@@ -264,7 +273,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 7. ✅ **WOD-overwrite data-loss CLOSED (S416).** Undo (S414) + scores now move onto the new copy; old wod kept if any score can't move.
 8. **Open decision:** unpublishing a workout still clears `publish_sections`, blinding the coach modal the same way the S410 bug did. Left alone deliberately.
 
-**Chris's Mac (not project work, only if he raises it):** disk is genuinely ~96% full. Capture script at `~/mac-incident-data/capture.sh` — run it when the next app-launch/auth freeze hits.
+**Chris's Mac (not project work, only if he raises it):** disk is NOT full (Chris, S425 — ~400 GB effectively free). Capture script at `~/mac-incident-data/capture.sh` — run it when the next app-launch/auth freeze hits.
 
 ## 🎯 Project Overview
 
@@ -333,6 +342,13 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 425 (2026-10-26→30 — Opus 5.5, Mac) — RECENCY BANDS, FRA1 REGION, PLANNER BENCHMARKS, PUBLIC TIMETABLE, WEEK 44 (all pushed, build clean)**
+- Recency bands 21/42/63/84 days (+ grey 12 wk+) everywhere incl. Movement Tracking; legends in weeks (`31630ce`, `337dbd8`, `3825533`).
+- Vercel functions iad1 → fra1 (`9e08abb`). NEW Planner **Benchmarks** panel: last programmed, count in view period + total, every date → calendar, click name = description (`4efc123`, `149f819`).
+- Rename "Dead Stop Knees to Bar (BMU drill)" → "BMU Drill: Dead Stop Knees to Bar" (library + 12 wods incl. 4 short spellings); `scripts/rename-exercise.ts "<old>" "<new>" [--also]` (`cab9c80`).
+- Whiteboard: 44.1 KB ladder, 44.2 speed test (5 sessions), 25.10 couplets from 43.4 (Track 1) — 65 WSR + 30 Forge Benchmark entries; fixes Chris/Magdalena/Track.
+- Mobile Athletes list fills screen until an athlete is picked (`9086ad7`). NEW public `/stundenplan` for the website (`4b4493b`, `e220ed0`).
+
 **Session 424 (2026-10-24 — Opus 5.5, Mac) — WEEK 43 WHITEBOARD DONE, DASH RULE, 3 COACH UI FIXES (all pushed, build exit 0)**
 - 10 under-used warm-ups for a Push Press / KB Clean & Press / Roll-out / Inverted Goblet Squat WOD (recency query #4 shape, Planner Pre-Workout group + KB groups).
 - Week 43 rest: 21.10 17:15 FS (Lena/Valerie/Lukas + 3 lift entries), 21.10 17:10 metcon, 3-station HSPU board (21.10 18:30, 23.10 09:00 + 18:30), 23.10 17:15 KB ladder — 89 WSR; Anja booked. Parity: only Martina (expected).
@@ -361,13 +377,7 @@ Athlete Tools
 - Aids note imported: 13 tasks / 107 scores; 23.05.23 added to the three undated tasks at Chris's request. Feature Overview updated.
 - **Week 42 whiteboard complete** (boards 42.1/42.2b/42.3/42.4, 90 WSR): AnnaM trial fix (`103e9b2`), 14.10 18:30 lunge loads restored to Load 1 (`1145366`).
 
-**Session 420 (2026-10-13→17 — Opus 5.5) — WEEK 41 DONE, SCORE-SAVE CAP, WHITEBOARD WEEK PICKER, BENCHMARK ICONS (all pushed, build exit 0)**
-- Week 41 finished: 7.10 evening (GM 5RM + AMRAP), 9.10 09:00 + evening couplets (Pt.1–5, tracks by class), 11.10 HPC AMRAP, 12.10 10:00 (bottom of the 41.3 board) — 167 WSR + 21 lift entries; Petra/Justine "!" "Did not count". Week 42.2 (14.10 09:30 Snatch totals) 6 rows.
-- Save route rejected loads > 500 kg → Snatch totals blocked whole-session saves; cap 10,000 + toast shows reason (`6ff1f79`).
-- Whiteboard tab: week dropdown + W53 fix (`bb42ec2`). Benchmark card icons always visible (`99cf0cc`).
-- German pushes verified from `notification_log`.
-
-**Older sessions (57-419):** See `project-history/` folder.
+**Older sessions (57-420):** See `project-history/` folder.
 
 ---
 
@@ -400,7 +410,8 @@ Athlete Tools
 ## 📋 Next Immediate Steps
 
 1. ✅ **S422 Booking Rules, S421 Split Times, S420 checks, Week 42 eyeball — all confirmed by Chris (S423).** Sunday evening = 21:00 intended. Optional reminder: the 5 "(ex)" Split Times scores can go once he has newer data.
-1. **Whiteboard — Week 43 complete (S424); next = 25.10 + Week 44** (when Chris uploads). He's checking the 43.1 5RM jumps (Carmine/Julia/Susi) himself.
+1. **Whiteboard — scored through 28.10 09:30 (S425); next = 28.10 17:15/18:30 + rest of Week 44** (when Chris uploads).
+1. **S425 live checks (Chris):** `/stundenplan` on the website (desktop + phone), pages faster after fra1?, Planner Benchmarks panel numbers, mobile Athletes list. Wed 28.10 18:00 WOD — intended?
 1. **S424 live eyeball (Chris):** dusty-gold Specialty cards, Custom Movements "N groups"/"no group" labels, Session Types survive panel close. Optional: X-on-grouped-exercise warning (offered, not asked for); tidy Box Jump + Squat Box Jump (no group).
 1. **Optional: trim `activeContext.md`** — 444+ lines (~54k tokens) exceeds the session-start read cap; the commented S388–S409 entries at the top are already in `project-history/`. Offered S424, not yet answered.
 1. **S419 — work through `memory-bank/planner-false-flags-todo.md` with Chris** (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults decision.
