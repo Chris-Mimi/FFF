@@ -237,5 +237,6 @@ Lines starting with a bullet / count / distance, outside Whiteboard Intro + Fina
 **Leave (Chris):** Wrist Warm-Up on the floor, Weight plate pull, Ring Toss / Sack hopping / Egg balance game (FitKids games); all cue / structure / shorthand lines.
 **Library naming oddity (not touched):** "M-up Drill: Hip Pop to WB" sits next to "BMU Drill: Hip Pop to Wall".
 **Defaults (item 21):** decided + removed (see section E).
+**Recurring (Chris, S428):** repeat this audit every 3 months — next end of Jan 2027 — on workouts written since the last one, so wrong / superfluous text never piles up again. Last full pass: S426–S428.
 **Next:** Diapers & Dumbbells — Chris to choose: treat like Turnen (never check) or fix like the other classes.
 - Gotcha: some lines contain a non-breaking space (U+00A0) — exact-line edits must include it.

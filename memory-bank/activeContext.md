@@ -218,16 +218,17 @@ Athlete Tools
 1. **Whiteboard Week 44** — next = 28.10 17:15/18:30 + rest of the week (when Chris uploads).
 2. **S425 checks still open (Chris):** pages faster after fra1? (not sure yet) · Planner Benchmarks panel numbers (he'll check). Everything else from S424/S425 confirmed (S426).
 3. **Planner false flags — in progress (S427):** S426 list, runs and Section F (both batches, S427/S428) done. Defaults removed (S428). Left: Diapers & Dumbbells — Chris to choose treat-like-Turnen vs fix (`--exclude`/`--only` take a regex). Detail: S427 section of `memory-bank/planner-false-flags-todo.md`.
-4. **Sunday Wellpass sync (weekly, Chris):** `/coach/members` → Wellpass → Sync from Excel before sessions go live. Skim `blocks_applied`/`blocks_cleared`.
-5. **Optional, only if Chris asks:** delete the 5 "(ex)" Split Times scores · X-on-grouped-exercise warning · tidy Box Jump + Squat Box Jump (no group) · confirm/undo guard for copy-over of a published single-session WOD · deeper pale palette picks (`#C2DFFF`,`#F4CDE0`,`#E8F86D`).
-6. **S410 optional follow-ups:** (a) `notification_log` held only 4 of 12 bookings for a deleted session — understand before trusting it for recovery. (b) Unpublishing still clears `publish_sections` (deliberate). (c) Chip noise from naming variants ("Pull-up"/"Pull-ups"/"Pull-up Strict") — fix names, not code.
-7. **Paper-card sync remainders (~12 holders)** — parked pending parent contact. `npx tsx scripts/list-ten-card-no-purchase-date.ts`. Frida Engels has a duplicate row from a parent-kid mix-up.
-8. **Retroactive 10-card bookings for 8 athletes (S336 carry)** — `npx tsx scripts/probe-unbooked-whiteboard-athletes.ts` for the list; book via Session Management, check the chip (⚠ = mismatch → TenCardModal → Recalc → Save).
-9. **Old prod checks never confirmed:** S372 Logbook multi-scale (20.02.26 17:15 "Tabata This" shows 3 scales + loads) · S371 athlete Benchmarks leaderboard (Best + Last, default Last) · S341 Planner `[ All | RM Testing only ]` · S338 AKBS Deadlift "WOD Pt.3" (Chris 47/20 above Madeleine 48/12). Ask Chris once whether to check or drop.
-10. **Next-intl i18n (DE/EN)** — for commercialization; ~1 day. Stop adding inline German until then. Memory: `project_commercialization_and_i18n.md`.
-11. **SPF/DKIM/DMARC + reset-flow test (S297)** — Resend → Domains should be all ✅, then test reset end to end.
-12. **Mac Chrome hang** — only if Chris raises it (capture script above).
-13. **Low-priority code backlog:** score-entry API ignores `members.status` (S289) · test-push endpoint doesn't clean 410s (S292) · `fetchWODs` error logging shows `{}` (S322) · anon-key diagnostic scripts (S323) · optional derived "Guardian" badge (S324) · re-tune booking countdown (amber 2h / red 30m) and Statistics chip dimming (10%/30%) if anyone complains.
+4. **Planner flags audit — RECURRING every 3 months (Chris, S428). Next due: end of Jan 2027** (then end Apr, Jul, Oct). Check workouts written since the last audit: false credits (`scripts/audit-movement-false-flags.ts --exclude "turnen|diapers"`) + programmed lines that count as nothing (the S426 "Section F" scan). Fix text to library names / add library entries, numbered list → Chris OKs → `scripts/rewrite-workout-lines.ts`. Remind Chris at session start when due. Last done: S426–S428 (Oct 2026).
+5. **Sunday Wellpass sync (weekly, Chris):** `/coach/members` → Wellpass → Sync from Excel before sessions go live. Skim `blocks_applied`/`blocks_cleared`.
+6. **Optional, only if Chris asks:** delete the 5 "(ex)" Split Times scores · X-on-grouped-exercise warning · tidy Box Jump + Squat Box Jump (no group) · confirm/undo guard for copy-over of a published single-session WOD · deeper pale palette picks (`#C2DFFF`,`#F4CDE0`,`#E8F86D`).
+7. **S410 optional follow-ups:** (a) `notification_log` held only 4 of 12 bookings for a deleted session — understand before trusting it for recovery. (b) Unpublishing still clears `publish_sections` (deliberate). (c) Chip noise from naming variants ("Pull-up"/"Pull-ups"/"Pull-up Strict") — fix names, not code.
+8. **Paper-card sync remainders (~12 holders)** — parked pending parent contact. `npx tsx scripts/list-ten-card-no-purchase-date.ts`. Frida Engels has a duplicate row from a parent-kid mix-up.
+9. **Retroactive 10-card bookings for 8 athletes (S336 carry)** — `npx tsx scripts/probe-unbooked-whiteboard-athletes.ts` for the list; book via Session Management, check the chip (⚠ = mismatch → TenCardModal → Recalc → Save).
+10. **Old prod checks never confirmed:** S372 Logbook multi-scale (20.02.26 17:15 "Tabata This" shows 3 scales + loads) · S371 athlete Benchmarks leaderboard (Best + Last, default Last) · S341 Planner `[ All | RM Testing only ]` · S338 AKBS Deadlift "WOD Pt.3" (Chris 47/20 above Madeleine 48/12). Ask Chris once whether to check or drop.
+11. **Next-intl i18n (DE/EN)** — for commercialization; ~1 day. Stop adding inline German until then. Memory: `project_commercialization_and_i18n.md`.
+12. **SPF/DKIM/DMARC + reset-flow test (S297)** — Resend → Domains should be all ✅, then test reset end to end.
+13. **Mac Chrome hang** — only if Chris raises it (capture script above).
+14. **Low-priority code backlog:** score-entry API ignores `members.status` (S289) · test-push endpoint doesn't clean 410s (S292) · `fetchWODs` error logging shows `{}` (S322) · anon-key diagnostic scripts (S323) · optional derived "Guardian" badge (S324) · re-tune booking countdown (amber 2h / red 30m) and Statistics chip dimming (10%/30%) if anyone complains.
 
 ---
 
