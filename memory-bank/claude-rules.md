@@ -194,7 +194,8 @@ For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** 
 **How to apply:**
 1. Never re-add a fuzzy / partial-name match to `utils/movement-extraction.ts`. Allowed: exact library name, its singular/plural, a library name written inside a longer phrase, and acronym tags. **No built-in translations of generic words** — `genericToCanonical` was removed in S428 (Chris: the text should use the library name in the first place).
 2. Any change to the detector must be shown old-vs-new across every workout before it ships (pattern: `git show HEAD:utils/movement-extraction.ts` to a temp file, run both, diff per workout). S419 found two hidden dependencies this way (singular text vs plural name; names ending in a bracket).
-3. Abbreviations in workout text are never read — Chris uses them in sentences on purpose. Wrong flags are fixed in the workout text, not by adding rules. Audit: `scripts/audit-movement-false-flags.ts`; backlog: `memory-bank/planner-false-flags-todo.md`.
+3. **FitKids Turnen, Eltern-Kind-Turnen and Diapers & Dumbbells are Mimi's own notes — never audit or edit them** (Chris, S426/S428). Audits run with `--exclude "turnen|diapers"`; `rewrite-workout-lines.ts` skips them by default.
+4. Abbreviations in workout text are never read — Chris uses them in sentences on purpose. Wrong flags are fixed in the workout text, not by adding rules. Audit: `scripts/audit-movement-false-flags.ts`; backlog: `memory-bank/planner-false-flags-todo.md`.
 
 ### Trust the user's statements exactly as given
 When Chris says something doesn't appear in a workout, it means exactly that — don't invent explanations or assume he's mistaken. He will explicitly say when he's unsure.
