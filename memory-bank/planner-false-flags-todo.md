@@ -220,7 +220,10 @@ Lines starting with a bullet / count / distance, outside Whiteboard Intro + Fina
 
 **Round 2 done:** every "Clean & Jerk" now also counts a Clean (`IMPLIES` in the extractor — only 15.03 + 04.05 gained one). Plurals fixed only where the movement had no other credit in the WOD (Chris's rule): Ring Dip (29.05, 8.07, 17.07), "M Burpee Broad Jump" + "Shuttle Run" (7.09). 18.08 progression → Wallball Deadlift (new library) / Wallball Front Squat / Wallball: MB/WB Clean. 4.05 → "5m Bear Crawl Forwards to WB".
 
+**Round 3 done (40 wods):** 8.03 → "2x Hang Power Clean"; 16 + 23.09 → "FULL CLNs NOT PCs" / "PCs will be marked as scaled". Section F batch 1 (F1–F25): Skater → DB Single Leg Squat (Skater); Scorpion (Cool Down) → Scorpion Stretch; Scorpion Twist → Dynamic Scorpion (rule: Scorpion Stretch = cool-down, Dynamic Scorpion = warm-up); Couch Stretch; Kneeling Glute Squeeze Lean Hip Opener sequence; Battle Rope Power Slam; DB Flat Bench Pullover; World's Greatest stretch + Samson; Lizard Stretch; Bicycle Knees to Elbows (9 + 12 Jan; D&D 28.09 not touched); Weight Plate Deep Squat 90° Hold; Ring M-Up Drill: Ring Swing. New library: Push-Up Bottom Position Hold, High Frogger (text unchanged, now counted).
+**Leave (Chris):** F1/F2 Lu Raise + Triceps Push-back = part of the Lu Xiaojun Shoulder Warm-up, always done together. F15 "4 x HPS" — Hang Power Snatch already counted from the Olympic Lifting section (shorthand rule).
+
 **Still open:**
-- Plural/sentence leftovers with no other credit: 8.03 "2x Cleans & 2x Burpees" (which clean?), 16 + 23.09 "FULL Cleans NOT Power Cleans" / "Power Cleans will be marked as scaled", 7 + 12.10 Whiteboard Intro "Pendlay Rows".
-- Section F (97) — batch 1 (F1–F25) proposed S427.
+- 7.10 17:15 + 18:30 Whiteboard Intro "Pendlay Rows" muscle notes → counts Pendlay Row, but the Pendlay Row 10RM test was the 09:30 class (separate WOD). Chris deleted the same text on 12.10 — ask: delete on 7.10 evening too?
+- Section F batch 2 (F26–F97).
 - Gotcha: some lines contain a non-breaking space (U+00A0) — exact-line edits must include it.
