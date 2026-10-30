@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 296
-**Updated:** 2026-10-30 (Session 428 — Opus 5.5, Mac. **Closed S427 retroactively from git history: Planner flags rounds 1–3 + Section F batch 1 applied, generic Planner defaults removed.** Previous: S426 — activeContext trim, homepage timetable link, Planner flags re-check.)
+**Version:** 297
+**Updated:** 2026-10-30 (Session 428 — Opus 5.5, Mac. **Planner flags project COMPLETE: S427 closed from git, Section F batch 2 (33 wods, 5 new library entries), all generic-word translations removed, audit script gets `--uncounted` + `--since`, 3-monthly audit scheduled, D&D left alone.** Previous: S427 — Planner flags rounds 1–3 + Section F batch 1.)
 
 ---
 
@@ -42,11 +42,11 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S427 (2026-10-30, Mac) — Planner flags applied (closed in S428):** S426 list + runs + Section F batch 1 (F1–F25) done; generic Pull-up/Push-up/HSPU/Sit-up/Row defaults gone; C&J also credits a Clean. Rewrite tool: `scripts/rewrite-workout-lines.ts` (exact-line, Planner before/after per workout — watch for U+00A0 non-breaking spaces in lines).
-- **Next: Planner flags** — (1) 7 Oct "Pendlay Rows" notes: Chris already deleted ✅ (S428). (2) Section F batch 2 ✅ done S428 (33 wods, 5 new library entries). (3) Defaults (item 21) ✅ removed S428 — no generic-word translations left. (4) Diapers & Dumbbells: leave (Chris, S428) — never checked, like Turnen. **Planner flags project complete;** only the 3-monthly audit remains. Detail: S427 section of `memory-bank/planner-false-flags-todo.md`. Plural fixes only where the movement has no other credit in the WOD.
-
-**S426 (2026-10-30, Mac) — Chris's answers to the S425/S424 lists:** `/stundenplan` is live on the website ✅ · home-page "Hier" link → `/training-kurs-buchen#stundenplan` (Chris added `<div id="stundenplan" style="scroll-margin-top:100px;"></div>` above the iframe in the Squarespace Code block) · fra1 speed: "not sure" yet · Planner Benchmarks: he'll check · mobile Athletes list ✅ · Wed 28.10 18:00 WOD: deleted by Chris · S424 eyeball (dusty-gold cards, Custom Movements labels, Session Types survive close) ✅ · activeContext trimmed (466 lines → this; old entries were all in `project-history/`).
-- Planner flags rules: show Planner old-vs-new diff before writing (S240 batch rule). **Never check FitKids Turnen / Eltern-Kind-Turnen / Diapers & Dumbbells** (Mimi's notes; D&D decided S428). Shorthand is fine if the library name is elsewhere in the same WOD. Write dates as "9 Feb", not "09.02".
+**S428 (2026-10-30, Mac) — Planner flags project DONE.** Nothing half-finished. First action next session = **Whiteboard Week 44** (below) if Chris uploads; otherwise ask what's next.
+- **Planner counts library names only — no generic-word translations at all** (`genericToCanonical` removed). New workouts must say "KB Swing American", "Jump Rope Double-Unders (DUs)", "Lunge Walking" etc. If Chris asks why a movement isn't counted, check the text spelling + the library name (incl. stray spaces — 3 found S428) first.
+- **3-monthly Planner audit, next due end of Jan 2027** — remind Chris at the first session after that date. Commands in Next Immediate Steps #4.
+- **Never audit/edit FitKids Turnen / Eltern-Kind-Turnen / Diapers & Dumbbells** (Mimi's notes). Shorthand fine if the library name is elsewhere in the same WOD. Show Planner old-vs-new diff before writing. Write dates as "9 Feb", not "09.02".
+- Open for Chris (don't chase): descriptions for new library entries **Split Hold** + **3-Point Jump** · fra1 speed · Planner Benchmarks numbers.
 
 **S425 carry-forward:**
 - **First action: 28.10 17:15 + 18:30 boards (+ rest of Week 44) when Chris uploads.** Scored through 28.10 09:30.
@@ -149,12 +149,19 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 428 (2026-10-30 — Opus 5.5, Mac) — PLANNER FLAGS PROJECT COMPLETE (all pushed, build clean)**
+- Closed S427 retroactively from git history (`1626963`).
+- Section F batch 2: 33 wods rewritten to library names; new library Split Hold, Headstand, Dip Squat, 3-Point Jump, Cartwheel (`d950fc5`).
+- `genericToCanonical` removed entirely — only 30 Jul "Walking Lunges" depended on it; 671 wods diffed, 0 differ (`6a4fb92`).
+- Audit script: `--uncounted` (Section F scan) + `--since`; 3 library names trimmed of stray spaces; Athlete 2 Skierg fixed (`e83c759`).
+- 3-monthly Planner audit scheduled (next end Jan 2027); D&D left alone like Turnen (`e3339fc`, `0ad868b`).
+
 **Session 427 (2026-10-30 — Opus 5.5, Mac) — PLANNER FLAGS APPLIED + SECTION F BATCH 1 (all pushed; closed in S428)**
 - S426 21-item list + Bear Crawl Forwards + all "400m Run"-style lines → library names in 72 wods (`2e68b69`); NEW `scripts/rewrite-workout-lines.ts`.
 - Generic Pull-up/Push-up/HSPU/Sit-up/Row defaults removed from the Planner detector — text names the library variant now.
 - Clean & Jerk also credits a Clean (`26c8753`); plural fixes only where no other credit in the WOD; 18 Aug wallball progression on library names.
 - Round 3 + Section F F1–F25 in 40 wods (`081700b`); new library: Strict Rings Hanging L-Sit High Raise, DB Bent Over Row Double, Wallball Deadlift, Push-Up Bottom Position Hold, High Frogger.
-- Open: 7 Oct evening "Pendlay Rows" Intro notes (ask Chris), Section F batch 2 (F26–F97).
+- Open items closed in S428.
 
 **Session 425 (2026-10-26→30 — Opus 5.5, Mac) — RECENCY BANDS, FRA1 REGION, PLANNER BENCHMARKS, PUBLIC TIMETABLE, WEEK 44 (all pushed, build clean)**
 - Recency bands 21/42/63/84 days (+ grey 12 wk+) everywhere incl. Movement Tracking; legends in weeks (`31630ce`, `337dbd8`, `3825533`).
@@ -178,13 +185,7 @@ Athlete Tools
 - Deleted Chris's stray FS 5RM 12 kg (20.04 lift entry + its WSR — he wasn't booked in that class).
 - Renamed "Handstand 2-Footed Kick-Up" → "Handstand Kick-Up: 2-Footed" (library + 10 wods, Planner diff verified).
 
-**Session 422 (2026-10-21 — Opus 5.5, Windows PC) — BOOKING RULES: EVENING EXCEPTIONS + WORKOUT REVEAL TIME (all pushed, build exit 0)**
-- Morning lock: per-evening exceptions (`83047fc`) — Sunday stays later so Wellpass-restricted members (release 15:00 + 180 min = 18:00) can still book Monday mornings.
-- Workout reveal: was hard-coded 2 h in two athlete files; now a setting + per-day exceptions. Leaderboard listed every published workout of the week incl. future days with full section text → now hidden until reveal time.
-- Admin → Booking Rules: session-type lead times, evening exceptions and day exceptions fold away with a "(N set)" count.
-- PC: stale Synology copies reset to origin; remote → Chris-Mimi/FFF; one-command rule; `Read(~/.claude/**)` allowed.
-
-**Older sessions (57-421):** See `project-history/` folder.
+**Older sessions (57-422):** See `project-history/` folder.
 
 ---
 
