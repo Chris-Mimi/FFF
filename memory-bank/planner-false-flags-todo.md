@@ -224,6 +224,14 @@ Lines starting with a bullet / count / distance, outside Whiteboard Intro + Fina
 **Leave (Chris):** F1/F2 Lu Raise + Triceps Push-back = part of the Lu Xiaojun Shoulder Warm-up, always done together. F15 "4 x HPS" — Hang Power Snatch already counted from the Olympic Lifting section (shorthand rule).
 
 **Still open:**
-- 7.10 17:15 + 18:30 Whiteboard Intro "Pendlay Rows" muscle notes → counts Pendlay Row, but the Pendlay Row 10RM test was the 09:30 class (separate WOD). Chris deleted the same text on 12.10 — ask: delete on 7.10 evening too?
-- Section F batch 2 (F26–F97).
+- ~~7.10 17:15 + 18:30 "Pendlay Rows" Intro notes~~ — Chris already deleted them (S428).
+- ~~Section F batch 2 (F26–F97)~~ — done S428 (below).
+
+## S428 (2026-10-30) — Section F batch 2 applied
+
+**Done (33 wods, backup first, Planner diff: nothing lost):** Ring M-Up Drill: Hips to Rings; C2 SkiErg (27 + 30 Mar, 8 Aug "Ski 400m" → "C2 SkiErg 400m"); Push-Up Bottom Position Hold (24 Apr); Sledge pull → Sled Pull/Drag (18 Jul, 26 Sep); Barbell Hand To Hand Rotations; Pull-up Scapular; KB Flat Back Pullover; DB Biceps Curl; Active Supine Piriformis; Swiss Ball → Stability Ball (6 Jul Kids, 6 lines); Parallettes Tuck Hold + Rings Hang (22 Jul FitKids); M-up Drill: Hip Pop to Wall → BMU Drill: Hip Pop to Wall (8 classes); Bear Crawl Slamball Push/Roll (4 Oct); DB OHP → DB Strict OH Press (30 Sep Kids); Head Stand → Headstand; 3-point-jump → 3-Point Jump.
+**New library:** Split Hold, Headstand, Dip Squat (also now counts on 27/28 Apr + 4 May), 3-Point Jump, Cartwheel. Split Hold + 3-Point Jump have no description (meaning not verified — Chris to fill in).
+**Leave (Chris):** Wrist Warm-Up on the floor, Weight plate pull, Ring Toss / Sack hopping / Egg balance game (FitKids games); all cue / structure / shorthand lines.
+**Library naming oddity (not touched):** "M-up Drill: Hip Pop to WB" sits next to "BMU Drill: Hip Pop to Wall".
+**Next:** Diapers & Dumbbells audit + defaults decision (item 21).
 - Gotcha: some lines contain a non-breaking space (U+00A0) — exact-line edits must include it.
