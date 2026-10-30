@@ -34,9 +34,9 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * Ask Claude about Ionos web hosting etc
 * Bench Press we did last in Week 38 but it doesn't show up in the Planner in Upper Body Horizontal Press
 * 
+* I need different time-scales for the Planner. Will this cause us any issues as we've already started with these current ones?
 * 
-* 
-* 
+* Next do a sweep to make sure that any exercises which appear in any WOD/Strength/Skill etc section also appear in the Workout Name. This does NOT mean that the exercise appears in full, I just want to be sure that any movements we did show in the title so I can scan it easily. FOr example, this week we did this workout Name: "Bench Press Negatives, DB Snatch, BJ, WB Shot" then I can see at a glance which main exercises we did when planning or reviewing. I don't need Warm-ups & Cool Downs
 
 
 * At-Risk put the list in order from most recent to least recent attendance

@@ -43,6 +43,7 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
 **S426 (2026-10-30, Mac) — Chris's answers to the S425/S424 lists:** `/stundenplan` is live on the website ✅ · home-page "Hier" link → `/training-kurs-buchen#stundenplan` (Chris added `<div id="stundenplan" style="scroll-margin-top:100px;"></div>` above the iframe in the Squarespace Code block) · fra1 speed: "not sure" yet · Planner Benchmarks: he'll check · mobile Athletes list ✅ · Wed 28.10 18:00 WOD: deleted by Chris · S424 eyeball (dusty-gold cards, Custom Movements labels, Session Types survive close) ✅ · activeContext trimmed (466 lines → this; old entries were all in `project-history/`).
+- **Next: Planner flags** — see the S426 section at the bottom of `memory-bank/planner-false-flags-todo.md`. (1) Chris replies `<n> OK` to the 21-item list, apply them + approved Bear Crawl → Bear Crawl Forwards (show Planner old-vs-new diff before writing; S240 batch rule). (2) Rewrite the 11 "400m Run"-style workouts to the library "Run 400m". (3) Section F (97 uncounted texts) in batches: rename text or add to library. **Never check FitKids Turnen / Eltern-Kind-Turnen** (Mimi's notes). Shorthand is fine if the library name is elsewhere in the same WOD. Plurals already tolerated. Write dates as "9 Feb", not "09.02".
 
 **S425 carry-forward:**
 - **First action: 28.10 17:15 + 18:30 boards (+ rest of Week 44) when Chris uploads.** Scored through 28.10 09:30.
@@ -213,7 +214,7 @@ Athlete Tools
 
 1. **Whiteboard Week 44** — next = 28.10 17:15/18:30 + rest of the week (when Chris uploads).
 2. **S425 checks still open (Chris):** pages faster after fra1? (not sure yet) · Planner Benchmarks panel numbers (he'll check). Everything else from S424/S425 confirmed (S426).
-3. **Planner false flags — Chris OK'd (S426):** work through `memory-bank/planner-false-flags-todo.md` together (43 numbered flags; he corrects text or asks for a batch), then the Diapers & Dumbbells audit (`--only "Diapers & Dumbbells"`) and the built-in defaults (`genericToCanonical`) decision.
+3. **Planner false flags — in progress (S426):** 21-item list awaiting Chris's OKs, runs (11 workouts), section F (97 uncounted texts) — all in the S426 section of `memory-bank/planner-false-flags-todo.md`. Then the Diapers & Dumbbells audit (`--exclude`/`--only` now take a regex) and the defaults decision (item 21).
 4. **Sunday Wellpass sync (weekly, Chris):** `/coach/members` → Wellpass → Sync from Excel before sessions go live. Skim `blocks_applied`/`blocks_cleared`.
 5. **Optional, only if Chris asks:** delete the 5 "(ex)" Split Times scores · X-on-grouped-exercise warning · tidy Box Jump + Squat Box Jump (no group) · confirm/undo guard for copy-over of a published single-session WOD · deeper pale palette picks (`#C2DFFF`,`#F4CDE0`,`#E8F86D`).
 6. **S410 optional follow-ups:** (a) `notification_log` held only 4 of 12 bookings for a deleted session — understand before trusting it for recovery. (b) Unpublishing still clears `publish_sections` (deliberate). (c) Chip noise from naming variants ("Pull-up"/"Pull-ups"/"Pull-up Strict") — fix names, not code.
