@@ -3,6 +3,7 @@
 // No login. Shows only day, time and session type — never names, counts or
 // workouts. A badge appears only when it is TRUE: ≥70% booked → "Nur noch wenige
 // Plätze", full → "Ausgebucht – Warteliste". Private events are never shown.
+// Side-by-side classes at offset times (17:15 + 17:20) show as one entry.
 // Week = the current Berlin week; switches to next week at the Sunday release
 // (Admin → Booking Rules), as long as next week has published sessions.
 import type { Metadata } from 'next';
@@ -42,20 +43,44 @@ async function loadSessions(from: string, to: string): Promise<PublicSession[]> 
     console.error('stundenplan: weekly_sessions error', error.message);
     return [];
   }
-  return (data || []).map(s => {
+  const rows = (data || []).map(s => {
     // Same capacity count as the booking page: confirmed, excluding OG and trial-linked
     // bookings, plus trial_names slots.
     const bookings = (s.bookings as { status: string; is_og: boolean | null; is_trial: boolean | null }[]) || [];
     const used = bookings.filter(b => b.status === 'confirmed' && !b.is_og && !b.is_trial).length
       + (Array.isArray(s.trial_names) ? s.trial_names.length : 0);
-    let badge: Badge = null;
-    if (s.capacity > 0) {
-      if (used >= s.capacity) badge = 'full';
-      else if (used / s.capacity >= FEW_SPOTS_RATIO) badge = 'few';
-    }
-    return { date: s.date, time: String(s.time).slice(0, 5), type: s.workout_type || 'Training', badge };
+    const time = String(s.time).slice(0, 5);
+    return { date: s.date, time, minutes: toMinutes(time), type: s.workout_type || 'Training', capacity: s.capacity as number, used };
   });
+
+  // Side-by-side classes (Chris runs a second workout at an offset time, e.g. 17:20
+  // next to 17:15, for athletes who haven't done it yet) are one class to an outsider.
+  // Group sessions on the same day starting ≤ PARALLEL_MINUTES apart; show the one on
+  // a quarter hour (else the earliest); the badge uses the group's combined numbers.
+  const out: PublicSession[] = [];
+  for (let i = 0; i < rows.length; ) {
+    let j = i + 1;
+    while (j < rows.length && rows[j].date === rows[i].date && rows[j].minutes - rows[j - 1].minutes <= PARALLEL_MINUTES) j++;
+    const group = rows.slice(i, j);
+    const shown = group.find(r => r.minutes % 15 === 0) ?? group[0];
+    const capacity = group.some(r => r.capacity === 0) ? 0 : group.reduce((n, r) => n + r.capacity, 0);
+    const used = group.reduce((n, r) => n + r.used, 0);
+    let badge: Badge = null;
+    if (capacity > 0) {
+      if (used >= capacity) badge = 'full';
+      else if (used / capacity >= FEW_SPOTS_RATIO) badge = 'few';
+    }
+    out.push({ date: shown.date, time: shown.time, type: shown.type, badge });
+    i = j;
+  }
+  return out;
 }
+
+const PARALLEL_MINUTES = 10;
+const toMinutes = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+};
 
 export default async function StundenplanPage() {
   const now = new Date();
