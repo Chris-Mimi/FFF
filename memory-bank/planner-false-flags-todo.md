@@ -218,10 +218,9 @@ Lines starting with a bullet / count / distance, outside Whiteboard Intro + Fina
 **Defaults removed** from `genericToCanonical`: Pull-up(s), Push-up(s), HSPU, Sit-up(s), Row/Rowing. Diff after the text fixes: only 22 + 27 Apr "Strict Movements" loses Pull-up Kipping (wrong credit). Turnen/D&D not diffed.
 **Not changed (Chris):** 9, 10 — C&J workouts: a Clean credit there is right.
 
+**Round 2 done:** every "Clean & Jerk" now also counts a Clean (`IMPLIES` in the extractor — only 15.03 + 04.05 gained one). Plurals fixed only where the movement had no other credit in the WOD (Chris's rule): Ring Dip (29.05, 8.07, 17.07), "M Burpee Broad Jump" + "Shuttle Run" (7.09). 18.08 progression → Wallball Deadlift (new library) / Wallball Front Squat / Wallball: MB/WB Clean. 4.05 → "5m Bear Crawl Forwards to WB".
+
 **Still open:**
-- Should every "Clean & Jerk" auto-count a Clean too? (asked S427)
-- Plurals in programmed lines (Chris: plural = red flag, library is singular): Ring Dips (29.05, 8.07, 17.07), V-Ups (17.01, 22.05), Superman Rocks + Hollow Rocks (9–11.02), "M Burpee Broad Jumps" + "Shuttle Runs" (7.09), Pendlay Rows + Barbell Good Mornings (7 + 12.10 Intro), "= 3 Burpees" (6/7/9.02), "2x Cleans & 2x Burpees" (8.03).
-- 18.08 progression lines (`Deadlift`, `Deadlift-shrug, fast`, `Front squat`, `Medicine-ball clean`) — done with a wallball, credited as barbell Deadlift / Front Squat / Clean.
-- 4.05 Kids `5m Bear Crawl to WB` — counts nothing.
-- Section F (97).
+- Plural/sentence leftovers with no other credit: 8.03 "2x Cleans & 2x Burpees" (which clean?), 16 + 23.09 "FULL Cleans NOT Power Cleans" / "Power Cleans will be marked as scaled", 7 + 12.10 Whiteboard Intro "Pendlay Rows".
+- Section F (97) — batch 1 (F1–F25) proposed S427.
 - Gotcha: some lines contain a non-breaking space (U+00A0) — exact-line edits must include it.

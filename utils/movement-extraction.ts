@@ -479,8 +479,16 @@ export const extractMovementsWithMetadata = (
     for (const n of tmp) addName(n);
   });
 
+  impliedMovements(Array.from(map.keys()), knownLower).forEach(addName);
   return map;
 };
+
+// A movement that always contains another (S427, Chris: "any Clean & Jerk MUST mean a Clean").
+const IMPLIES: Record<string, string> = { 'Clean & Jerk': 'Clean' };
+const impliedMovements = (names: string[], knownLower?: Set<string>): string[] =>
+  names
+    .map(n => IMPLIES[n])
+    .filter((n): n is string => !!n && (!knownLower || knownLower.has(n.toLowerCase())));
 
 /**
  * Extract movement names from a single WOD's sections
@@ -565,6 +573,7 @@ export const extractMovementsFromWod = (
     extractMovementsFromText(section.content, movements, knownLower, knownList);
   });
 
+  impliedMovements(Array.from(movements), knownLower).forEach(n => movements.add(n));
   return movements;
 };
 
