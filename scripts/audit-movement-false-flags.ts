@@ -17,8 +17,17 @@
  *
  * Usage: npx tsx scripts/audit-movement-false-flags.ts [--out report.tsv] [--cat PREFIX] [--limit 60]
  *          [--group] [--exclude "Diapers & Dumbbells"] [--only "Diapers & Dumbbells"]
+ *          [--since YYYY-MM-DD] [--uncounted]
  * --exclude / --only take a case-insensitive pattern on wods.session_type,
  * e.g. --exclude "turnen|diapers" (Mimi's notes-only classes, S426).
+ * --since only checks classes on/after that date (the 3-monthly audit, S428).
+ * --uncounted lists the opposite problem (S426 "Section F"): lines that look
+ *   programmed (bullet / count / distance first), outside Whiteboard Intro +
+ *   Final prep/Info, that credit no library movement and whose words aren't part
+ *   of a movement credited elsewhere in the same workout (shorthand rule).
+ *   Grouped by text; some coaching cues still show up — judge by eye.
+ *
+ * 3-monthly audit: run both modes with --exclude "turnen|diapers" --since <last audit>.
  */
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
@@ -36,6 +45,8 @@ const onlyCat = arg('cat', '');
 const limit = Number(arg('limit', '60'));
 const excludeType = arg('exclude', '');
 const onlyType = arg('only', '');
+const since = arg('since', '');
+const uncounted = process.argv.includes('--uncounted');
 
 // Service role so RLS never hides rows (claude-rules: diagnostic scripts).
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -49,6 +60,18 @@ const INFO_SECTIONS = new Set(['Whiteboard Intro', 'Final prep/Info']);
 const NEGATION = /\b(not|no|don'?t|never|without|instead|rather than|except|avoid|nicht|kein\w*)\b/i;
 // Text allowed directly in front of a name that is programmed as its own item.
 const PROGRAMMED = /(^|[*•◦\-–:=,+&/(]|\d+[.)]|\([a-z0-9]\)|\d+\s*x|x\s*\d+|\d+|\d+\s*(m|km|cal|kcal|metres?|meters?|secs?|mins?)|\b(reps?|secs?|sec|mins?|min|minutes?|seconds?|metres?|meters?|of|m|km|cal|kcal|max|unbroken|or|and|barbell|bb|then|into|synchro|synchronised|synchronized|alternating|alt\.?|partner|team|weighted)\b)\s*$/i;
+
+// --uncounted: a line "looks programmed" when it starts with one of these…
+const LEAD = /^([*•◦\-–]|\d+\s*x\b|\d+x|\d+\s*(m|km|cals?|kcal|metres?|meters?)\b|\d+[.)])/i;
+// …and these words say nothing about which movement it is.
+const FILLER = new Set(['rounds', 'round', 'amrap', 'emom', 'for', 'time', 'rest', 'tabata', 'interval', 'intervals',
+  'min', 'mins', 'minute', 'minutes', 'sec', 'secs', 'second', 'seconds', 'each', 'every', 'work', 'on', 'off',
+  'then', 'sets', 'set', 'reps', 'rep', 'of', 'and', 'with', 'the', 'to', 'between', 'per', 'max', 'unbroken',
+  'cap', 'left', 'right', 'side', 'sides', 'all', 'out', 'pace', 'slow', 'fast', 'easy', 'hard', 'kg', 'cals', 'cal',
+  'metres', 'meters', 'scaling', 'load', 'sc', 'or', 'in', 'at', 'a', 'an', 'from', 'up', 'down']);
+const coreWords = (line: string) =>
+  line.toLowerCase().replace(/\([^)]*\)/g, ' ').replace(/[^a-zäöüß ]/g, ' ').split(/\s+/)
+    .filter(w => w.length >= 3 && !FILLER.has(w));
 
 // Letters and digits only, plural-insensitive: "Deep Squat Knee Circle" vs "…Circles".
 const squash = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -106,6 +129,7 @@ async function main() {
     const { data, error } = await db
       .from('weekly_sessions')
       .select('date, is_private, wods!inner(id, workout_name, session_type, sections)')
+      .gte('date', since || '1900-01-01')
       .order('date')
       .range(from, from + 999);
     if (error) throw new Error(`weekly_sessions: ${error.message}`);
@@ -127,10 +151,12 @@ async function main() {
   const rows: string[] = [];
   const perCat = new Map<string, number>();
   let pairs = 0;
+  const silent = new Map<string, { line: string; dates: string[] }>();
 
   for (const { date, wod, sessions } of unique.values()) {
     const structured = new Set<string>();
     const text = new Map<string, Evidence[]>();
+    const blank: { line: string; section: string }[] = [];
 
     (wod.sections ?? []).forEach(section => {
       const type = section.type ?? '';
@@ -145,6 +171,7 @@ async function main() {
         if (!line) return;
         const found = new Set<string>();
         extractMovementsFromText(line, found, knownLower, knownList);
+        if (![...found].some(m => knownLower.has(m.toLowerCase()))) blank.push({ line, section: type });
         found.forEach(m => {
           if (!knownLower.has(m.toLowerCase())) return; // the Planner ignores non-library names
           const list = text.get(m) ?? [];
@@ -163,6 +190,29 @@ async function main() {
       perCat.set(best.cat, (perCat.get(best.cat) ?? 0) + 1);
       rows.push([best.cat, date, String(wod.workout_name ?? '').slice(0, 38), movement, best.section, `${evidence.length}x`, `${sessions}s`, best.line.slice(0, 170)].join('\t'));
     });
+
+    if (uncounted) {
+      const credited = [...structured, ...text.keys()].map(m => m.toLowerCase()).join(' | ');
+      blank.forEach(({ line, section }) => {
+        if (INFO_SECTIONS.has(section) || !LEAD.test(line)) return;
+        const core = coreWords(line);
+        // Shorthand rule (Chris, S426): fine when the movement is credited elsewhere in the WOD.
+        if (!core.length || core.every(w => credited.includes(w.replace(/s$/, '')))) return;
+        const key = core.join(' ');
+        const hit = silent.get(key) ?? { line, dates: [] };
+        if (!hit.dates.includes(date)) hit.dates.push(date);
+        silent.set(key, hit);
+      });
+    }
+  }
+
+  if (uncounted) {
+    const out = [...silent.values()].sort((a, b) => b.dates.length - a.dates.length || a.line.localeCompare(b.line))
+      .map(h => `${h.dates.length}\t${h.line.slice(0, 120)}\t${h.dates.slice(0, 4).join(',')}${h.dates.length > 4 ? '…' : ''}`);
+    if (outFile) fs.writeFileSync(outFile, out.join('\n'));
+    console.log(`distinct workouts: ${unique.size} | uncounted programmed-looking texts: ${out.length}`);
+    out.slice(0, limit).forEach(r => console.log(r));
+    return;
   }
 
   rows.sort();

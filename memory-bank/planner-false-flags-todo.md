@@ -237,6 +237,7 @@ Lines starting with a bullet / count / distance, outside Whiteboard Intro + Fina
 **Leave (Chris):** Wrist Warm-Up on the floor, Weight plate pull, Ring Toss / Sack hopping / Egg balance game (FitKids games); all cue / structure / shorthand lines.
 **Library naming oddity (not touched):** "M-up Drill: Hip Pop to WB" sits next to "BMU Drill: Hip Pop to Wall".
 **Defaults (item 21):** decided + removed (see section E).
-**Recurring (Chris, S428):** repeat this audit every 3 months — next end of Jan 2027 — on workouts written since the last one, so wrong / superfluous text never piles up again. Last full pass: S426–S428.
+**Recurring (Chris, S428):** repeat this audit every 3 months — next end of Jan 2027 — on workouts written since the last one, so wrong / superfluous text never piles up again. Last full pass: S426–S428. Commands: `npx tsx scripts/audit-movement-false-flags.ts --exclude "turnen|diapers" --since <last audit date>` and the same with `--uncounted` (S428: the Section F scan is now built in). After S428 the full `--uncounted` run shows 51 texts — all cues / shorthand Chris chose to leave, so `--since` keeps the next run to new workouts only.
+**S428 extras:** "Athlete 2: Skierg" (27 + 30 Mar) → C2 SkiErg; 3 library display names had stray spaces (" Single Leg Seated Toes to Bar (drill)", " M-Up/Pull-up Drill: Pull Up Negative/Weighted", "Supine Pigeon Piriformis ") — trimmed, so text now matches them.
 **Next:** Diapers & Dumbbells — Chris to choose: treat like Turnen (never check) or fix like the other classes.
 - Gotcha: some lines contain a non-breaking space (U+00A0) — exact-line edits must include it.
