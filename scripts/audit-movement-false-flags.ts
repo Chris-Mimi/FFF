@@ -17,7 +17,8 @@
  *
  * Usage: npx tsx scripts/audit-movement-false-flags.ts [--out report.tsv] [--cat PREFIX] [--limit 60]
  *          [--group] [--exclude "Diapers & Dumbbells"] [--only "Diapers & Dumbbells"]
- * --exclude / --only take a session type (wods.session_type).
+ * --exclude / --only take a case-insensitive pattern on wods.session_type,
+ * e.g. --exclude "turnen|diapers" (Mimi's notes-only classes, S426).
  */
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
@@ -113,8 +114,8 @@ async function main() {
       const wod = Array.isArray(s.wods) ? s.wods[0] : s.wods;
       if (!wod) return;
       const sessionType = (wod.session_type ?? '').trim();
-      if (excludeType && sessionType === excludeType) return;
-      if (onlyType && sessionType !== onlyType) return;
+      if (excludeType && new RegExp(excludeType, 'i').test(sessionType)) return;
+      if (onlyType && !new RegExp(onlyType, 'i').test(sessionType)) return;
       const key = JSON.stringify(wod.sections ?? []);
       const seen = unique.get(key);
       if (seen) seen.sessions++;

@@ -94,3 +94,120 @@ Fix = reword, or use an abbreviation (the Planner never reads abbreviations from
 - `Push-ups` → Push-up Strict (3 workouts)
 - `Handstand Push-ups` → Handstand Push-up Kipping
 - plus barbell shorthand (`Clean` → Barbell Clean, etc.), only where such a library name exists
+
+
+---
+
+## S426 re-check (2026-10-30) — supersedes the numbering above
+
+**Scope:** FitKids Turnen + Eltern-Kind-Turnen excluded for good (Mimi's notes for herself, not library exercises). D&D still separate. Rule (Chris): shorthand like "SkiErg" is fine when the library name is programmed elsewhere in the same WOD. Plurals are already tolerated by the detector ("Wallball Shots" → Wallball Shot).
+
+**Approved, not yet applied:** Bear Crawl → Bear Crawl Forwards (8.06 Kids & Teens, 18–19.09 WOD).
+
+**Open list (A–D above, renumbered 1–21 in the S426 chat):** 1–2 Endurance #26.15 SkiErg / Farmers Carry · 3 12.04 KB Front Squat · 4 PVC Pipe · 5–12 abbreviation rewrites (Clean Basics info, No PJ, Open 26.3, 1RM BS, CLN, "brought", squat CLN, WW line) · 13–16 exact library names (Superman to Inverted Hollow Push-up, Handstand Hold (hollow body), Low Bar Muscle-Up (drill), Wallball: MB/WB Clean) · 17–19 add to library (Strict Rings Hanging L-Sit High Raise, DB Bent Over Row, Team: Cone Snatch Rotation) · 20 14–15.06 Burpees? · 21 defaults (Push-up / Pull-Ups / Row).
+
+**Runs:** library has "Run 400m" etc.; 11 workouts write "400m Run" (12×), "1600m Run" (6×), "800m Run" (6×), "200m Run" (1×) → none counted.
+
+### F. Programmed-looking lines that count as nothing (S426 scan)
+
+Lines starting with a bullet / count / distance, outside Whiteboard Intro + Final prep/Info, that credit no library movement and aren't covered by a library name elsewhere in the WOD. Structure lines ("4 rounds for time", "1 min REST") filtered out; some noise remains. Count = distinct workout texts.
+
+| # | n | Example line | Dates |
+|:--|:--|:--|:--|
+| F1 | 6 | `15 x Lu Raise` | 04.02.26,06.02.26,20.09.26,21.09.26… |
+| F2 | 6 | `15 x Triceps Push-back` | 04.02.26,06.02.26,20.09.26,21.09.26… |
+| F3 | 5 | `10 reps as warm-up then 5 sets of 5 reps (approx. 1 set every 2 minutes)` | 08.04.26,13.04.26,18.06.26,19.06.26 |
+| F4 | 5 | `4-5 sets of DB Skater Squat:` | 08.07.26,10.07.26,12.07.26,12.10.26… |
+| F5 | 4 | `* Scorpion` | 03.12.25,22.04.26,27.04.26 |
+| F6 | 4 | `* Couch` | 03.12.25,22.04.26,27.04.26 |
+| F7 | 4 | `* Kneeling Glute Squeeze Lean/BC sequence` | 18.01.26,19.01.26,21.01.26 |
+| F8 | 4 | `* Battle Rope Slam (Medium Rope)` | 01.02.26,20.02.26,23.02.26 |
+| F9 | 4 | `10m Bear Crawl` | 08.06.26,18.09.26,19.09.26 |
+| F10 | 3 | `* DB Flat Bench Pull Over` | 06.02.26,24.04.26 |
+| F11 | 3 | `5 secs push, relax, 5 secs hold` | 11.02.26,21.06.26,22.06.26 |
+| F12 | 3 | `* Push-Up Bottom Position Hold` | 22.05.26,25.09.26 |
+| F13 | 3 | `20 secs slow warm-up pace 10 secs REST` | 21.09.26,22.09.26,28.09.26 |
+| F14 | 3 | `20 secs all-out 10 secs REST` | 21.09.26,22.09.26,28.09.26 |
+| F15 | 2 | `4 x HPS` | 09.12.25,26.06.26,29.06.26,14.07.26 |
+| F16 | 2 | `* Scorpion Twist` | 26.12.25,11.04.26,22.04.26 |
+| F17 | 2 | `* World's Greatest (WG) + Samson` | 27.12.25,14.02.26 |
+| F18 | 2 | `* Lizard` | 27.12.25,14.02.26 |
+| F19 | 2 | `* Bicycle` | 09.01.26,12.01.26 |
+| F20 | 2 | `4 sets of 6-10 reps slow and controlled` | 14.01.26,16.01.26 |
+| F21 | 2 | `1 x Warm-up set 8-12 reps` | 20.01.26 |
+| F22 | 2 | `* Deep Squat 90° Plate Hold` | 20.02.26,23.02.26 |
+| F23 | 2 | `* High Frogger` | 04.03.26,16.03.26 |
+| F24 | 2 | `3x 3-5 reps Ring Swing - shallow (small swing)` | 20.03.26,16.08.26 |
+| F25 | 2 | `3x 3 reps Ring Swing - shallow + 3 reps - deep (large swing)` | 20.03.26,16.08.26 |
+| F26 | 2 | `6-10x Ring M-Up Drill Hips to Rings (2-3 Swings + 1x Hips to Rings)` | 20.03.26,16.08.26 |
+| F27 | 2 | `1. 15 secs Athlete 1: Skierg, Athlete 2: Rest` | 27.03.26,30.03.26 |
+| F28 | 2 | `* Push-Up Hold in deepest position` | 24.04.26 |
+| F29 | 2 | `1. 1cm off the floor` | 27.04.26,28.04.26 |
+| F30 | 2 | `2. just under the knee` | 27.04.26,28.04.26 |
+| F31 | 2 | `3. mid-thigh` | 27.04.26,28.04.26 |
+| F32 | 2 | `* Wrist Warm-Up on the floor` | 10.06.26,05.07.26 |
+| F33 | 2 | `* Split hold` | 18.07.26,26.09.26 |
+| F34 | 2 | `* Sledge pull (+20/40kg) on the black mats` | 18.07.26,26.09.26 |
+| F35 | 2 | `30 seconds 20kg/15kg Barbell hand to hand turning` | 05.08.26 |
+| F36 | 2 | `1. Rig:` | 10.08.26,25.08.26 |
+| F37 | 2 | `3. Bench` | 10.08.26,25.08.26 |
+| F38 | 2 | `1x KB Complex Left: KB in Left Hand!` | 27.09.26,09.10.26 |
+| F39 | 2 | `3 mins per couplet, with 1 min rest between movements:` | 09.10.26,25.10.26 |
+| F40 | 2 | `10x HBCGDBFP` | 17.10.26,19.10.26 |
+| F41 | 2 | `5x DB BSU L + 5x DB BSU R` | 17.10.26,19.10.26 |
+| F42 | 1 | `2 x Chest Touch Bear Crawl over the Bar (1 x fwds, 1 x bwds. Start in Bear Crawl` | 09.12.25 |
+| F43 | 1 | `2 x OHS` | 09.12.25 |
+| F44 | 1 | `1 min plus 10 secs rest of each exercise` | 28.12.25 |
+| F45 | 1 | `* Scapular Pull-up` | 05.01.26 |
+| F46 | 1 | `* DB Flat Bench Pull Over (10/15kg) x 40 (Load 1)` | 24.01.26 |
+| F47 | 1 | `* KB Flat Back Pull Over` | 25.01.26 |
+| F48 | 1 | `* KB Flat Back Pull Over x 5 (Load 1)` | 25.01.26 |
+| F49 | 1 | `20 secs on/10 secs off` | 01.02.26 |
+| F50 | 1 | `* Dumbbell Biceps Curl` | 06.02.26 |
+| F51 | 1 | `20 mins AMRAP Ascending Chipper` | 17.04.26,26.08.26 |
+| F52 | 1 | `* Piriformis supine` | 26.04.26,29.04.26 |
+| F53 | 1 | `5m Bear Crawl to WB` | 04.05.26 |
+| F54 | 1 | `10 metres forwards & 10 metres backwards every set` | 08.05.26 |
+| F55 | 1 | `* Straight legged Toes to wrist touches (hands on the line, upper back against t` | 10.06.26 |
+| F56 | 1 | `* Leg hops/floats back on the wall` | 10.06.26 |
+| F57 | 1 | `* 1 leg up, shift weight forward` | 10.06.26 |
+| F58 | 1 | `* both legs up (walk away or come down)` | 10.06.26 |
+| F59 | 1 | `* Head Stand, controlled up and down` | 10.06.26 |
+| F60 | 1 | `2x HPS, 2x P-up to Bbl, 2x Roll-out, 2x SMC` | 26.06.26,29.06.26,14.07.26 |
+| F61 | 1 | `* Swiss Ball Balance Roll` | 06.07.26 |
+| F62 | 1 | `* Swiss Ball OHS` | 06.07.26 |
+| F63 | 1 | `* Swiss Ball OHS with Side to Side Lean` | 06.07.26 |
+| F64 | 1 | `* Decline Push-up Feet on Swiss Ball` | 06.07.26 |
+| F65 | 1 | `* Swiss Ball Hamstring Curl` | 06.07.26 |
+| F66 | 1 | `* Swiss Ball Hamstring Curl Single Leg` | 06.07.26 |
+| F67 | 1 | `3x Dip Squat` | 13.07.26 |
+| F68 | 1 | `1. Ring Toss` | 22.07.26 |
+| F69 | 1 | `3. Parallet tuck hold` | 22.07.26 |
+| F70 | 1 | `4. Sack hopping` | 22.07.26 |
+| F71 | 1 | `5. Ring hang` | 22.07.26 |
+| F72 | 1 | `6. Egg balance game` | 22.07.26 |
+| F73 | 1 | `7. Weight plate pull` | 22.07.26 |
+| F74 | 1 | `5m Lunges, change hands, return to start` | 05.08.26 |
+| F75 | 1 | `* Ski 400m` | 08.08.26 |
+| F76 | 1 | `1000m SkiErg` | 15.08.26,19.09.26 |
+| F77 | 1 | `100m Sandbag Lunges (10/20kg) (Scaling 2)` | 15.08.26,19.09.26 |
+| F78 | 1 | `200m Farmers Carry (2x16/24kg) (Scaling 3)` | 15.08.26,19.09.26 |
+| F79 | 1 | `10x Sledge Pull (+80/125kg) (Load 1)` | 15.08.26,19.09.26 |
+| F80 | 1 | `100 for Row, SkiErg, Lunges, FC & Sledge` | 15.08.26,19.09.26 |
+| F81 | 1 | `10,15,20,30 seconds holds` | 19.08.26 |
+| F82 | 1 | `3x 5x DB OHP` | 30.09.26 |
+| F83 | 1 | `* 3-point-jump` | 04.10.26 |
+| F84 | 1 | `* Cartwheel` | 04.10.26 |
+| F85 | 1 | `* 10m Bear Crawl Wallball Push/Roll` | 04.10.26 |
+| F86 | 1 | `2 mins on each incl. explanation & demo` | 09.10.26 |
+| F87 | 1 | `3 mins on Deck Squat to estimate WOD weight (usually the Deck Squat is the decid` | 09.10.26 |
+| F88 | 1 | `1. C&P the KB from the ground` | 09.10.26 |
+| F89 | 1 | `2. Bring it down to the rack position` | 09.10.26 |
+| F90 | 1 | `3. Lunge backwards left, backwards right` | 09.10.26 |
+| F91 | 1 | `4. Bring the KB down to the side` | 09.10.26 |
+| F92 | 1 | `* M-up Drill: Hip Pop to Wall` | 26.10.26,27.10.26,28.10.26 |
+| F93 | 1 | `1. Top tap L, top tap R` | 29.10.26 |
+| F94 | 1 | `2. Inside L, inside R, side to side` | 29.10.26 |
+| F95 | 1 | `3. Roll L, Roll R, side to side 1 touch` | 29.10.26 |
+| F96 | 1 | `4. Roll L, Roll R, side to side 2 touches` | 29.10.26 |
+| F97 | 1 | `5. Laces roll back L, Laces roll back R` | 29.10.26 |
