@@ -26,13 +26,8 @@ const excludeWords = new Set([
 // Catches old WOD JSONB snapshots that used generic terminology before descriptions
 // were updated to use exact DB names. All keys and values are lowercase.
 const genericToCanonical: Record<string, string> = {
-  // Generic pull/push variants → default CF variant
-  'pull-up': 'pull-up kipping',
-  'pull-ups': 'pull-up kipping',
-  'push-up': 'push-up strict',
-  'push-ups': 'push-up strict',
-  'handstand push-up': 'handstand push-up kipping',
-  'handstand push-ups': 'handstand push-up kipping',
+  // No defaults for generic Pull-up / Push-up / HSPU / Sit-up / Row (S427, Chris):
+  // workout text names the library variant ("Push-up Strict", "C2 Rower").
   // Generic barbell movements → explicit barbell prefix
   'deadlift': 'barbell deadlift',
   'deadlifts': 'barbell deadlift',
@@ -72,8 +67,6 @@ const genericToCanonical: Record<string, string> = {
   'kettlebell swing': 'kb swing american',
   'kettlebell swings': 'kb swing american',
   // Bodyweight — need prefix
-  'sit-up': 'abmat sit-up',
-  'sit-ups': 'abmat sit-up',
   'back extension': 'ghd back extension',
   'back extensions': 'ghd back extension',
   // Jump rope — naming convention uses "Jump Rope" prefix
@@ -84,9 +77,6 @@ const genericToCanonical: Record<string, string> = {
   // Lunges — old convention "Walking Lunge" → new "Lunge Walking"
   'walking lunge': 'lunge walking',
   'walking lunges': 'lunge walking',
-  // Cardio — generic "Row" in benchmarks = C2 Rower
-  'row': 'c2 rower',
-  'rowing': 'c2 rower',
 };
 
 /**

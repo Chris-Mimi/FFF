@@ -211,3 +211,17 @@ Lines starting with a bullet / count / distance, outside Whiteboard Intro + Fina
 | F95 | 1 | `3. Roll L, Roll R, side to side 1 touch` | 29.10.26 |
 | F96 | 1 | `4. Roll L, Roll R, side to side 2 touches` | 29.10.26 |
 | F97 | 1 | `5. Laces roll back L, Laces roll back R` | 29.10.26 |
+
+## S427 (2026-10-30) — S426 list applied
+
+**Done (72 wods, `scripts/rewrite-workout-lines.ts`, backup 2026-10-30 first):** items 1–8, 11–21 + Bear Crawl Forwards + all "400m/800m/1600m Run" → "Run 400m" etc. Endurance #26.15 fully on library names (Wallball Shot singular, C2 SkiErg, Sandbag Walking Lunge, KB Farmers Carry, Sled Pull/Drag, C2 Rower). KB Bent Over Row → KB Bent Over Row Unilateral everywhere (Chris renamed it in the library; old text was being credited as the barbell Bent Over Row). New library: Strict Rings Hanging L-Sit High Raise, DB Bent Over Row Double. Item 19 already fixed by Chris (Team: 2-Colour Cone Grab).
+**Defaults removed** from `genericToCanonical`: Pull-up(s), Push-up(s), HSPU, Sit-up(s), Row/Rowing. Diff after the text fixes: only 22 + 27 Apr "Strict Movements" loses Pull-up Kipping (wrong credit). Turnen/D&D not diffed.
+**Not changed (Chris):** 9, 10 — C&J workouts: a Clean credit there is right.
+
+**Still open:**
+- Should every "Clean & Jerk" auto-count a Clean too? (asked S427)
+- Plurals in programmed lines (Chris: plural = red flag, library is singular): Ring Dips (29.05, 8.07, 17.07), V-Ups (17.01, 22.05), Superman Rocks + Hollow Rocks (9–11.02), "M Burpee Broad Jumps" + "Shuttle Runs" (7.09), Pendlay Rows + Barbell Good Mornings (7 + 12.10 Intro), "= 3 Burpees" (6/7/9.02), "2x Cleans & 2x Burpees" (8.03).
+- 18.08 progression lines (`Deadlift`, `Deadlift-shrug, fast`, `Front squat`, `Medicine-ball clean`) — done with a wallball, credited as barbell Deadlift / Front Squat / Clean.
+- 4.05 Kids `5m Bear Crawl to WB` — counts nothing.
+- Section F (97).
+- Gotcha: some lines contain a non-breaking space (U+00A0) — exact-line edits must include it.
