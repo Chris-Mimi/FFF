@@ -1,0 +1,82 @@
+{
+  "note": "2026 Week 44.3 — 28.10 17:15 + 18:30 and 30.10 09:00 (DB Snatch / BJ / WB Shot + Lunge, Rx 15/22.5kg, WB Rx 6/9kg); 1.11 10:00 + 11:00 (HPS / Push-up to Barbell / SMC, Rx 20/30kg). Red '!' + 'Sc1' after the WB load = modified.",
+  "sessions": [
+    {
+      "date": "2026-10-28",
+      "time": "17:15",
+      "sectionId": "section-1793197407958",
+      "rows": [
+        { "member": "Amelie Kirch",      "weight_result": 12.5, "scaling_level": "Rx",  "weight_result_2": 5, "rounds_result": 5, "reps_result": 13 },
+        { "member": "Claudia Herrmann",  "weight_result": 15,   "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 4, "reps_result": 12 },
+        { "member": "Lena Jähn",         "weight_result": 15,   "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 5, "reps_result": 29 },
+        { "member": "Valerie Mesenburg", "weight_result": 12.5, "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 4, "reps_result": 20 },
+        { "member": "Lukas Simnacher",   "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 9, "rounds_result": 5, "reps_result": 11 },
+        { "member": "Wayne Lucas",       "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 9, "rounds_result": 4, "reps_result": 22 },
+        { "member": "Steven Zaft",       "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 9, "rounds_result": 3, "reps_result": 10 }
+      ]
+    },
+    {
+      "date": "2026-10-28",
+      "time": "18:30",
+      "sectionId": "section-1793197407958",
+      "rows": [
+        { "member": "Anja Götte",         "weight_result": 12.5, "scaling_level": "Rx",  "weight_result_2": 5, "rounds_result": 4, "reps_result": 20 },
+        { "member": "Anneke Spegele",     "weight_result": 15,   "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 5, "reps_result": 3 },
+        { "member": "Anfisa Bornemann",   "weight_result": 10,   "scaling_level": "Rx",  "weight_result_2": 5, "rounds_result": 4, "reps_result": 0 },
+        { "member": "Dinny Braatz",       "weight_result": 12.5, "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 4, "reps_result": 5, "modified": true, "modified_note": "WB Shot + Lunge Sc1" },
+        { "member": "Nikolina Vlasalija", "weight_result": 10,   "scaling_level": "Sc1", "weight_result_2": 4, "rounds_result": 4, "reps_result": 0 },
+        { "member": "Paul Bielenski",     "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 9, "rounds_result": 4, "reps_result": 0 },
+        { "member": "Senol Özdilek",      "weight_result": 22.5, "scaling_level": "Sc1", "weight_result_2": 9, "rounds_result": 4, "reps_result": 0 },
+        { "member": "Thomas Graf",        "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 9, "rounds_result": 3, "reps_result": 20, "modified": true, "modified_note": "WB Shot + Lunge Sc1" },
+        { "member": "Thomas Spegele",     "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 9, "rounds_result": 4, "reps_result": 10 },
+        { "member": "Tobias Götte",       "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 9, "rounds_result": 4, "reps_result": 4 }
+      ]
+    },
+    {
+      "date": "2026-10-30",
+      "time": "09:00",
+      "sectionId": "section-1793197407958",
+      "rows": [
+        { "member": "Michael Städele", "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 9, "rounds_result": 5, "reps_result": 0 },
+        { "member": "Sven Hujo",       "weight_result": 15,   "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 4, "reps_result": 20 },
+        { "member": "Stefan G",        "weight_result": 15,   "scaling_level": "Rx",  "weight_result_2": 7, "rounds_result": 4, "reps_result": 15, "book": true },
+        { "member": "Anna Kr",         "weight_result": 15,   "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 3, "reps_result": 18 },
+        { "member": "Aline von Rüden", "weight_result": 12.5, "scaling_level": "Sc1", "weight_result_2": 8, "rounds_result": 3, "reps_result": 20 },
+        { "member": "Gloria Stoffer",  "weight_result": 7.5,  "scaling_level": "Sc1", "weight_result_2": 4, "rounds_result": 3, "reps_result": 0 },
+        { "member": "Irene Koffler",   "weight_result": 12.5, "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 4, "reps_result": 2 },
+        { "member": "Mimi Hiles",      "weight_result": 15,   "scaling_level": "Rx",  "weight_result_2": 6, "rounds_result": 5, "reps_result": 2 }
+      ]
+    },
+    {
+      "date": "2026-11-01",
+      "time": "10:00",
+      "sectionId": "section-1782044000428-4",
+      "rows": [
+        { "member": "Amelie Kirch",       "weight_result": 20,   "scaling_level": "Rx",  "rounds_result": 9, "reps_result": 29 },
+        { "member": "Franziska Herndorf", "weight_result": 20,   "scaling_level": "Sc1", "rounds_result": 7, "reps_result": 11 },
+        { "member": "Justine Baumstark",  "weight_result": 20,   "scaling_level": "Sc2", "rounds_result": 7, "reps_result": 0 },
+        { "member": "Marion Weber",       "weight_result": 15,   "scaling_level": "Sc2", "rounds_result": 9, "reps_result": 0 },
+        { "member": "Martina Fenster",    "weight_result": 12.5, "scaling_level": "Sc2", "rounds_result": 9, "reps_result": 9 },
+        { "member": "Rosita Blum",        "weight_result": 17.5, "scaling_level": "Sc1", "rounds_result": 7, "reps_result": 0 },
+        { "member": "Soledad",            "weight_result": 12.5, "scaling_level": "Sc2", "rounds_result": 8, "reps_result": 0 },
+        { "member": "Carmine Carrozzo",   "weight_result": 30,   "scaling_level": "Rx",  "rounds_result": 9, "reps_result": 3 },
+        { "member": "Thomas Graf",        "weight_result": 30,   "scaling_level": "Rx",  "rounds_result": 8, "reps_result": 0 }
+      ]
+    },
+    {
+      "date": "2026-11-01",
+      "time": "11:00",
+      "sectionId": "section-1782044000428-4",
+      "rows": [
+        { "member": "Aline von Rüden",  "weight_result": 20,   "scaling_level": "Rx",  "rounds_result": 7, "reps_result": 16 },
+        { "member": "Angela Schulz",    "weight_result": 12.5, "scaling_level": "Sc2", "rounds_result": 8, "reps_result": 9 },
+        { "member": "Anna Kr",          "weight_result": 15,   "scaling_level": "Sc2", "rounds_result": 8, "reps_result": 0 },
+        { "member": "Daniela Struben",  "weight_result": 7.5,  "scaling_level": "Sc3", "modified": true, "modified_note": "Did not score" },
+        { "whiteboard": "Laureen",      "weight_result": 17.5, "scaling_level": "Rx",  "rounds_result": 9, "reps_result": 0 },
+        { "member": "Lena Rothe",       "weight_result": 10,   "scaling_level": "Sc2", "rounds_result": 7, "reps_result": 8 },
+        { "member": "Simone Raschke",   "weight_result": 7.5,  "scaling_level": "Sc2", "rounds_result": 6, "reps_result": 0 },
+        { "member": "Steven Zaft",      "weight_result": 30,   "scaling_level": "Rx",  "rounds_result": 7, "reps_result": 0 }
+      ]
+    }
+  ]
+}
