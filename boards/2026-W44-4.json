@@ -1,0 +1,26 @@
+{
+  "note": "2026 Week 44.4 — 29.10 17:15 KB ladder (board gives TOTAL reps; ladder = 8n reps in round n, so total → rounds + reps: 4k(k+1) after k rounds) + 29.10 17:20 GHD/DB FP/V-Up/Pull-up couplet.",
+  "sessions": [
+    {
+      "date": "2026-10-29",
+      "time": "17:15",
+      "sectionId": "section-1792326680875-4",
+      "rows": [
+        { "member": "Wayne Lucas",       "weight_result": 24, "scaling_level": "Rx",  "scaling_level_2": "Rx",  "rounds_result": 5, "reps_result": 36 },
+        { "member": "Lukas Simnacher",   "weight_result": 24, "scaling_level": "Rx",  "scaling_level_2": "Rx",  "rounds_result": 6, "reps_result": 34 },
+        { "member": "Valerie Mesenburg", "weight_result": 12, "scaling_level": "Sc2", "scaling_level_2": "Sc1", "rounds_result": 6, "reps_result": 47 },
+        { "member": "Annerose Streit",   "weight_result": 12, "scaling_level": "Sc2", "scaling_level_2": "Sc2", "rounds_result": 6, "reps_result": 36 },
+        { "member": "Amelie Kirch",      "weight_result": 12, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 6, "reps_result": 45 }
+      ]
+    },
+    {
+      "date": "2026-10-29",
+      "time": "17:20",
+      "sectionId": "section-1770216576384",
+      "rows": [
+        { "member": "Paul Bielenski",     "weight_result": 22.5, "scaling_level": "Rx",  "scaling_level_2": "Rx",  "rounds_result": 2, "reps_result": 53 },
+        { "member": "Nikolina Vlasalija", "weight_result": 7.5,  "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 3, "reps_result": 5 }
+      ]
+    }
+  ]
+}
