@@ -216,7 +216,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Whiteboard Week 44** — next = 28.10 17:15/18:30 + rest of the week (when Chris uploads).
+1. **Whiteboard Week 44 — ✅ DONE (S429, boards 44.3 + 44.4).** 30.10 17:30 = Open Gym (no scores). Next = Week 45 when Chris uploads.
 2. **S425 checks still open (Chris):** pages faster after fra1? (not sure yet) · Planner Benchmarks panel numbers (he'll check). Everything else from S424/S425 confirmed (S426).
 3. **Planner false flags — ✅ COMPLETE (S426–S428).** Section F both batches, defaults removed, D&D left alone (Chris). Detail: `memory-bank/planner-false-flags-todo.md`.
 4. **Planner flags audit — RECURRING every 3 months (Chris, S428). Next due: end of Jan 2027** (then end Apr, Jul, Oct). Two commands, both with `--exclude "turnen|diapers" --since 2026-10-30` (then the date of the last audit): `npx tsx scripts/audit-movement-false-flags.ts` (false credits) and the same with `--uncounted` (programmed lines that count as nothing). Also check library names for stray spaces (S428 found 3 — "Supine Pigeon Piriformis " never matched). Fix text to library names / add library entries, numbered list → Chris OKs → `scripts/rewrite-workout-lines.ts`. Remind Chris at session start when due. Last done: S426–S428 (Oct 2026).
