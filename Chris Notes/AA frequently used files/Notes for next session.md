@@ -33,7 +33,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * Clicking on 10-card should open the 10-card modal in Members
 * Ask Claude about Ionos web hosting etc
 * 
-* 
+* The sweep for Names matching the WODs Strength etc should also be done every 3 months, along with the sweel for library names that don't match. Write that into the script or context wherever it belongs.
 * 
 * 
 * Next do a sweep to make sure that any exercises which appear in any WOD/Strength/Skill etc section also appear in the Workout Name. This does NOT mean that the exercise appears in full, I just want to be sure that any movements we did show in the title so I can scan it easily. FOr example, this week we did this workout Name: "Bench Press Negatives, DB Snatch, BJ, WB Shot" then I can see at a glance which main exercises we did when planning or reviewing. I don't need Warm-ups & Cool Downs
@@ -60,7 +60,7 @@ Next session, tell me to read the incident file and we'll compare it to the base
 * 
 
 * Why doesn't the data integrity sql catch things like this?
-* Planner: click on an exercise in the planner grid and it shows all the instances of that exercise in the workouts
+* 
 * How it works/info/help file like in Planner
 * Review and check how DNF is displayed and used in the athlete leaderboard.
 
