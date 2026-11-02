@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 297
-**Updated:** 2026-10-30 (Session 428 — Opus 5.5, Mac. **Planner flags project COMPLETE: S427 closed from git, Section F batch 2 (33 wods, 5 new library entries), all generic-word translations removed, audit script gets `--uncounted` + `--since`, 3-monthly audit scheduled, D&D left alone.** Previous: S427 — Planner flags rounds 1–3 + Section F batch 1.)
+**Version:** 298
+**Updated:** 2026-11-02 (Session 429 — Opus 5.5, Mac. **Week 44 whiteboard DONE (44.3 + 44.4, 49 rows); workout-name audit + rename tool; 58 names / 184 workouts renamed (missing movements + Testing Format A).** Previous: S428 — Planner flags project complete.)
 
 ---
 
@@ -42,14 +42,19 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S428 (2026-10-30, Mac) — Planner flags project DONE.** Nothing half-finished. First action next session = **Whiteboard Week 44** (below) if Chris uploads; otherwise ask what's next.
+**S429 (2026-11-02, Mac) — Week 44 boards done, workout names cleaned.** Nothing half-finished. First action next session = **Whiteboard Week 45** if Chris uploads; otherwise ask what's next.
+- **Workout names must mention every movement** in Skill/Gymnastics/Strength/Oly/WOD/Finisher/Accessory — short forms (BJ, GHDSU, H2H, "M-up Drills"). "MetCon" = Row/Ski/Airbike choice; benchmark names (Murph, Nancy, DT, Fran…) exempt. Checked every 3 months with the Planner audit (`scripts/audit-workout-names.ts`).
+- **Testing names = Format A:** `<Lift> Testing <n>RM, …` — RM in capitals joined to the number, "3RM & 1RM", nothing between Testing and RM, Deadlift / Sumo Deadlift / Strict OHP spelled out; tags (#26.1, (Strength Builder)) after the RM. Speed tests: "C2 Rower 1km Speed Test".
+- **Renaming = `scripts/rename-workouts.ts renames/<file>.json`** (dry run, `--commit`; `dates` for generic names, `anyType` for kids). Updates the app only — Google Calendar keeps the published title until the workout is published again.
+- **Open with Chris (don't chase):** Endurance #26.x / Weekend WOD #26.x names list no movements — I recommended adding them, he hasn't decided. 44.3 uncertain list: Dinny/Thomas G "! Sc1" → modified "WB Shot + Lunge Sc1"; Aline 30.10 "8kg SB" (slamball?) unflagged; Stefan G booked into 30.10 09:00. 44.4: board "Reps" totals converted to R+R (5+36 etc.).
+
+**S428 carry-forward:**
 - **Planner counts library names only — no generic-word translations at all** (`genericToCanonical` removed). New workouts must say "KB Swing American", "Jump Rope Double-Unders (DUs)", "Lunge Walking" etc. If Chris asks why a movement isn't counted, check the text spelling + the library name (incl. stray spaces — 3 found S428) first.
 - **3-monthly Planner audit, next due end of Jan 2027** — remind Chris at the first session after that date. Commands in Next Immediate Steps #4.
 - **Never audit/edit FitKids Turnen / Eltern-Kind-Turnen / Diapers & Dumbbells** (Mimi's notes). Shorthand fine if the library name is elsewhere in the same WOD. Show Planner old-vs-new diff before writing. Write dates as "9 Feb", not "09.02".
 - Open for Chris (don't chase): descriptions for new library entries **Split Hold** + **3-Point Jump** · fra1 speed · Planner Benchmarks numbers.
 
 **S425 carry-forward:**
-- **First action: 28.10 17:15 + 18:30 boards (+ rest of Week 44) when Chris uploads.** Scored through 28.10 09:30.
 - **`/stundenplan`** (`app/stundenplan/page.tsx`): only that path is framable (`next.config.ts` CSP frame-ancestors: website + `*.squarespace.com`). **Chris once asked for FAKE attendance numbers — declined (UWG misleading advertising); badge only when true (≥70% "Nur noch wenige Plätze", full "Ausgebucht – Warteliste").** Don't build fake social proof if asked again. Side-by-side offset classes (≤10 min apart) merge into the quarter-hour one.
 - **Slowness:** functions now fra1 (`9e08abb`). If a page is still slow, count its browser-direct Supabase queries.
 - **Writer (`scripts/enter-whiteboard-scores.ts`) writes `benchmark_results`** for benchmark / forge-benchmark sections, like the save route. Times with tenths stored as written.
@@ -149,6 +154,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 429 (2026-11-02 — Opus 5.5, Mac) — WEEK 44 DONE, WORKOUT NAMES AUDITED + RENAMED (all pushed, build clean)**
+- Backups folder reviewed: 40-run auto-retention already in place, 426 MB — Chris: leave it.
+- Whiteboard 44.3 (28.10 17:15/18:30, 30.10 09:00, 1.11 10:00/11:00 — 42 rows) + 44.4 (29.10 17:15 KB ladder, 17:20 — 7 rows). 30.10 17:30 = Open Gym.
+- NEW `scripts/audit-workout-names.ts` (name vs movements, 328 workouts) → joins the 3-monthly audit.
+- NEW `scripts/rename-workouts.ts`: 24 names get missing movements (73 workouts), then 34 names → Testing Format A + extras (111 workouts, incl. 2 kids). Files in `renames/`.
+
 **Session 428 (2026-10-30 — Opus 5.5, Mac) — PLANNER FLAGS PROJECT COMPLETE (all pushed, build clean)**
 - Closed S427 retroactively from git history (`1626963`).
 - Section F batch 2: 33 wods rewritten to library names; new library Split Hold, Headstand, Dip Squat, 3-Point Jump, Cartwheel (`d950fc5`).
@@ -178,14 +189,7 @@ Athlete Tools
 - Custom Movements: "N groups" / red "no group" label per tracked exercise — the X removes from groups too (`3e8d9ce`). Box Jump + Squat Box Jump = no group.
 - Workouts panel close no longer clears Session Types (`ce38067`).
 
-**Session 423 (2026-10-21 — Opus 5.5, Mac) — WEEK 43.1–43.2 WHITEBOARD, EXERCISE RENAME, CARRY-OVERS CLOSED (all pushed, build exit 0)**
-- Mac: 9 Synology ghost-modified files (empty diff) restored; remote already Chris-Mimi/FFF. S420–S422 checks confirmed; Sunday evening lock 21:00 intended.
-- Week 43.1: FS 5RM + 12-min AMRAP across 19.10 17:15/18:30, 20.10 17:15/18:30, 21.10 09:30 — 76 WSR + 36 lift entries; metcon fields switched on + Ham Curl "(Scaling 2)"; Anfisa booked.
-- Week 43.2: 19.10 10:00 repeat of the 17.10 endurance AMRAP, 8 WSR (R+R only; Chris added loads/scaling himself).
-- Deleted Chris's stray FS 5RM 12 kg (20.04 lift entry + its WSR — he wasn't booked in that class).
-- Renamed "Handstand 2-Footed Kick-Up" → "Handstand Kick-Up: 2-Footed" (library + 10 wods, Planner diff verified).
-
-**Older sessions (57-422):** See `project-history/` folder.
+**Older sessions (57-423):** See `project-history/` folder.
 
 ---
 
