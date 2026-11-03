@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 298
-**Updated:** 2026-11-02 (Session 429 — Opus 5.5, Mac. **Week 44 whiteboard DONE (44.3 + 44.4, 49 rows); workout-name audit + rename tool; 58 names / 184 workouts renamed (missing movements + Testing Format A).** Previous: S428 — Planner flags project complete.)
+**Version:** 299
+**Updated:** 2026-11-03 (Session 430 — Opus 5.5, Mac. **Whiteboard from the phone (cloud session) set up + tested on 45.1; Foundations clearance shipped.** Previous: S429 — Week 44 done, workout-name audit.)
 
 ---
 
@@ -42,8 +42,11 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S429 (2026-11-02, Mac) — Week 44 boards done, workout names cleaned.** Nothing half-finished. First action next session = **Whiteboard Week 45** if Chris uploads; otherwise ask what's next.
+**S430 (2026-11-03, Mac) — phone whiteboard + Foundations clearance (all pushed, build clean, SQL run).** First action next session: `git pull` + check `claude/*` branches (below), then ask Chris how Foundations is going (Magdalena locked out of WODs? any athletes to clear/unclear?). Whiteboard 45.1 already entered from the phone; 45.2+ when Chris uploads (he may do them from the phone).
+- **Foundations clearance (S430):** no `foundations_clearances` row = Foundations athlete → can only book types with "Foundations" in the name + `workout_titles.open_to_foundations` (Booking Rules tick-boxes). All 242 existing members cleared except Magdalena; **new members start as Foundations** (drop-ins too). Coach bookings bypass (they don't use `/api/bookings/create`). Members page chip: Foundations n/20 (Foundations classes) · N other. Bianca Bosky left cleared — Chris may unclear her.
 - **Phone whiteboard (S430):** Chris can run the protocol from a cloud session in the Claude app (environment "Forge Whiteboard", guide `Chris Notes/Workflow & Git/whiteboard-from-phone-setup.md`). Phone sessions push straight to main (first try = next board; 45.1 went via a branch, merged S430). **Mac session start: `git pull`, plus merge + delete any leftover `claude/*` branch** (`git ls-remote origin "refs/heads/claude/*"`).
+
+**S429 carry-forward:**
 - **Workout names must mention every movement** in Skill/Gymnastics/Strength/Oly/WOD/Finisher/Accessory — short forms (BJ, GHDSU, H2H, "M-up Drills"). "MetCon" = Row/Ski/Airbike choice; benchmark names (Murph, Nancy, DT, Fran…) exempt. Checked every 3 months with the Planner audit (`scripts/audit-workout-names.ts`).
 - **Testing names = Format A:** `<Lift> Testing <n>RM, …` — RM in capitals joined to the number, "3RM & 1RM", nothing between Testing and RM, Deadlift / Sumo Deadlift / Strict OHP spelled out; tags (#26.1, (Strength Builder)) after the RM. Speed tests: "C2 Rower 1km Speed Test".
 - **Renaming = `scripts/rename-workouts.ts renames/<file>.json`** (dry run, `--commit`; `dates` for generic names, `anyType` for kids). Updates the app only — Google Calendar keeps the published title until the workout is published again.
@@ -155,6 +158,11 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 430 (2026-11-03 — Opus 5.5, Mac) — PHONE WHITEBOARD + FOUNDATIONS CLEARANCE (all pushed, build clean)**
+- Cloud environment "Forge Whiteboard" (Limited network + `*.supabase.co`, Supabase URL + service key as env vars, setup `cd /home/user/FFF && npm ci || true`); Claude GitHub App installed on Chris-Mimi → FFF. Guide: `Chris Notes/Workflow & Git/whiteboard-from-phone-setup.md`.
+- 45.1 entered from the phone (record merged from `claude/whiteboard-45-1-qscfre`). Phone sessions now push straight to main (untested).
+- Foundations clearance (`96f5b27`): `foundations_clearances` table, `workout_titles.open_to_foundations`, booking-route block, Members chip + Clear button, Booking Rules tick-boxes, athlete-page lock.
+
 **Session 429 (2026-11-02 — Opus 5.5, Mac) — WEEK 44 DONE, WORKOUT NAMES AUDITED + RENAMED (all pushed, build clean)**
 - Backups folder reviewed: 40-run auto-retention already in place, 426 MB — Chris: leave it.
 - Whiteboard 44.3 (28.10 17:15/18:30, 30.10 09:00, 1.11 10:00/11:00 — 42 rows) + 44.4 (29.10 17:15 KB ladder, 17:20 — 7 rows). 30.10 17:30 = Open Gym.
@@ -182,15 +190,7 @@ Athlete Tools
 - Whiteboard: 44.1 KB ladder, 44.2 speed test (5 sessions), 25.10 couplets from 43.4 (Track 1) — 65 WSR + 30 Forge Benchmark entries; fixes Chris/Magdalena/Track.
 - Mobile Athletes list fills screen until an athlete is picked (`9086ad7`). NEW public `/stundenplan` for the website (`4b4493b`, `e220ed0`).
 
-**Session 424 (2026-10-24 — Opus 5.5, Mac) — WEEK 43 WHITEBOARD DONE, DASH RULE, 3 COACH UI FIXES (all pushed, build exit 0)**
-- 10 under-used warm-ups for a Push Press / KB Clean & Press / Roll-out / Inverted Goblet Squat WOD (recency query #4 shape, Planner Pre-Workout group + KB groups).
-- Week 43 rest: 21.10 17:15 FS (Lena/Valerie/Lukas + 3 lift entries), 21.10 17:10 metcon, 3-station HSPU board (21.10 18:30, 23.10 09:00 + 18:30), 23.10 17:15 KB ladder — 89 WSR; Anja booked. Parity: only Martina (expected).
-- Dash rule + 8 rows flagged "Did not score" (`c286662`).
-- Specialty/Party/Other calendar cards: amber → dusty gold `#b08d57` (`c54fc89`).
-- Custom Movements: "N groups" / red "no group" label per tracked exercise — the X removes from groups too (`3e8d9ce`). Box Jump + Squat Box Jump = no group.
-- Workouts panel close no longer clears Session Types (`ce38067`).
-
-**Older sessions (57-423):** See `project-history/` folder.
+**Older sessions (57-424):** See `project-history/` folder.
 
 ---
 
@@ -221,7 +221,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Whiteboard Week 44 — ✅ DONE (S429, boards 44.3 + 44.4).** 30.10 17:30 = Open Gym (no scores). Next = Week 45 when Chris uploads.
+1. **Whiteboard Week 45 — 45.1 done from the phone (S430).** 45.2+ when Chris uploads (phone or Mac). At Mac session start: `git pull` + merge/delete any `claude/*` branch.
+1a. **Foundations clearance — live (S430).** Check with Chris: works for Magdalena? Bianca to unclear? Booking Rules tick-boxes right? Possible later: request-to-book flow (rejected for now — coach books them in by hand).
 2. **S425 checks still open (Chris):** pages faster after fra1? (not sure yet) · Planner Benchmarks panel numbers (he'll check). Everything else from S424/S425 confirmed (S426).
 3. **Planner false flags — ✅ COMPLETE (S426–S428).** Section F both batches, defaults removed, D&D left alone (Chris). Detail: `memory-bank/planner-false-flags-todo.md`.
 4. **Planner flags audit — RECURRING every 3 months (Chris, S428). Next due: end of Jan 2027** (then end Apr, Jul, Oct). Two commands, both with `--exclude "turnen|diapers" --since 2026-10-30` (then the date of the last audit): `npx tsx scripts/audit-movement-false-flags.ts` (false credits) and the same with `--uncounted` (programmed lines that count as nothing). **Plus workout-name audit (S429):** `npx tsx scripts/audit-workout-names.ts --since <last audit>` — names must mention every movement in Skill/Gymnastics/Strength/Oly/WOD/Finisher/Accessory (short forms fine; "MetCon" = Row/Ski/Airbike choice; benchmark names like Murph/Nancy exempt). Fix with `scripts/rename-workouts.ts renames/<file>.json`. Also check library names for stray spaces (S428 found 3 — "Supine Pigeon Piriformis " never matched). Fix text to library names / add library entries, numbered list → Chris OKs → `scripts/rewrite-workout-lines.ts`. Remind Chris at session start when due. Last done: S426–S428 (Oct 2026).

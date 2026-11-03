@@ -101,6 +101,7 @@ Writing a "for time" workout means guessing how long it will take — and a time
 - **No-show notification** — marking an athlete as a no-show sends them a short German push explaining it (and that the 10-card session is used). **Notifications about children reach the parent** — kids have no login of their own, so every push about a child (cancellation, removal, no-show) now goes to the parent with the child's name in front
 - **Copying a workout never loses scores** — pasting a workout over one that already has scores moves those scores (and the athletes' lift records) onto the new copy once the Undo window closes; if the new workout has different scoring sections, the old workout is kept so nothing is lost
 - **Membership types & class categories** — assign members to specific class types (Group, Personal Training, Kids, Foundations)
+- **Foundations clearance** — new athletes start as Foundations athletes and can only book Foundations classes plus the session types the coach ticks as open (e.g. Endurance, Open Gym). Their member card counts Foundations sessions towards 20 (other classes shown alongside) and turns green when they're ready for review; one click clears them for all classes. Locked classes show the athlete a German "please talk to your coach" message, and coaches can still book anyone into any class by hand
 
 ### Athlete Insights (Coach View)
 
