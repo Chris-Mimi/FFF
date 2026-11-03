@@ -596,9 +596,10 @@ export async function POST(request: NextRequest) {
 
       // 10-card bookings get the whole message in German (athlete-facing, S416).
       if (newTenCardRemaining < 0) {
-        response.message = '⚠️ Session gebucht – deine 10er-Karte ist jetzt um 1 Session überzogen. Weitere Buchungen sind erst mit einer neuen 10er-Karte möglich.';
+        response.message = '⚠️ Session gebucht – deine 10er-Karte ist jetzt um 1 Session überzogen. Bitte kaufe eine neue 10er-Karte in der App – oder sprich mit Chris oder Mimi.';
       } else if (newTenCardRemaining === 0) {
-        response.message = '🎫 Session gebucht – das war die letzte Session auf deiner 10er-Karte!';
+        // S431 (Chris): the "no more bookings" note belongs here, on the last session.
+        response.message = '🎫 Session gebucht – das war die letzte Session auf deiner 10er-Karte! Weitere Buchungen sind erst mit einer neuen 10er-Karte möglich.';
       } else if (newTenCardRemaining === 1) {
         response.message = '⚠️ Session gebucht – nur noch 1 Session auf deiner 10er-Karte!';
       } else if (newTenCardRemaining <= 3) {
