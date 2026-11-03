@@ -15,7 +15,7 @@ import BirthdayModal from '@/components/athlete/BirthdayModal';
 import TenCardBalance from '@/components/athlete/TenCardBalance';
 import { collectBirthdayGreetings, markBirthdayGreeted, joinNames, type BirthdayPerson } from '@/utils/birthday';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
-import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionAutoLockInstant, isMinor, isTypeOpenToFoundations } from '@/lib/bookingRules';
+import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionAutoLockInstant, isMinor, isKidAge, isTypeOpenToFoundations } from '@/lib/bookingRules';
 import { authFetch } from '@/lib/auth-fetch';
 
 interface WeeklySession {
@@ -997,7 +997,7 @@ export default function MemberBookingPage() {
                       const parentSelfBookingBlocked = isKids && bookingForMemberId === user?.id && !selfIsMinor;
                       // S431: kids book kids classes only; a coach books them into anything else.
                       const kidAdultClassBlocked = !isKids
-                        && isMinor(familyMembers.find(fm => fm.id === bookingForMemberId)?.date_of_birth);
+                        && isKidAge(familyMembers.find(fm => fm.id === bookingForMemberId)?.date_of_birth);
                       const foundationsBlocked = !isKids && !!foundationsAccess && !!bookingForMemberId
                         && !foundationsAccess.clearedIds.includes(bookingForMemberId)
                         && !isTypeOpenToFoundations(session.workout_type, foundationsAccess.openTypes);

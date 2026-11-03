@@ -123,12 +123,25 @@ export function berlinToday(): string {
  * own login (e.g. Fabian Siebert, S414) book kids classes under their own name.
  */
 export function isMinor(dateOfBirth: string | null | undefined): boolean {
+  return isUnderAge(dateOfBirth, 18);
+}
+
+/**
+ * S431: a "kid" for booking purposes = under 16 (matches the Members page Kids filter).
+ * Kids book kids classes only (coach books them into anything else) and never need
+ * Foundations clearance. 16–17 count as adults for both.
+ */
+export function isKidAge(dateOfBirth: string | null | undefined): boolean {
+  return isUnderAge(dateOfBirth, 16);
+}
+
+function isUnderAge(dateOfBirth: string | null | undefined, limit: number): boolean {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateOfBirth || '');
   if (!m) return false;
   const [ty, tm, td] = berlinToday().split('-').map(Number);
   const [by, bm, bd] = [Number(m[1]), Number(m[2]), Number(m[3])];
   const age = ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
-  return age < 18;
+  return age < limit;
 }
 
 export function berlinWallTimeToUTC(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
@@ -361,7 +374,7 @@ export function isTypeOpenToFoundations(sessionType: string | null | undefined, 
   return openTypes.some((t) => normalizeType(t) === norm);
 }
 
-// Kids (under 18 by date of birth) never need Foundations clearance (Chris, S431), so they
+// Kids (under 16 by date of birth) never need Foundations clearance (Chris, S431), so they
 // count as cleared here and are never locked.
 export async function getClearedMemberIds(memberIds: string[]): Promise<Set<string>> {
   if (memberIds.length === 0) return new Set();
@@ -373,7 +386,7 @@ export async function getClearedMemberIds(memberIds: string[]): Promise<Set<stri
   if (clearedRes.error) throw clearedRes.error;
   if (membersRes.error) throw membersRes.error;
   const ids = new Set((clearedRes.data || []).map((r) => r.member_id as string));
-  for (const m of membersRes.data || []) if (isMinor(m.date_of_birth)) ids.add(m.id as string);
+  for (const m of membersRes.data || []) if (isKidAge(m.date_of_birth)) ids.add(m.id as string);
   return ids;
 }
 

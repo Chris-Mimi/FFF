@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyBookingConfirmed, notifyBookingWaitlisted, notifyParkedMemberBooked } from '@/lib/notifications';
-import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC, isMinor, berlinToday, getClearedMemberIds, getFoundationsOpenTypes, isTypeOpenToFoundations } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC, isMinor, isKidAge, berlinToday, getClearedMemberIds, getFoundationsOpenTypes, isTypeOpenToFoundations } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -255,10 +255,10 @@ export async function POST(request: NextRequest) {
       const typeNorm = (session.workout_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const kidsKeywords = ['kids', 'kidsteens', 'kidsandteens', 'fitkidsturnen', 'elternkindturnen'];
       const isKidsClass = typeNorm !== '' && kidsKeywords.some(k => typeNorm.startsWith(k));
-      // S431: kids (under 18 by DOB) may only book kids classes themselves. A coach books
+      // S431: kids (under 16 by DOB) may only book kids classes themselves. A coach books
       // them into anything else by hand (e.g. Neo into a WOD). Kids never need Foundations
-      // clearance — getClearedMemberIds counts them as cleared.
-      if (!isKidsClass && isMinor(member.date_of_birth)) {
+      // clearance — getClearedMemberIds counts them as cleared. 16–17 = adult rules.
+      if (!isKidsClass && isKidAge(member.date_of_birth)) {
         return NextResponse.json(
           { error: 'Kinder/Jugendliche können nur Kinderklassen buchen – für andere Klassen bitte mit Chris oder Mimi sprechen.' },
           { status: 403 }

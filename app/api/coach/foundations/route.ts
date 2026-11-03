@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireCoach, isAuthError } from '@/lib/auth-api';
-import { berlinToday, isMinor } from '@/lib/bookingRules';
+import { berlinToday, isKidAge } from '@/lib/bookingRules';
 
 // S430: Foundations clearance for the coach Members page.
 // GET  → { notCleared: { [memberId]: { foundations, other } } } — attended sessions so far.
@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to load' }, { status: 500 });
   }
   const cleared = new Set((clearedRes.data || []).map((r) => r.member_id as string));
-  // Kids (under 18) never need clearance (S431) — leave them out like cleared members.
+  // Kids (under 16) never need clearance (S431) — leave them out like cleared members.
   const ids = (membersRes.data || [])
-    .filter((m) => !isMinor(m.date_of_birth))
+    .filter((m) => !isKidAge(m.date_of_birth))
     .map((m) => m.id as string)
     .filter((id) => !cleared.has(id));
 
