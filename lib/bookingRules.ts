@@ -338,6 +338,40 @@ export async function getLockLeadMinutesForSessionType(sessionType: string | nul
   return rules.auto_lock_lead_minutes;
 }
 
+// --- Foundations clearance (S430) ---
+// A member without a foundations_clearances row is a Foundations athlete and may only
+// book session types open to Foundations: any type with "Foundations" in its name, plus
+// the workout_titles rows ticked open_to_foundations on the Booking Rules page.
+
+const normalizeType = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+export async function getFoundationsOpenTypes(): Promise<string[]> {
+  const supabase = adminClient();
+  const { data, error } = await supabase
+    .from('workout_titles')
+    .select('name')
+    .eq('open_to_foundations', true);
+  if (error) throw error;
+  return (data || []).map((r) => r.name as string);
+}
+
+export function isTypeOpenToFoundations(sessionType: string | null | undefined, openTypes: string[]): boolean {
+  const norm = normalizeType(sessionType || '');
+  if (norm.includes('foundations')) return true;
+  return openTypes.some((t) => normalizeType(t) === norm);
+}
+
+export async function getClearedMemberIds(memberIds: string[]): Promise<Set<string>> {
+  if (memberIds.length === 0) return new Set();
+  const supabase = adminClient();
+  const { data, error } = await supabase
+    .from('foundations_clearances')
+    .select('member_id')
+    .in('member_id', memberIds);
+  if (error) throw error;
+  return new Set((data || []).map((r) => r.member_id as string));
+}
+
 // Upserts a per-session-type rule. Pass null to remove the override (fall back to global).
 export async function setSessionTypeLockRule(sessionType: string, minutes: number | null): Promise<void> {
   const supabase = adminClient();

@@ -95,7 +95,12 @@ interface MemberCardProps {
   onSetPaymentMethod: (memberId: string, method: MembershipType | null) => void;
   onSetTenCardHolder: (memberId: string, holderId: string | null) => void;
   onOpenTenCard: (member: Member) => void;
+  /** S430: undefined = still loading, null = cleared for all classes, object = Foundations athlete. */
+  foundations?: { foundations: number; other: number } | null;
+  onSetFoundationsCleared?: (memberId: string, cleared: boolean) => void;
 }
+
+const FOUNDATIONS_TARGET = 20;
 
 function formatLastAttended(dateStr: string): string {
   const today = new Date();
@@ -217,6 +222,8 @@ export default function MemberCard({
   onSetPaymentMethod,
   onSetTenCardHolder,
   onOpenTenCard,
+  foundations,
+  onSetFoundationsCleared,
 }: MemberCardProps) {
   const [selectedWhiteboardName, setSelectedWhiteboardName] = useState<string>('');
   const hasMembershipType = (member.membership_types?.length ?? 0) > 0;
@@ -441,6 +448,41 @@ export default function MemberCard({
               );
             })}
           </div>
+
+          {/* S430: Foundations clearance. Foundations athletes can only book Foundations
+              (+ types ticked on Booking Rules); clearing is always the coach's decision. */}
+          {foundations !== undefined && onSetFoundationsCleared && (
+            <div className="flex gap-2 mt-2 items-center flex-wrap">
+              {foundations ? (
+                <>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      foundations.foundations >= FOUNDATIONS_TARGET ? 'bg-green-700 text-white' : 'bg-amber-700 text-white'
+                    }`}
+                    title="Attended sessions so far (Foundations classes / all other classes)"
+                  >
+                    Foundations {foundations.foundations}/{FOUNDATIONS_TARGET}
+                    {foundations.other > 0 && ` · ${foundations.other} other`}
+                    {foundations.foundations >= FOUNDATIONS_TARGET && ' · ready for review'}
+                  </span>
+                  <button
+                    onClick={() => onSetFoundationsCleared(member.id, true)}
+                    className="px-2 py-1 rounded text-xs font-medium bg-gray-700 text-gray-300 hover:bg-green-700 hover:text-white transition"
+                  >
+                    Clear for all classes
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => onSetFoundationsCleared(member.id, false)}
+                  className="text-[11px] text-gray-500 hover:text-amber-400 transition"
+                  title="Cleared for all classes. Click to make this athlete a Foundations athlete again."
+                >
+                  All classes ✓ · back to Foundations
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Primary payment method radio — only when member has 2+ membership types.
               Disambiguates which one debits on self-bookings (e.g., Miriam has both

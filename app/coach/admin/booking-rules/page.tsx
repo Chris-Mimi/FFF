@@ -47,7 +47,7 @@ const SUMMARY_CLASS = 'cursor-pointer select-none text-sm font-medium text-gray-
 const setCount = (n: number) =>
   n > 0 ? <span className='ml-1 text-[#178da6]'>({n} set)</span> : null;
 
-type PerTypeRow = { session_type: string; value: string };
+type PerTypeRow = { session_type: string; value: string; open: boolean };
 
 const toForm = (r: BookingRules): FormState => ({
   ten_card_refund_hours: String(r.ten_card_refund_hours),
@@ -99,13 +99,14 @@ export default function BookingRulesPage() {
         if (!rulesRes.ok) throw new Error('Failed to load rules');
         if (!typesRes.ok) throw new Error('Failed to load session types');
         const rules: BookingRules = await rulesRes.json();
-        const typesJson: { types: { session_type: string; auto_lock_lead_minutes: number | null }[] } =
+        const typesJson: { types: { session_type: string; auto_lock_lead_minutes: number | null; open_to_foundations: boolean }[] } =
           await typesRes.json();
         setForm(toForm(rules));
         setPerType(
           typesJson.types.map((t) => ({
             session_type: t.session_type,
             value: t.auto_lock_lead_minutes == null ? '' : String(t.auto_lock_lead_minutes),
+            open: t.open_to_foundations,
           }))
         );
       } catch (err) {
@@ -158,12 +159,12 @@ export default function BookingRulesPage() {
     }
 
     // Per-session-type: blank = null (fall back to global); otherwise non-negative integer.
-    const perTypeUpdates: { session_type: string; auto_lock_lead_minutes: number | null }[] = [];
+    const perTypeUpdates: { session_type: string; auto_lock_lead_minutes: number | null; open_to_foundations: boolean }[] = [];
     const perTypeInvalid: string[] = [];
     for (const row of perType) {
       const v = row.value.trim();
       if (v === '') {
-        perTypeUpdates.push({ session_type: row.session_type, auto_lock_lead_minutes: null });
+        perTypeUpdates.push({ session_type: row.session_type, auto_lock_lead_minutes: null, open_to_foundations: row.open });
         continue;
       }
       const n = Number(v);
@@ -171,7 +172,7 @@ export default function BookingRulesPage() {
         perTypeInvalid.push(row.session_type);
         continue;
       }
-      perTypeUpdates.push({ session_type: row.session_type, auto_lock_lead_minutes: n });
+      perTypeUpdates.push({ session_type: row.session_type, auto_lock_lead_minutes: n, open_to_foundations: row.open });
     }
     if (perTypeInvalid.length > 0) {
       setMessage({ kind: 'err', text: `Invalid per-type values: ${perTypeInvalid.join(', ')}` });
@@ -320,6 +321,36 @@ export default function BookingRulesPage() {
                 ))}
               </div>
             )}
+          </details>
+
+          <details className='mb-5 border-t pt-5'>
+            <summary className={SUMMARY_CLASS}>
+              Open for Foundations athletes
+              {setCount(perType.filter((r) => r.open).length)}
+            </summary>
+            <p className='text-xs text-gray-500 mt-2 mb-3'>
+              Athletes not yet cleared for all classes (Members page) can only book the ticked session types. Types with &quot;Foundations&quot; in the name are always open. Coaches can still book anyone into any class.
+            </p>
+            <div className='space-y-1'>
+              {perType.map((row, idx) => {
+                const alwaysOpen = row.session_type.toLowerCase().includes('foundations');
+                return (
+                  <label key={row.session_type} className='flex items-center gap-2 text-sm text-gray-700'>
+                    <input
+                      type='checkbox'
+                      checked={alwaysOpen || row.open}
+                      disabled={alwaysOpen}
+                      onChange={(e) => {
+                        const next = [...perType];
+                        next[idx] = { ...row, open: e.target.checked };
+                        setPerType(next);
+                      }}
+                    />
+                    {row.session_type}
+                  </label>
+                );
+              })}
+            </div>
           </details>
 
           <div className='mb-5 border-t pt-5'>

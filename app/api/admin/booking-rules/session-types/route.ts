@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   // (confusingly named — holds values like "WOD", "Foundations",
   // "Kids & Teens", "Eltern-Kind-Turnen"). Active-only.
   const [titlesRes, rules] = await Promise.all([
-    supabase.from('workout_titles').select('name').eq('active', true).order('display_order', { ascending: true }),
+    supabase.from('workout_titles').select('name, open_to_foundations').eq('active', true).order('display_order', { ascending: true }),
     getSessionTypeLockRules(),
   ]);
 
@@ -33,12 +33,13 @@ export async function GET(request: NextRequest) {
   const types = (titlesRes.data || []).map((t) => ({
     session_type: t.name as string,
     auto_lock_lead_minutes: ruleMap.has(t.name) ? ruleMap.get(t.name)! : null,
+    open_to_foundations: t.open_to_foundations === true,
   }));
 
   return NextResponse.json({ types });
 }
 
-// Body: { updates: [{ session_type: string, auto_lock_lead_minutes: number | null }] }
+// Body: { updates: [{ session_type: string, auto_lock_lead_minutes: number | null, open_to_foundations?: boolean }] }
 // null = remove the override (fall back to global).
 export async function PUT(request: NextRequest) {
   const auth = await requireCoach(request);
@@ -64,8 +65,17 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
+    const supabase = adminClient();
     for (const u of updates) {
       await setSessionTypeLockRule(u.session_type, u.auto_lock_lead_minutes);
+      // S430: optional "Open for Foundations athletes" tick-box.
+      if (typeof u.open_to_foundations === 'boolean') {
+        const { error } = await supabase
+          .from('workout_titles')
+          .update({ open_to_foundations: u.open_to_foundations })
+          .eq('name', u.session_type);
+        if (error) throw error;
+      }
     }
   } catch (err) {
     console.error('Failed to update per-session-type booking rules:', err);

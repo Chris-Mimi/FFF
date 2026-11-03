@@ -11,10 +11,29 @@ import { signOut } from '@/lib/auth';
 import { Member } from '@/types/member';
 import { AlertTriangle, Check, Clock, LogOut, Pause, Search, Sparkles, UserCheck, UserX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { authFetch } from '@/lib/auth-fetch';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function CoachMembersPage() {
   const router = useRouter();
+
+  // S430: Foundations athletes (not yet cleared for all classes) + their attended counts.
+  const [foundations, setFoundations] = useState<Record<string, { foundations: number; other: number }> | null>(null);
+  const loadFoundations = useCallback(async () => {
+    const res = await authFetch('/api/coach/foundations');
+    if (res.ok) setFoundations((await res.json()).notCleared);
+  }, []);
+  useEffect(() => { loadFoundations(); }, [loadFoundations]);
+  const handleSetFoundationsCleared = async (memberId: string, cleared: boolean) => {
+    const res = await authFetch('/api/coach/foundations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId, cleared }),
+    });
+    if (!res.ok) { toast.error('Failed to save'); return; }
+    await loadFoundations();
+  };
   const [tenCardModal, setTenCardModal] = useState<{
     isOpen: boolean;
     member: Member | null;
@@ -359,6 +378,8 @@ export default function CoachMembersPage() {
                 onToggleGuardianOnly={handleToggleGuardianOnly}
                 onSetPaymentMethod={handleSetPaymentMethod}
                 onSetTenCardHolder={handleSetTenCardHolder}
+                foundations={foundations === null ? undefined : foundations[member.id] ?? null}
+                onSetFoundationsCleared={handleSetFoundationsCleared}
                 onOpenTenCard={(m) => {
                   // Refresh members list so chip + modal show fresh counter on open.
                   // Cheap safety net for the "chip shows full, modal shows fewer used" drift case.

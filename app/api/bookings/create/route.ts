@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { notifyBookingConfirmed, notifyBookingWaitlisted, notifyParkedMemberBooked } from '@/lib/notifications';
-import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC, isMinor, berlinToday } from '@/lib/bookingRules';
+import { getBookingRules, getLockLeadMinutesForSessionType, getMaxVisibleSessionDate, sessionAutoLockInstant, berlinWallClock, berlinWallTimeToUTC, isMinor, berlinToday, getClearedMemberIds, getFoundationsOpenTypes, isTypeOpenToFoundations } from '@/lib/bookingRules';
 
 export async function POST(request: NextRequest) {
   try {
@@ -245,6 +245,27 @@ export async function POST(request: NextRequest) {
           { error: 'Diese Klasse ist für Kinder/Jugendliche — bitte registriere dein Kind als Familienmitglied und buche unter seinem Namen, nicht unter deinem eigenen.' },
           { status: 403 }
         );
+      }
+    }
+
+    // S430: Foundations athletes (no foundations_clearances row) may only book session
+    // types open to Foundations. Kids classes follow the kids rule above instead.
+    // Coaches book them into other classes by hand — coach bookings don't use this route.
+    {
+      const typeNorm = (session.workout_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const kidsKeywords = ['kids', 'kidsteens', 'kidsandteens', 'fitkidsturnen', 'elternkindturnen'];
+      const isKidsClass = typeNorm !== '' && kidsKeywords.some(k => typeNorm.startsWith(k));
+      if (!isKidsClass) {
+        const [cleared, openTypes] = await Promise.all([
+          getClearedMemberIds([bookingMemberId]),
+          getFoundationsOpenTypes(),
+        ]);
+        if (!cleared.has(bookingMemberId) && !isTypeOpenToFoundations(session.workout_type, openTypes)) {
+          return NextResponse.json(
+            { error: 'Diese Klasse ist noch nicht für dich freigegeben – bitte sprich mit Chris oder Mimi.' },
+            { status: 403 }
+          );
+        }
       }
     }
 

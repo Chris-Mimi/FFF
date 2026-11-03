@@ -15,7 +15,8 @@ import BirthdayModal from '@/components/athlete/BirthdayModal';
 import TenCardBalance from '@/components/athlete/TenCardBalance';
 import { collectBirthdayGreetings, markBirthdayGreeted, joinNames, type BirthdayPerson } from '@/utils/birthday';
 import { NotificationPrompt } from '@/components/ui/NotificationPrompt';
-import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionAutoLockInstant, isMinor } from '@/lib/bookingRules';
+import { getMaxVisibleSessionDate, getNextReleaseInstant, DEFAULT_BOOKING_RULES, sessionAutoLockInstant, isMinor, isTypeOpenToFoundations } from '@/lib/bookingRules';
+import { authFetch } from '@/lib/auth-fetch';
 
 interface WeeklySession {
   id: string;
@@ -65,6 +66,15 @@ const isFoundationsClass = (workoutType?: string) => {
 export default function MemberBookingPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
+  // S430: Foundations athletes see non-Foundations classes locked (server enforces it too).
+  const [foundationsAccess, setFoundationsAccess] = useState<{ clearedIds: string[]; openTypes: string[] } | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    authFetch('/api/bookings/foundations-access')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data) setFoundationsAccess(data); })
+      .catch(() => {});
+  }, [user]);
   const [birthdayPeople, setBirthdayPeople] = useState<BirthdayPerson[]>([]);
   const [weekStart, setWeekStart] = useState<Date>(getInitialWeekStart());
   const [sessions, setSessions] = useState<WeeklySession[]>([]);
@@ -985,6 +995,9 @@ export default function MemberBookingPage() {
                       // ALL adult self-bookings, whether or not a child is registered yet.
                       // S414: a minor with their own login (by DOB) may book for themselves.
                       const parentSelfBookingBlocked = isKids && bookingForMemberId === user?.id && !selfIsMinor;
+                      const foundationsBlocked = !isKids && !!foundationsAccess && !!bookingForMemberId
+                        && !foundationsAccess.clearedIds.includes(bookingForMemberId)
+                        && !isTypeOpenToFoundations(session.workout_type, foundationsAccess.openTypes);
                       const borderAccent = isKids
                         ? 'border-l-teal-400'
                         : isFoundations
@@ -1078,6 +1091,11 @@ export default function MemberBookingPage() {
                                 {primaryHasFamilyKids
                                   ? 'Bitte unter dem Namen deines Kindes buchen'
                                   : 'Diese Klasse ist für Kinder/Jugendliche — bitte registriere zuerst dein Kind über den Button „+ Familie" oben.'}
+                              </div>
+                            ) : foundationsBlocked && session.user_booking_status === 'none' ? (
+                              <div className="flex items-start gap-1.5 text-xs text-amber-300 leading-tight max-w-[180px] text-right">
+                                <Lock size={14} className="shrink-0 mt-0.5" />
+                                Noch nicht freigegeben – bitte sprich mit Chris oder Mimi.
                               </div>
                             ) : session.user_booking_status === 'none' ? (
                               <button
