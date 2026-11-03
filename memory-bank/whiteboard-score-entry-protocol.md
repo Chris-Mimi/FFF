@@ -23,6 +23,7 @@ So when replicating it by script, **always write BOTH tables together, as one un
 - **"ok" written in a timed Hold column = held the full cap** (e.g. 3:00), not blank. Record the cap time.
 - **"ok" / "AB" used as a whole column (not a hold) can mean the Track:** `ok = Track 1`, `AB = Track 2`. Confirm which meaning per board — a Hold column's "ok" = full time; a Run/Track column's ok/AB = track number.
 - **A dash (`—`) in a score cell = flag it** (Chris, S424 — general rule): set `"modified": true` + `"modified_note": "Did not score"` on that row (the red `!` on the leaderboard). Write whatever else the row has (cals, scaling); leave the dashed value blank. One flag per section row, even if several cells in it are dashed.
+- **`OG` next to a booking in the preflight = Open Gym** (Chris, S431). That athlete trained on their own, not the class WOD, so they're not expected on the board. Don't write a row and don't flag them as missing.
 - **DNF** = no valid finish time (write per the section's DNF convention, not a fake time).
 - **Track: an unmarked athlete on a board that marks ANY "Trk2" is Track 1** (Chris-confirmed,
   S411). He only writes the exception. **Fill the blanks in as Track 1 — never leave them null.**
