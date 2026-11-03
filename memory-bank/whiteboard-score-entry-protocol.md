@@ -4,6 +4,8 @@
 
 **Purpose:** turn a photographed gym whiteboard into stored scores, replicating exactly what happens when Chris types a score into the **coach results modal**.
 
+**Phone / cloud sessions (S430):** Chris may run this from the Claude app with the Mac off. Setup: `Chris Notes/Workflow & Git/whiteboard-from-phone-setup.md`. There, `.env.local` doesn't exist; the database credentials come from the environment's variables, and the scripts work as normal. Download photos to the session scratchpad, never into the repo. At the end, commit **only** the board JSON (+ any doc notes) and push the session's `claude/…` branch. **Never commit `package-lock.json`.** The next Mac session merges those `claude/*` branches into main. If the session ends without a push, the DB writes still stand; list them in the reply so the record can be rebuilt.
+
 ## ⭐ The mental model (don't get this backwards — S386 mistake)
 The **coach results modal (score-entry) is the single entry point.** One score saved there fans out automatically to everything:
 - `wod_section_results` (WSR) → **coach results modal** AND the **athlete leaderboard**
