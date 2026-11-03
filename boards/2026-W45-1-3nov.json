@@ -1,0 +1,160 @@
+{
+ "note": "2026 Week 45.1 (right side) — 3.11 17:15 + 18:30. OHS Testing 5RM + AMRAP (KB = Load 1, Rx 16/24kg; Push-up = Scaling 1). 'HR!' = heels raised (modified, Lifts entry kept). Chris '—' OHS = no lift row. Petra '—' R+R = Did not score. Martina booked 17:15 but not on the 3.11 board.",
+ "sessions": [
+  {
+   "date": "2026-11-03",
+   "time": "17:15",
+   "sectionId": "section-1793553123948",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "weight_result": 15
+    },
+    {
+     "member": "Anja Biechele",
+     "weight_result": 7.5
+    },
+    {
+     "member": "Michael Maier",
+     "weight_result": 10
+    },
+    {
+     "member": "Steven Zaft",
+     "weight_result": 35
+    },
+    {
+     "member": "Sven Hujo",
+     "weight_result": 47.5
+    }
+   ]
+  },
+  {
+   "date": "2026-11-03",
+   "time": "17:15",
+   "sectionId": "section-1793536713727-4",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "weight_result": 16,
+     "scaling_level": "Rx",
+     "rounds_result": 6,
+     "reps_result": 4
+    },
+    {
+     "member": "Anja Biechele",
+     "weight_result": 12,
+     "scaling_level": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 24
+    },
+    {
+     "member": "Michael Maier",
+     "weight_result": 16,
+     "scaling_level": "Rx",
+     "rounds_result": 5,
+     "reps_result": 5
+    },
+    {
+     "member": "Steven Zaft",
+     "weight_result": 20,
+     "scaling_level": "Rx",
+     "rounds_result": 4,
+     "reps_result": 27
+    },
+    {
+     "member": "Sven Hujo",
+     "weight_result": 24,
+     "scaling_level": "Rx",
+     "rounds_result": 5,
+     "reps_result": 25
+    },
+    {
+     "member": "Chris Hiles",
+     "weight_result": 24,
+     "scaling_level": "Rx",
+     "rounds_result": 6,
+     "reps_result": 15
+    }
+   ]
+  },
+  {
+   "date": "2026-11-03",
+   "time": "18:30",
+   "sectionId": "section-1793553123948",
+   "rows": [
+    {
+     "member": "Magdalena Gebska",
+     "weight_result": 15,
+     "modified": true,
+     "modified_note": "Heels raised"
+    },
+    {
+     "member": "Petra Dempfle",
+     "weight_result": 16.5,
+     "modified": true,
+     "modified_note": "Heels raised"
+    },
+    {
+     "member": "Nicole Rauh",
+     "weight_result": 14,
+     "modified": true,
+     "modified_note": "Heels raised"
+    },
+    {
+     "member": "Bodo Lehmann",
+     "weight_result": 25,
+     "modified": true,
+     "modified_note": "Heels raised"
+    },
+    {
+     "member": "Thomas Graf",
+     "weight_result": 35,
+     "modified": true,
+     "modified_note": "Heels raised"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-03",
+   "time": "18:30",
+   "sectionId": "section-1793536713727-4",
+   "rows": [
+    {
+     "member": "Magdalena Gebska",
+     "weight_result": 10,
+     "scaling_level": "Sc3",
+     "rounds_result": 5,
+     "reps_result": 0
+    },
+    {
+     "member": "Petra Dempfle",
+     "weight_result": 12,
+     "scaling_level": "Sc2",
+     "modified": true,
+     "modified_note": "Did not score"
+    },
+    {
+     "member": "Nicole Rauh",
+     "weight_result": 12,
+     "scaling_level": "Sc2",
+     "rounds_result": 5,
+     "reps_result": 12
+    },
+    {
+     "member": "Bodo Lehmann",
+     "weight_result": 16,
+     "scaling_level": "Rx",
+     "rounds_result": 5,
+     "reps_result": 0
+    },
+    {
+     "member": "Thomas Graf",
+     "weight_result": 24,
+     "scaling_level": "Rx",
+     "rounds_result": 5,
+     "reps_result": 27
+    }
+   ]
+  }
+ ]
+}
