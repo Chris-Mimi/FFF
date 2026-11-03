@@ -8,6 +8,8 @@ Set up in S430 (Nov 2026).
 
 ## One-time setup (done in S430; repeat only if the environment is lost)
 
+**GitHub write access (done S430):** the Claude GitHub App must be installed on the **Chris-Mimi** account. Without it, sessions can read FFF but every push fails with 403. Steps: Chrome private window → sign in to github.com as **Chris-Mimi** → github.com/apps/claude → **Install/Configure** → **Chris-Mimi** → **Only select repositories** → **FFF** → Install/Save. *Why Chris-Mimi:* only the repo owner can let an app write; Percepto25 is only a collaborator.
+
 On the Mac, in the browser at **claude.ai/code** (the Code area, not the normal Claude chat):
 
 1. At the bottom there are three buttons: **environment name**, **Chris-Mimi/FFF**, **main**. Leave FFF and main as they are.
