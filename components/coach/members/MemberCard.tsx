@@ -17,6 +17,7 @@ import {
   getEffectivePaymentMethod,
 } from '@/types/member';
 import { supabase } from '@/lib/supabase';
+import { isMinor } from '@/lib/bookingRules';
 
 /**
  * "Share a card…" — link this member to any other member's 10-card. Loads
@@ -451,7 +452,7 @@ export default function MemberCard({
 
           {/* S430: Foundations clearance. Foundations athletes can only book Foundations
               (+ types ticked on Booking Rules); clearing is always the coach's decision. */}
-          {foundations !== undefined && onSetFoundationsCleared && (
+          {foundations !== undefined && onSetFoundationsCleared && !isMinor(member.date_of_birth) && (
             <div className="flex gap-2 mt-2 items-center flex-wrap">
               {foundations ? (
                 <>

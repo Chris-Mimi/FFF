@@ -361,15 +361,20 @@ export function isTypeOpenToFoundations(sessionType: string | null | undefined, 
   return openTypes.some((t) => normalizeType(t) === norm);
 }
 
+// Kids (under 18 by date of birth) never need Foundations clearance (Chris, S431), so they
+// count as cleared here and are never locked.
 export async function getClearedMemberIds(memberIds: string[]): Promise<Set<string>> {
   if (memberIds.length === 0) return new Set();
   const supabase = adminClient();
-  const { data, error } = await supabase
-    .from('foundations_clearances')
-    .select('member_id')
-    .in('member_id', memberIds);
-  if (error) throw error;
-  return new Set((data || []).map((r) => r.member_id as string));
+  const [clearedRes, membersRes] = await Promise.all([
+    supabase.from('foundations_clearances').select('member_id').in('member_id', memberIds),
+    supabase.from('members').select('id, date_of_birth').in('id', memberIds),
+  ]);
+  if (clearedRes.error) throw clearedRes.error;
+  if (membersRes.error) throw membersRes.error;
+  const ids = new Set((clearedRes.data || []).map((r) => r.member_id as string));
+  for (const m of membersRes.data || []) if (isMinor(m.date_of_birth)) ids.add(m.id as string);
+  return ids;
 }
 
 // Upserts a per-session-type rule. Pass null to remove the override (fall back to global).
