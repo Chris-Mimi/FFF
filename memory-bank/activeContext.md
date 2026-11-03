@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 299
-**Updated:** 2026-11-03 (Session 430 — Opus 5.5, Mac. **Whiteboard from the phone (cloud session) set up + tested on 45.1; Foundations clearance shipped.** Previous: S429 — Week 44 done, workout-name audit.)
+**Version:** 300
+**Updated:** 2026-11-03 (Session 431 — Opus 5.5, Mac. **Kids-only booking (<16), full 10-card blocked in Sunday release window, 10-card message wording.** Previous: S430 — phone whiteboard + Foundations clearance.)
 
 ---
 
@@ -42,8 +42,11 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S430 (2026-11-03, Mac) — phone whiteboard + Foundations clearance (all pushed, build clean, SQL run).** First action next session: `git pull` + check `claude/*` branches (below), then ask Chris how Foundations is going (Magdalena locked out of WODs? any athletes to clear/unclear?). Whiteboard 45.1 already entered from the phone; 45.2+ when Chris uploads (he may do them from the phone).
-- **Foundations clearance (S430):** no `foundations_clearances` row = Foundations athlete → can only book types with "Foundations" in the name + `workout_titles.open_to_foundations` (Booking Rules tick-boxes). All 242 existing members cleared except Magdalena; **new members start as Foundations** (drop-ins too). **Kids (under 16 by DOB, `isKidAge`; 16–17 = adult rules) never need clearance and can book kids classes only** — anything else only via a coach booking (e.g. Neo into a WOD). No Foundations chip for kids (Chris, S431). Coach bookings bypass (they don't use `/api/bookings/create`). Members page chip: Foundations n/20 (Foundations classes) · N other. Bianca Bosky left cleared — Chris may unclear her.
+**S431 (2026-11-03, Mac) — booking rules (all pushed, build clean, no SQL).** First action next session: `git pull` + check `claude/*` branches (below). Then ask Chris: did the first Sunday release (8.11, 15:00) block full 10-cards as expected? Foundations working for Magdalena / Lena Rothe (signed up 31.10, uncleared)? Whiteboard 45.2+ when Chris uploads.
+- **Kids (S431):** under 16 by DOB (`isKidAge` in `lib/bookingRules.ts`) book kids classes only — `/api/bookings/create` 403 + lock on `/member/book`; coach bookings bypass (Neo into a WOD). Kids never need Foundations clearance (`getClearedMemberIds` counts them cleared, no Members chip). 16–17 = adult rules. `isMinor` (<18) unchanged — still lets a teen with own login book kids classes.
+- **Full 10-card in release window (S431):** release day from `next_week_release_time` (Chris's setting = **15:00**, code default 14:00 — read the setting, don't quote the default) to midnight, card with `remaining − open waitlist ≤ 0` → 402 "buy a card or talk to Chris or Mimi". One-over allowance still applies the rest of the week.
+- **10-card messages (S431):** "Weitere Buchungen sind erst mit einer neuen 10er-Karte möglich." now on the LAST-session message (Chris: the over-1 message made the overbooking look allowed). Over-1 message = buy a card or talk to Chris or Mimi. Two refused messages still say "schreib uns" — offered to align, no answer.
+- **Foundations clearance (S430):** no `foundations_clearances` row = Foundations athlete → can only book types with "Foundations" in the name + `workout_titles.open_to_foundations` (Booking Rules tick-boxes). All 242 existing members cleared except Magdalena; **new members start as Foundations** (drop-ins too). Kids exempt (S431, above). Coach bookings bypass (they don't use `/api/bookings/create`). Members page chip: Foundations n/20 (Foundations classes) · N other. Bianca Bosky left cleared — Chris may unclear her.
 - **Phone whiteboard (S430):** Chris can run the protocol from a cloud session in the Claude app (environment "Forge Whiteboard", guide `Chris Notes/Workflow & Git/whiteboard-from-phone-setup.md`). Phone sessions push straight to main (first try = next board; 45.1 went via a branch, merged S430). **Mac session start: `git pull`, plus merge + delete any leftover `claude/*` branch** (`git ls-remote origin "refs/heads/claude/*"`).
 
 **S429 carry-forward:**
@@ -158,6 +161,11 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 431 (2026-11-03 — Opus 5.5, Mac) — KIDS-ONLY BOOKING, RELEASE-WINDOW 10-CARD BLOCK (all pushed, build clean)**
+- Kids under 16 book kids classes only; never need Foundations clearance (`81cfae0`, `aa059bd`, `d72a67a` — first 18, Chris chose 16).
+- Full 10-card can't book anything on release day after the release time (`79b31e3`).
+- "No more bookings" note moved to the last-session message (`95475a2`).
+
 **Session 430 (2026-11-03 — Opus 5.5, Mac) — PHONE WHITEBOARD + FOUNDATIONS CLEARANCE (all pushed, build clean)**
 - Cloud environment "Forge Whiteboard" (Limited network + `*.supabase.co`, Supabase URL + service key as env vars, setup `cd /home/user/FFF && npm ci || true`); Claude GitHub App installed on Chris-Mimi → FFF. Guide: `Chris Notes/Workflow & Git/whiteboard-from-phone-setup.md`.
 - 45.1 entered from the phone (record merged from `claude/whiteboard-45-1-qscfre`). Phone sessions now push straight to main (untested).
@@ -183,14 +191,7 @@ Athlete Tools
 - Round 3 + Section F F1–F25 in 40 wods (`081700b`); new library: Strict Rings Hanging L-Sit High Raise, DB Bent Over Row Double, Wallball Deadlift, Push-Up Bottom Position Hold, High Frogger.
 - Open items closed in S428.
 
-**Session 425 (2026-10-26→30 — Opus 5.5, Mac) — RECENCY BANDS, FRA1 REGION, PLANNER BENCHMARKS, PUBLIC TIMETABLE, WEEK 44 (all pushed, build clean)**
-- Recency bands 21/42/63/84 days (+ grey 12 wk+) everywhere incl. Movement Tracking; legends in weeks (`31630ce`, `337dbd8`, `3825533`).
-- Vercel functions iad1 → fra1 (`9e08abb`). NEW Planner **Benchmarks** panel: last programmed, count in view period + total, every date → calendar, click name = description (`4efc123`, `149f819`).
-- Rename "Dead Stop Knees to Bar (BMU drill)" → "BMU Drill: Dead Stop Knees to Bar" (library + 12 wods incl. 4 short spellings); `scripts/rename-exercise.ts "<old>" "<new>" [--also]` (`cab9c80`).
-- Whiteboard: 44.1 KB ladder, 44.2 speed test (5 sessions), 25.10 couplets from 43.4 (Track 1) — 65 WSR + 30 Forge Benchmark entries; fixes Chris/Magdalena/Track.
-- Mobile Athletes list fills screen until an athlete is picked (`9086ad7`). NEW public `/stundenplan` for the website (`4b4493b`, `e220ed0`).
-
-**Older sessions (57-424):** See `project-history/` folder.
+**Older sessions (57-426):** See `project-history/` folder.
 
 ---
 
@@ -222,7 +223,8 @@ Athlete Tools
 ## 📋 Next Immediate Steps
 
 1. **Whiteboard Week 45 — 45.1 done from the phone (S430).** 45.2+ when Chris uploads (phone or Mac). At Mac session start: `git pull` + merge/delete any `claude/*` branch.
-1a. **Foundations clearance — live (S430).** Check with Chris: works for Magdalena? Bianca to unclear? Booking Rules tick-boxes right? Possible later: request-to-book flow (rejected for now — coach books them in by hand).
+1a. **Foundations clearance — live (S430), kids <16 exempt + kids-only booking (S431).** Check with Chris: works for Magdalena / Lena Rothe? Bianca to unclear? Booking Rules tick-boxes right? Possible later: request-to-book flow (rejected for now — coach books them in by hand).
+1b. **Release-window 10-card block (S431)** — first live run Sunday 8.11 15:00; ask Chris if anyone hit it. Optional: align the two older refused messages ("schreib uns") to "sprich mit Chris oder Mimi".
 2. **S425 checks still open (Chris):** pages faster after fra1? (not sure yet) · Planner Benchmarks panel numbers (he'll check). Everything else from S424/S425 confirmed (S426).
 3. **Planner false flags — ✅ COMPLETE (S426–S428).** Section F both batches, defaults removed, D&D left alone (Chris). Detail: `memory-bank/planner-false-flags-todo.md`.
 4. **Planner flags audit — RECURRING every 3 months (Chris, S428). Next due: end of Jan 2027** (then end Apr, Jul, Oct). Two commands, both with `--exclude "turnen|diapers" --since 2026-10-30` (then the date of the last audit): `npx tsx scripts/audit-movement-false-flags.ts` (false credits) and the same with `--uncounted` (programmed lines that count as nothing). **Plus workout-name audit (S429):** `npx tsx scripts/audit-workout-names.ts --since <last audit>` — names must mention every movement in Skill/Gymnastics/Strength/Oly/WOD/Finisher/Accessory (short forms fine; "MetCon" = Row/Ski/Airbike choice; benchmark names like Murph/Nancy exempt). Fix with `scripts/rename-workouts.ts renames/<file>.json`. Also check library names for stray spaces (S428 found 3 — "Supine Pigeon Piriformis " never matched). Fix text to library names / add library entries, numbered list → Chris OKs → `scripts/rewrite-workout-lines.ts`. Remind Chris at session start when due. Last done: S426–S428 (Oct 2026).
