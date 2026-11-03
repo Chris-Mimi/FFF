@@ -106,6 +106,7 @@ export function berlinWallClock(instant: Date) {
     month: parseInt(get('month')),
     day: parseInt(get('day')),
     hour: parseInt(get('hour')),
+    minute: parseInt(get('minute')),
     dow: dowMap[get('weekday')],
   };
 }

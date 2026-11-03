@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
     // Validate 10-card balance and expiry on the holder's card.
     let tenCardRemaining = 0;
     let tenCardExpiredOn: string | null = null; // set while booking inside the 1-month grace
+    let openWaitlist = 0; // open waitlist spots on the card — hoisted for the S431 release-window check
     if (usesTenCard) {
       if (!holderCard) {
         return NextResponse.json(
@@ -171,7 +172,6 @@ export async function POST(request: NextRequest) {
       // Open waitlist spots count as booked: a later promotion debits the card, so
       // without this a full card could reach 2 over via the waitlist. Service role —
       // a shared card's other bookers are hidden from this athlete by RLS.
-      let openWaitlist = 0;
       if (holderId) {
         const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
         const { data: cardUsers, error: cuErr } = await admin
@@ -280,6 +280,22 @@ export async function POST(request: NextRequest) {
 
     // Load coach-configurable booking rules
     const rules = await getBookingRules();
+
+    // S431: a full 10-card (no sessions left, open waitlist spots counted) can't book
+    // anything in the release window — release day (Sunday) from the release time to
+    // midnight. The usual "one session over" allowance doesn't apply then. Coach-added
+    // bookings don't use this route.
+    if (usesTenCard && tenCardRemaining - openWaitlist <= 0) {
+      const now = berlinWallClock(new Date());
+      const [rh, rm] = rules.next_week_release_time.split(':').map(Number);
+      const afterRelease = now.hour > rh || (now.hour === rh && now.minute >= rm);
+      if (now.dow === rules.next_week_release_day_of_week && afterRelease) {
+        return NextResponse.json(
+          { error: 'Deine 10er-Karte ist voll. Bitte kaufe eine neue 10er-Karte in der App – oder sprich mit Chris oder Mimi.' },
+          { status: 402 } // Payment Required
+        );
+      }
+    }
 
     // Check if session is locked (manually or auto-locked by lead time before start).
     // Per-session-type override wins over the global booking_rules value.
