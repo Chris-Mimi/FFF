@@ -255,6 +255,15 @@ export async function POST(request: NextRequest) {
       const typeNorm = (session.workout_type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const kidsKeywords = ['kids', 'kidsteens', 'kidsandteens', 'fitkidsturnen', 'elternkindturnen'];
       const isKidsClass = typeNorm !== '' && kidsKeywords.some(k => typeNorm.startsWith(k));
+      // S431: kids (under 18 by DOB) may only book kids classes themselves. A coach books
+      // them into anything else by hand (e.g. Neo into a WOD). Kids never need Foundations
+      // clearance — getClearedMemberIds counts them as cleared.
+      if (!isKidsClass && isMinor(member.date_of_birth)) {
+        return NextResponse.json(
+          { error: 'Kinder/Jugendliche können nur Kinderklassen buchen – für andere Klassen bitte mit Chris oder Mimi sprechen.' },
+          { status: 403 }
+        );
+      }
       if (!isKidsClass) {
         const [cleared, openTypes] = await Promise.all([
           getClearedMemberIds([bookingMemberId]),

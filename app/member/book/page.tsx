@@ -995,6 +995,9 @@ export default function MemberBookingPage() {
                       // ALL adult self-bookings, whether or not a child is registered yet.
                       // S414: a minor with their own login (by DOB) may book for themselves.
                       const parentSelfBookingBlocked = isKids && bookingForMemberId === user?.id && !selfIsMinor;
+                      // S431: kids book kids classes only; a coach books them into anything else.
+                      const kidAdultClassBlocked = !isKids
+                        && isMinor(familyMembers.find(fm => fm.id === bookingForMemberId)?.date_of_birth);
                       const foundationsBlocked = !isKids && !!foundationsAccess && !!bookingForMemberId
                         && !foundationsAccess.clearedIds.includes(bookingForMemberId)
                         && !isTypeOpenToFoundations(session.workout_type, foundationsAccess.openTypes);
@@ -1091,6 +1094,11 @@ export default function MemberBookingPage() {
                                 {primaryHasFamilyKids
                                   ? 'Bitte unter dem Namen deines Kindes buchen'
                                   : 'Diese Klasse ist für Kinder/Jugendliche — bitte registriere zuerst dein Kind über den Button „+ Familie" oben.'}
+                              </div>
+                            ) : kidAdultClassBlocked && session.user_booking_status === 'none' ? (
+                              <div className="flex items-start gap-1.5 text-xs text-amber-300 leading-tight max-w-[180px] text-right">
+                                <Lock size={14} className="shrink-0 mt-0.5" />
+                                Nur Kinderklassen – für andere Klassen bitte mit Chris oder Mimi sprechen.
                               </div>
                             ) : foundationsBlocked && session.user_booking_status === 'none' ? (
                               <div className="flex items-start gap-1.5 text-xs text-amber-300 leading-tight max-w-[180px] text-right">
