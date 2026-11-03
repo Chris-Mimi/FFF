@@ -32,7 +32,7 @@ On the Mac, in the browser at **claude.ai/code** (the Code area, not the normal 
 1. Take the board photo and upload it to the app as usual.
 2. Claude app → **Code** tab → **New session** → check it shows **Forge Whiteboard**, **Chris-Mimi/FFF**, **main**.
 3. Type e.g. `Whiteboard 45.1` and send.
-4. Scores go into the app straight away. The record file lands on a side branch on GitHub; Claude merges it into main at the next Mac session.
+4. Scores go into the app straight away. The record file is pushed straight to main on GitHub. If GitHub refuses that, it goes to a side branch instead, and Claude merges it at the next Mac session.
 
 **Clearing old sessions:** the phone only offers **Archive** (hides it). To **Delete**, use the Mac at claude.ai/code: hover over the session in the left list → **⋯** → **Delete**.
 
