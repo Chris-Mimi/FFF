@@ -1,0 +1,53 @@
+{
+ "note": "2026 Week 45.2 — 4.11 17:15 + 18:30. Speed test, pick ONE: SkiErg 2km (WOD Pt.1), Rower 2km (Pt.2), Airbike 5km (Pt.3). Forge Benchmarks. Dashes on the board = machine not chosen (no row), not 'did not score'. Anja Götte booked 18:30, not on board.",
+ "sessions": [
+  {
+   "date": "2026-11-04",
+   "time": "17:15",
+   "sectionId": "section-1793806859747",
+   "rows": [
+    { "member": "Claudia Herrmann", "time_result": "10:30" },
+    { "member": "Lena Jähn", "time_result": "8:54" }
+   ]
+  },
+  {
+   "date": "2026-11-04",
+   "time": "17:15",
+   "sectionId": "section-1793806924222",
+   "rows": [
+    { "member": "Sabrina Lucas", "time_result": "9:46" },
+    { "member": "Wayne Lucas", "time_result": "7:12.9" }
+   ]
+  },
+  {
+   "date": "2026-11-04",
+   "time": "18:30",
+   "sectionId": "section-1793806859747",
+   "rows": [
+    { "member": "Anfisa Bornemann", "time_result": "12:00" },
+    { "member": "Julia Weihe", "time_result": "10:40" }
+   ]
+  },
+  {
+   "date": "2026-11-04",
+   "time": "18:30",
+   "sectionId": "section-1793806924222",
+   "rows": [
+    { "member": "Carmine Carrozzo", "time_result": "8:41" },
+    { "member": "Paul Bielenski", "time_result": "7:28" }
+   ]
+  },
+  {
+   "date": "2026-11-04",
+   "time": "18:30",
+   "sectionId": "section-1793806950165",
+   "rows": [
+    { "member": "Anneke Spegele", "time_result": "8:10" },
+    { "member": "Justine Baumstark", "time_result": "8:46" },
+    { "member": "Kathrin Mühlen", "time_result": "8:07" },
+    { "member": "Thomas Spegele", "time_result": "7:33" },
+    { "member": "Tobias Götte", "time_result": "8:06" }
+   ]
+  }
+ ]
+}
