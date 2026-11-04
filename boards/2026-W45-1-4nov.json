@@ -1,0 +1,15 @@
+{
+ "note": "2026 Week 45.1 (bottom right) — 4.11 09:30. 4x3 min AMRAP: P.S. = Pistol Squat (Scaling 1), SN = KB Snatch (Load 1, Rx 16/24kg), DUs = Scaling 2, Imp.P = Impossible Plank (Scaling 3), R+R. All Track 1 (Chris). Aline not booked — booked per board.",
+ "sessions": [
+  {
+   "date": "2026-11-04",
+   "time": "09:30",
+   "sectionId": "section-1791713480355-4",
+   "rows": [
+    { "member": "Aline von Rüden", "book": true, "track": 1, "scaling_level": "Sc3", "weight_result": 12, "scaling_level_2": "Sc1", "scaling_level_3": "Sc3", "rounds_result": 2, "reps_result": 24 },
+    { "member": "Irene Koffler", "track": 1, "scaling_level": "Sc2", "weight_result": 12, "scaling_level_2": "Sc1", "scaling_level_3": "Sc2", "rounds_result": 2, "reps_result": 98 },
+    { "member": "Michael Städele", "track": 1, "scaling_level": "Rx", "weight_result": 24, "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 3, "reps_result": 14 }
+   ]
+  }
+ ]
+}
