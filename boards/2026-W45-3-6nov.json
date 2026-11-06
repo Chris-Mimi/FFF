@@ -1,0 +1,30 @@
+{
+ "note": "2026 Week 45.3 — 6.11 09:00 + 18:30. Speed test, pick ONE: SkiErg 2km (WOD Pt.1), Rower 2km (Pt.2), Airbike 5km (Pt.3). Dashes = machine not chosen (no row). Magdalena's Rower cell is a tick-like dash, read as not chosen.",
+ "sessions": [
+  { "date": "2026-11-06", "time": "09:00", "sectionId": "section-1793806859747",
+    "rows": [ { "member": "Lukas Simnacher", "time_result": "7:55" } ] },
+  { "date": "2026-11-06", "time": "09:00", "sectionId": "section-1793806924222",
+    "rows": [ { "member": "Michael Städele", "time_result": "7:53" } ] },
+  { "date": "2026-11-06", "time": "09:00", "sectionId": "section-1793806950165",
+    "rows": [
+     { "member": "Sven Hujo", "time_result": "7:39" },
+     { "member": "Irene Koffler", "time_result": "9:41" },
+     { "member": "Valerie Mesenburg", "time_result": "8:23" },
+     { "member": "Mimi Hiles", "time_result": "8:28" }
+    ] },
+  { "date": "2026-11-06", "time": "18:30", "sectionId": "section-1793806859747",
+    "rows": [
+     { "member": "Angela Schulz", "time_result": "10:32.3" },
+     { "member": "Franziska Lill", "time_result": "13:25.0" },
+     { "member": "Magdalena Gebska", "time_result": "12:39.5" }
+    ] },
+  { "date": "2026-11-06", "time": "18:30", "sectionId": "section-1793806924222",
+    "rows": [
+     { "member": "Daniela Struben", "time_result": "12:24" },
+     { "member": "Marion Weber", "time_result": "10:04" },
+     { "member": "Bodo Lehmann", "time_result": "8:41" }
+    ] },
+  { "date": "2026-11-06", "time": "18:30", "sectionId": "section-1793806950165",
+    "rows": [ { "member": "Julia Weihe", "time_result": "9:20" } ] }
+ ]
+}

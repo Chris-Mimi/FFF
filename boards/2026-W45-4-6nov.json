@@ -1,0 +1,19 @@
+{
+ "note": "2026 Week 45.4 — 6.11 17:15 4-station circuit. Board = complete rounds per station; score = total rounds x 15 (10 + 5 burpees) in reps_result. Load 1 = GHDHE DB (Rx 15/22.5kg), Scaling 1 = T2R (Sc = toes not to rings), Load 2 = Double KB OHC (Rx 16/24kg), Load 3 = Pinch Grip Plate (Rx 5/10kg). 'Rx' filled with the prescribed load by gender. Burpee scaling (Scaling 2) not on board, left blank. Martina KB read as 8kg (could be 3). Chris not booked — booked per board.",
+ "sessions": [
+  { "date": "2026-11-06", "time": "17:15", "sectionId": "section-1793536715060-4",
+    "rows": [
+     { "member": "Anja Götte",        "weight_result": 10,   "scaling_level": "Rx",  "weight_result_2": 16, "weight_result_3": 5,  "reps_result": 270 },
+     { "member": "Carla Courtois",    "weight_result": 7.5,  "scaling_level": "Sc1", "weight_result_2": 16, "weight_result_3": 5,  "reps_result": 195 },
+     { "member": "Justine Baumstark", "weight_result": 7.5,  "scaling_level": "Sc1", "weight_result_2": 12, "weight_result_3": 5,  "reps_result": 210 },
+     { "member": "Lena Jähn",         "weight_result": 7.5,  "scaling_level": "Rx",  "weight_result_2": 16, "weight_result_3": 5,  "reps_result": 285 },
+     { "member": "Martina Fenster",   "weight_result": 10,   "scaling_level": "Sc1", "weight_result_2": 8,  "weight_result_3": 5,  "reps_result": 225 },
+     { "member": "Nikolina Vlasalija","weight_result": 7.5,  "scaling_level": "Rx",  "weight_result_2": 12, "weight_result_3": 5,  "reps_result": 195 },
+     { "member": "Chris Hiles", "book": true, "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 24, "weight_result_3": 10, "reps_result": 285 },
+     { "member": "Daniel Braatz",     "weight_result": 5,    "scaling_level": "Rx",  "weight_result_2": 16, "weight_result_3": 5,  "reps_result": 255 },
+     { "member": "Paul Bielenski",    "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 24, "weight_result_3": 10, "reps_result": 225 },
+     { "member": "Tobias Götte",      "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 24, "weight_result_3": 10, "reps_result": 255 },
+     { "member": "Wayne Lucas",       "weight_result": 22.5, "scaling_level": "Rx",  "weight_result_2": 24, "weight_result_3": 10, "reps_result": 300 }
+    ] }
+ ]
+}
