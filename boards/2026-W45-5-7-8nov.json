@@ -1,0 +1,26 @@
+{
+ "note": "2026 Week 45.5 — 7.11 10:00 Hyrox 400-40 + 8.11 10:00 WW/KB Snatch/Sit-up/Goblet Squat AMRAP. 7.11: board 'Track' column = distance: 1+1/2 Rounds = Track 1, 1 Round = Track 2. WB load in Load 1 (Rx 6/9kg W/M; lighter = Sc1), Sledge added load in Load 2 (pull) + Load 3 (push); single board value = both; Kathrin +85/+75 = pull/push. 8.11: KB Snatch = Load 1, Goblet Squat = Load 2 (Rx 16/24kg W/M), WW Sc1/Rx = Scaling. 'Anne' = Annerose Streit (booked; Anne Schaber not booked since Sept). 'Toni' = Toni Seitz, not booked — booked per board. Chris not booked — booked per board. Simone Raschke booked 8.11 but not on board.",
+ "sessions": [
+  { "date": "2026-11-07", "time": "10:00", "sectionId": "section-1793536715160-4",
+    "rows": [
+     { "member": "Sven Hujo",      "time_result": "32:10", "track": 2, "weight_result": 6, "scaling_level": "Sc1", "weight_result_2": 125, "weight_result_3": 125 },
+     { "member": "Wayne Lucas",    "time_result": "45:40", "track": 1, "weight_result": 9, "scaling_level": "Rx",  "weight_result_2": 125, "weight_result_3": 125 },
+     { "member": "Kathrin Mühlen", "time_result": "42:40", "track": 1, "weight_result": 6, "scaling_level": "Rx",  "weight_result_2": 85,  "weight_result_3": 75 },
+     { "member": "Sonja Hujo",     "time_result": "37:30", "track": 2, "weight_result": 4, "scaling_level": "Sc1", "weight_result_2": 70,  "weight_result_3": 70 },
+     { "member": "Sabrina Lucas",  "time_result": "42:42", "track": 2, "weight_result": 4, "scaling_level": "Sc1", "weight_result_2": 70,  "weight_result_3": 70 },
+     { "member": "Mimi Hiles",     "time_result": "46:40", "track": 1, "weight_result": 6, "scaling_level": "Rx",  "weight_result_2": 95,  "weight_result_3": 95 }
+    ] },
+  { "date": "2026-11-08", "time": "10:00", "sectionId": "section-1777901691989",
+    "rows": [
+     { "member": "Annerose Streit",    "weight_result": 12, "weight_result_2": 12, "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 18 },
+     { "member": "Martina Fenster",    "weight_result": 12, "weight_result_2": 12, "scaling_level": "Rx",  "rounds_result": 3, "reps_result": 30 },
+     { "member": "Nikolina Vlasalija", "weight_result": 12, "weight_result_2": 16, "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 0 },
+     { "member": "Toni Seitz", "book": true, "weight_result": 12, "weight_result_2": 12, "scaling_level": "Rx", "rounds_result": 5, "reps_result": 0 },
+     { "member": "Carmine Carrozzo",   "weight_result": 24, "weight_result_2": 24, "scaling_level": "Rx",  "rounds_result": 4, "reps_result": 7 },
+     { "member": "Daniel Braatz",      "weight_result": 16, "weight_result_2": 20, "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 19 },
+     { "member": "Sermet Gueler",      "weight_result": 12, "weight_result_2": 12, "scaling_level": "Rx",  "rounds_result": 3, "reps_result": 25 },
+     { "member": "Thomas Graf",        "weight_result": 20, "weight_result_2": 20, "scaling_level": "Sc1", "rounds_result": 4, "reps_result": 0 },
+     { "member": "Chris Hiles", "book": true, "weight_result": 24, "weight_result_2": 24, "scaling_level": "Rx", "rounds_result": 4, "reps_result": 11 }
+    ] }
+ ]
+}
