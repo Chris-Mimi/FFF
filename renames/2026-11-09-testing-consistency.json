@@ -1,0 +1,12 @@
+[
+  { "from": "BP Testing 5RM, OHP, PP, PJ, Pull-up", "to": "Bench Press Testing 5RM, OHP, PP, PJ, Pull-up" },
+  { "from": "C&J Testing 3RM, V-up, Burpee, Split Jerk, Strict OHP", "to": "Clean & Jerk Testing 3RM, V-up, Burpee, Split Jerk, Strict OHP" },
+  { "from": "OHS Testing 10RM, Push-up, GHDHE, DUs, HPC", "to": "Overhead Squat Testing 10RM, Push-up, GHDHE, DUs, HPC" },
+  { "from": "OHS Testing 1RM, S2OH, DL, Burpee", "to": "Overhead Squat Testing 1RM, S2OH, DL, Burpee" },
+  { "from": "OHS Testing 5RM, Airbike, RKBS, Push-up", "to": "Overhead Squat Testing 5RM, Airbike, RKBS, Push-up" },
+  { "from": "BOR Testing 5RM, Pinch-grip carry, Russian Twist, Front Raise, 200m run, In and out hops", "to": "Bent Over Row Testing 5RM, Pinch-grip carry, Russian Twist, Front Raise, 200m run, In and out hops" },
+  { "from": "RDL Testing 5RM (Strength Builder), KB BOR, Pullover, Pull-Through, Sidestep", "to": "Romanian Deadlift Testing 5RM (Strength Builder), KB BOR, Pullover, Pull-Through, Sidestep" },
+  { "from": "Barbell GM Testing 5RM, Airbike, Hanging L-Sit Raise, Push-up, Thruster", "to": "Barbell Good Morning Testing 5RM, Airbike, Hanging L-Sit Raise, Push-up, Thruster" },
+  { "from": "Strict OHP & PP Testing 3RM & 1RM, L-Sit, Hollow & Superman Rock, BBJ, MetCon", "to": "Strict OHP & Push Press Testing 3RM & 1RM, L-Sit, Hollow & Superman Rock, BBJ, MetCon" },
+  { "from": "Bench Press Testing 5RM (Foundations) #26.1, SR, DB Curl, Air Squat, Sit-up, Burpee", "to": "Bench Press Testing 5RM #26.1 (Foundations), SR, DB Curl, Air Squat, Sit-up, Burpee" }
+]

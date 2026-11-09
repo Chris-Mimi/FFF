@@ -33,6 +33,7 @@ type Hit = { name: string; type: string; why: string; dates: Set<string> };
 async function main() {
   const lifts = new Map<string, Hit>();
   const text = new Map<string, Hit>();
+  const testing = new Map<string, Hit>();
 
   for (let from = 0; ; from += 1000) {
     const { data, error } = await db
@@ -47,8 +48,15 @@ async function main() {
       const wod = Array.isArray(s.wods) ? s.wods[0] : s.wods;
       if (!wod || SKIP_TYPES.test(wod.session_type ?? '')) return;
       const name = (wod.workout_name ?? '').trim();
-      if (/testing/i.test(name)) return;
       const sections = wod.sections ?? [];
+      if (/testing/i.test(name)) {
+        const rm = sections.flatMap(sec => (sec.lifts ?? []).filter(l => l.rm_test).map(l => `${l.name} ${l.rm_test}`));
+        const key = `${name}::${wod.session_type}`;
+        const hit = testing.get(key) ?? { name, type: wod.session_type ?? '', why: rm.join(', ') || '(no rm_test lift)', dates: new Set<string>() };
+        hit.dates.add(s.date);
+        testing.set(key, hit);
+        return;
+      }
 
       const rmLifts = sections.flatMap(sec =>
         (sec.lifts ?? []).filter(l => l.rm_test).map(l => `${l.name} ${l.rm_test} (${sec.type})`));
@@ -78,6 +86,7 @@ async function main() {
   };
   print('RM-test lift, no "Testing" in name', lifts);
   print('RM in section text only (review — may not be a test)', text);
+  if (args.includes('--list')) print('All "Testing" names (consistency review)', testing);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
