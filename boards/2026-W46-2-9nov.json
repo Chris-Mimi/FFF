@@ -1,0 +1,32 @@
+{
+ "note": "2026 Week 46.2 — 9.11 17:15 + 18:30 C&J ladder 1-2-3-4-5-4-3-2-1 + 12 WPRT + 24 plate hops, 14 min cap. Load 1 = C&J (Rx 20/35kg W/M), Scaling 1 = WPRT (Rx 10/15kg, Sc1 5/10kg). Board 'Rx' filled with prescribed load by gender. Dash in Time = flagged 'Did not score' (Justine, Michi). Anfisa '-2 Rounds' = time cap, last two rounds (2+1 C&J + 2x36) missing: no time, reps = 349 - 75 = 274. 'Michi' = Michael Junkes (17:15). Sabrina Lucas OG, not on board. Tobi 13:24 read (could be 12:24).",
+ "sessions": [
+  { "date": "2026-11-09", "time": "17:15", "sectionId": "section-1794231440713",
+    "rows": [
+     { "member": "Amelie Kirch",      "weight_result": 20,   "scaling_level": "Rx",  "time_result": "10:05" },
+     { "member": "Carla Courtois",    "weight_result": 20,   "scaling_level": "Sc1", "time_result": "12:05" },
+     { "member": "Claudia Herrmann",  "weight_result": 20,   "scaling_level": "Rx",  "time_result": "10:13" },
+     { "member": "Justine Baumstark", "weight_result": 20,   "scaling_level": "Sc1", "modified": true, "modified_note": "Did not score" },
+     { "member": "Valerie Mesenburg", "weight_result": 20,   "scaling_level": "Rx",  "time_result": "11:23" },
+     { "member": "Carmine Carrozzo",  "weight_result": 35,   "scaling_level": "Rx",  "time_result": "14:00" },
+     { "member": "Dimitar Peresyov",  "weight_result": 35,   "scaling_level": "Rx",  "time_result": "10:44" },
+     { "member": "Lukas Simnacher",   "weight_result": 35,   "scaling_level": "Rx",  "time_result": "12:10" },
+     { "member": "Michael Junkes",    "weight_result": 17.5, "scaling_level": "Sc1", "modified": true, "modified_note": "Did not score" },
+     { "member": "Wayne Lucas",       "weight_result": 35,   "scaling_level": "Rx",  "time_result": "9:39" }
+    ] },
+  { "date": "2026-11-09", "time": "18:30", "sectionId": "section-1794231440713",
+    "rows": [
+     { "member": "Anfisa Bornemann",  "weight_result": 20, "scaling_level": "Rx", "reps_result": 274 },
+     { "member": "Anneke Spegele",    "weight_result": 20, "scaling_level": "Rx", "time_result": "10:30" },
+     { "member": "Kathrin Mühlen",    "weight_result": 20, "scaling_level": "Rx", "time_result": "11:42" },
+     { "member": "Lena Jähn",         "weight_result": 20, "scaling_level": "Rx", "time_result": "11:47" },
+     { "member": "Nikolina Vlasalija","weight_result": 20, "scaling_level": "Rx", "time_result": "13:23" },
+     { "member": "Christian Tanner",  "weight_result": 35, "scaling_level": "Rx", "time_result": "13:15" },
+     { "member": "Paul Bielenski",    "weight_result": 35, "scaling_level": "Rx", "time_result": "13:33" },
+     { "member": "Markus Fischer",    "weight_result": 35, "scaling_level": "Rx", "time_result": "13:50" },
+     { "member": "Senol Özdilek",     "weight_result": 35, "scaling_level": "Rx", "time_result": "12:04" },
+     { "member": "Thomas Spegele",    "weight_result": 35, "scaling_level": "Rx", "time_result": "12:12" },
+     { "member": "Tobias Götte",      "weight_result": 35, "scaling_level": "Rx", "time_result": "13:24" }
+    ] }
+ ]
+}
