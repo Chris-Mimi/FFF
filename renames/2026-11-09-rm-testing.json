@@ -1,0 +1,5 @@
+[
+  { "from": "Barbell BP, OHP, PP, PJ, Pull-up", "to": "BP Testing 5RM, OHP, PP, PJ, Pull-up", "dates": ["2026-07-20", "2026-07-21", "2026-07-22"] },
+  { "from": "Barbell GM, Airbike, Hanging L-Sit Raise, Push-up, Thruster", "to": "Barbell GM Testing 5RM, Airbike, Hanging L-Sit Raise, Push-up, Thruster", "dates": ["2026-10-07", "2026-10-12"] },
+  { "from": "C&J, V-up, Burpee, Split Jerk, Strict OHP", "to": "C&J Testing 3RM, V-up, Burpee, Split Jerk, Strict OHP", "dates": ["2026-07-13"] }
+]
