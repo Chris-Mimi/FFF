@@ -1,0 +1,25 @@
+{
+ "note": "2026 Week 46.2 (re-uploaded, rows from Susi down + right side). 10.11 17:15 = same C&J ladder as 9.11: Load 1 = C&J (Rx 20/35kg W/M), Scaling 1 = WPRT. Board 'Rx Sc1' / '17.5 Sc1' in the C&J column: section has no C&J scaling field, recorded as modified 'C&J Sc1'. 'MichiM' = Michael Maier, 'ChristianM' = Christian Müller, 'Stefan' = Stefan G, 'Susi' = Susi Glocker. Chris not booked — booked per board. Martina Fenster booked, not on board. 10.11 18:30 RR/Up-Down/DU AMRAP: Scaling 1 = Ring Rows, DU scaling (Scaling 2) not on board. 'Angie' = Angela Schulz, not booked — booked per board. Diana, Natalie = listed trials. Magdalena Gebska booked, not on board. Also (separate one-row update): Senol 9.11 18:30 now marked 'Rx Sc1' — modified note added.",
+ "sessions": [
+  { "date": "2026-11-10", "time": "17:15", "sectionId": "section-1794231440713",
+    "rows": [
+     { "member": "Susi Glocker",      "weight_result": 20,   "scaling_level": "Rx", "time_result": "10:30" },
+     { "member": "Christian Müller",  "weight_result": 35,   "scaling_level": "Rx", "time_result": "11:57", "modified": true, "modified_note": "C&J Sc1" },
+     { "member": "Michael Maier",     "weight_result": 17.5, "scaling_level": "Rx", "time_result": "12:00", "modified": true, "modified_note": "C&J Sc1" },
+     { "member": "Stefan G",          "weight_result": 30,   "scaling_level": "Rx", "time_result": "11:58" },
+     { "member": "Sven Hujo",         "weight_result": 35,   "scaling_level": "Rx", "time_result": "11:37" },
+     { "member": "Chris Hiles", "book": true, "weight_result": 35, "scaling_level": "Rx", "time_result": "11:20" }
+    ] },
+  { "date": "2026-11-10", "time": "18:30", "sectionId": "section-1794138567745-4",
+    "rows": [
+     { "member": "Angela Schulz", "book": true, "scaling_level": "Sc2", "rounds_result": 6, "reps_result": 14 },
+     { "member": "Carla Courtois",  "scaling_level": "Sc2", "rounds_result": 6, "reps_result": 0 },
+     { "whiteboard": "Diana",       "scaling_level": "Sc2", "rounds_result": 5, "reps_result": 18 },
+     { "member": "Marion Heider",   "scaling_level": "Sc2", "rounds_result": 3, "reps_result": 0 },
+     { "whiteboard": "Natalie",     "scaling_level": "Sc2", "rounds_result": 6, "reps_result": 0 },
+     { "member": "Nicole Rauh",     "scaling_level": "Sc2", "rounds_result": 6, "reps_result": 8 },
+     { "member": "Bodo Lehmann",    "scaling_level": "Rx",  "rounds_result": 5, "reps_result": 18 },
+     { "member": "Thomas Graf",     "scaling_level": "Sc1", "rounds_result": 6, "reps_result": 0 }
+    ] }
+ ]
+}
