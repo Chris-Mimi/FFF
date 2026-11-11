@@ -1,0 +1,13 @@
+{
+ "note": "2026 Week 46.2 (re-uploaded, bottom-right block). 11.11 09:30 = same C&J ladder as 9.11: Load 1 = C&J (Rx 20/35kg W/M), Scaling 1 = WPRT. Board 'Rx' filled with prescribed load by gender. 'MichiS' = Michael Städele, 'AnnaKr' = Anna Krautwald. Anna Kr WPRT 5kg = Sc1.",
+ "sessions": [
+  { "date": "2026-11-11", "time": "09:30", "sectionId": "section-1794231440713",
+    "rows": [
+     { "member": "Anna Kr",           "weight_result": 15, "scaling_level": "Sc1", "time_result": "12:12" },
+     { "member": "Irene Koffler",     "weight_result": 20, "scaling_level": "Rx",  "time_result": "12:40" },
+     { "member": "Mimi Hiles",        "weight_result": 20, "scaling_level": "Rx",  "time_result": "8:54" },
+     { "member": "Regina Peresyova",  "weight_result": 15, "scaling_level": "Rx",  "time_result": "12:00" },
+     { "member": "Michael Städele",   "weight_result": 35, "scaling_level": "Rx",  "time_result": "10:35" }
+    ] }
+ ]
+}
