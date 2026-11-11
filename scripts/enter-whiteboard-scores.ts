@@ -200,7 +200,10 @@ async function doSession(spec: SessionSpec) {
   // --- Scoring fields: switch on what the data needs (never off) ---
   const sf = (section.scoring_fields as Record<string, boolean>) || {};
   const needed = inferFields(spec.rows);
-  const toEnable = needed.filter(f => sf[f] !== true);
+  // time_result renders under `time`, `max_time` or `time_amrap` — a hold section
+  // (max_time) already shows it; switching `time` on too breaks their exclusivity.
+  const toEnable = needed.filter(f => sf[f] !== true &&
+    !(f === 'time' && (sf.max_time === true || sf.time_amrap === true)));
   if (toEnable.length) {
     console.log(`Enabling scoring_fields: ${toEnable.join(', ')}  (safe direction — only true→false wipes results)`);
   } else {

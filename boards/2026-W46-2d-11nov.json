@@ -1,0 +1,590 @@
+{
+ "note": "2026 Week 46.2 (re-uploaded, right side). 11.11 17:15 + 18:30 Strict Movements stations: T2B (reps), HSH (hold s), Push-up weighted (board writes weight x reps product + load -> stored weight_result=load, reps_result=product/load, Rx), Ring L-Sit (hold s), Strict Pull-up weighted (same as push-up), Parallettes L-Sit (hold s). Holds stored as m:ss in time_result (max_time). Unweighted push-/pull-up entries = reps with written scaling; Claudia pull-up '15' unmarked -> Sc1 (strict, no load). HSH 'Sc' = Sc1 (wall walk hold). Board order girls-then-boys: Claudia..Sven = 17:15, Anja..Tobi = 18:30. 'Niko' = Nikolina Vlasalija, 'ThomasS' = Thomas Spegele, 'Tobi' = Tobias Götte (dashes in every column -> Did not score). Lena Jähn had cancelled 17:15 but is on the board -> re-booked. Anfisa Bornemann booked 17:15, not on board.",
+ "sessions": [
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794406699223",
+   "rows": [
+    {
+     "member": "Claudia Herrmann",
+     "reps_result": 23,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Lena Jähn",
+     "book": true,
+     "reps_result": 23,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Martina Fenster",
+     "reps_result": 28,
+     "scaling_level": "Sc3"
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "reps_result": 30,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Chris Hiles",
+     "reps_result": 19,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lukas Simnacher",
+     "reps_result": 20,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Sven Hujo",
+     "reps_result": 14,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794138567092-4",
+   "rows": [
+    {
+     "member": "Claudia Herrmann",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lena Jähn",
+     "book": true,
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Martina Fenster",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Chris Hiles",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lukas Simnacher",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Sven Hujo",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794405995441",
+   "rows": [
+    {
+     "member": "Claudia Herrmann",
+     "weight_result": 10,
+     "reps_result": 26,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lena Jähn",
+     "book": true,
+     "weight_result": 5,
+     "reps_result": 20,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Martina Fenster",
+     "reps_result": 29,
+     "scaling_level": "Sc3"
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "reps_result": 22,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Chris Hiles",
+     "weight_result": 25,
+     "reps_result": 32,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lukas Simnacher",
+     "weight_result": 25,
+     "reps_result": 39,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Sven Hujo",
+     "weight_result": 5,
+     "reps_result": 34,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794406039168",
+   "rows": [
+    {
+     "member": "Claudia Herrmann",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Lena Jähn",
+     "book": true,
+     "time_result": "1:45",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Martina Fenster",
+     "time_result": "1:40",
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Chris Hiles",
+     "time_result": "1:20",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lukas Simnacher",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Sven Hujo",
+     "time_result": "1:35",
+     "scaling_level": "Sc1"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794406618491",
+   "rows": [
+    {
+     "member": "Claudia Herrmann",
+     "reps_result": 15,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Lena Jähn",
+     "book": true,
+     "weight_result": 5,
+     "reps_result": 10,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Martina Fenster",
+     "reps_result": 14,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "reps_result": 16,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Chris Hiles",
+     "weight_result": 10,
+     "reps_result": 19,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lukas Simnacher",
+     "weight_result": 10,
+     "reps_result": 19,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Sven Hujo",
+     "weight_result": 5,
+     "reps_result": 11,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794406655076",
+   "rows": [
+    {
+     "member": "Claudia Herrmann",
+     "time_result": "1:10",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Lena Jähn",
+     "book": true,
+     "time_result": "1:26",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Martina Fenster",
+     "time_result": "1:40",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Chris Hiles",
+     "time_result": "0:48",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Lukas Simnacher",
+     "time_result": "2:50",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Sven Hujo",
+     "time_result": "1:10",
+     "scaling_level": "Sc1"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "18:30",
+   "sectionId": "section-1794406699223",
+   "rows": [
+    {
+     "member": "Anja Götte",
+     "reps_result": 37,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Anneke Spegele",
+     "reps_result": 23,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Julia Weihe",
+     "reps_result": 24,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "reps_result": 32,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Daniel Braatz",
+     "reps_result": 22,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Paul Bielenski",
+     "reps_result": 16,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Senol Özdilek",
+     "reps_result": 30,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Thomas Spegele",
+     "reps_result": 18,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Tobias Götte",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "18:30",
+   "sectionId": "section-1794138567092-4",
+   "rows": [
+    {
+     "member": "Anja Götte",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Anneke Spegele",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Julia Weihe",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Daniel Braatz",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Paul Bielenski",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Senol Özdilek",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Thomas Spegele",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Tobias Götte",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "18:30",
+   "sectionId": "section-1794405995441",
+   "rows": [
+    {
+     "member": "Anja Götte",
+     "reps_result": 40,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Anneke Spegele",
+     "weight_result": 5,
+     "reps_result": 22,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Julia Weihe",
+     "reps_result": 27,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "reps_result": 32,
+     "scaling_level": "Sc3"
+    },
+    {
+     "member": "Daniel Braatz",
+     "weight_result": 5,
+     "reps_result": 30,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Paul Bielenski",
+     "weight_result": 25,
+     "reps_result": 40,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Senol Özdilek",
+     "weight_result": 20,
+     "reps_result": 36,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Thomas Spegele",
+     "weight_result": 25,
+     "reps_result": 27,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Tobias Götte",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "18:30",
+   "sectionId": "section-1794406039168",
+   "rows": [
+    {
+     "member": "Anja Götte",
+     "time_result": "0:25",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Anneke Spegele",
+     "time_result": "1:01",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Julia Weihe",
+     "time_result": "1:44",
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "time_result": "1:07",
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Daniel Braatz",
+     "time_result": "1:33",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Paul Bielenski",
+     "time_result": "0:40",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Senol Özdilek",
+     "time_result": "1:44",
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Thomas Spegele",
+     "time_result": "0:25",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Tobias Götte",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "18:30",
+   "sectionId": "section-1794406618491",
+   "rows": [
+    {
+     "member": "Anja Götte",
+     "reps_result": 12,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Anneke Spegele",
+     "reps_result": 16,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Julia Weihe",
+     "reps_result": 15,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "reps_result": 13,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Daniel Braatz",
+     "reps_result": 10,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Paul Bielenski",
+     "weight_result": 10,
+     "reps_result": 12,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Senol Özdilek",
+     "reps_result": 18,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Thomas Spegele",
+     "reps_result": 20,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Tobias Götte",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "18:30",
+   "sectionId": "section-1794406655076",
+   "rows": [
+    {
+     "member": "Anja Götte",
+     "time_result": "0:46",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Anneke Spegele",
+     "time_result": "0:55",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Julia Weihe",
+     "time_result": "1:46",
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "time_result": "0:34",
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Daniel Braatz",
+     "time_result": "1:07",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Paul Bielenski",
+     "time_result": "0:20",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Senol Özdilek",
+     "time_result": "1:50",
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Thomas Spegele",
+     "time_result": "0:27",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Tobias Götte",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  }
+ ]
+}
