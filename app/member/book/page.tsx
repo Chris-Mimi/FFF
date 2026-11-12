@@ -409,6 +409,21 @@ export default function MemberBookingPage() {
     }
   };
 
+  // S432: a parent typing only a first name for a child ("Ludwig") gets the
+  // family surname from the parent's own name ("Ludwig Nössner"). A typed
+  // surname is kept as is (a child can have a different one). Name particles
+  // before the last word stay with the surname ("von Rüden").
+  const SURNAME_PARTICLES = new Set(['von', 'van', 'de', 'der', 'den', 'di', 'da', 'del', 'zu', 'zum', 'vom', 'la', 'le']);
+  const withFamilyName = (typed: string, relationship: string) => {
+    const name = typed.trim().replace(/\s+/g, ' ');
+    if (relationship !== 'child' || name.includes(' ')) return name;
+    const parentWords = (familyMembers.find(m => m.id === user?.id)?.name || '').trim().split(/\s+/);
+    if (parentWords.length < 2) return name;
+    let start = parentWords.length - 1;
+    while (start > 1 && SURNAME_PARTICLES.has(parentWords[start - 1].toLowerCase())) start--;
+    return `${name} ${parentWords.slice(start).join(' ')}`;
+  };
+
   const handleAddFamilyMember = async () => {
     if (!user || !familyFormData.display_name.trim()) {
       toast.warning('Please enter a name');
@@ -422,13 +437,14 @@ export default function MemberBookingPage() {
 
     setProcessing('family-add');
     try {
+      const fullName = withFamilyName(familyFormData.display_name, familyFormData.relationship);
       const { error } = await supabase
         .from('members')
         .insert({
           account_type: 'family_member',
           primary_member_id: user.id,
-          name: familyFormData.display_name.trim(),
-          display_name: familyFormData.display_name.trim(),
+          name: fullName,
+          display_name: fullName,
           date_of_birth: familyFormData.date_of_birth || null,
           relationship: familyFormData.relationship,
           status: 'active'
@@ -464,13 +480,14 @@ export default function MemberBookingPage() {
 
     setProcessing('family-edit');
     try {
+      const fullName = withFamilyName(familyFormData.display_name, familyFormData.relationship);
       const { error } = await supabase
         .from('members')
         .update({
           // Keep name + display_name in sync (add-family sets both equal); editing
           // only display_name left `name` stale and diverging from the UI (S402).
-          name: familyFormData.display_name.trim(),
-          display_name: familyFormData.display_name.trim(),
+          name: fullName,
+          display_name: fullName,
           date_of_birth: familyFormData.date_of_birth || null,
           relationship: familyFormData.relationship
         })
