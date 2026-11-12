@@ -49,6 +49,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // S432: Reject hard-deletes the member, and bookings + scores go with it
+    // (cascade). Lena Rothe lost her attendance history this way after
+    // Unapprove → Reject. Anyone with history must be Blocked instead.
+    const [bookingsCheck, resultsCheck] = await Promise.all([
+      supabaseAdmin.from('bookings').select('id', { count: 'exact', head: true }).eq('member_id', memberId),
+      supabaseAdmin.from('wod_section_results').select('id', { count: 'exact', head: true }).eq('member_id', memberId),
+    ]);
+    if (bookingsCheck.error || resultsCheck.error) {
+      console.error('Reject history check error:', bookingsCheck.error || resultsCheck.error);
+      return NextResponse.json({ error: 'Failed to reject member' }, { status: 500 });
+    }
+    if ((bookingsCheck.count ?? 0) > 0 || (resultsCheck.count ?? 0) > 0) {
+      return NextResponse.json(
+        { error: 'This member has bookings or scores — Reject would delete them. Use Block instead.' },
+        { status: 400 }
+      );
+    }
+
     const { error: deleteMemberError } = await supabaseAdmin
       .from('members')
       .delete()

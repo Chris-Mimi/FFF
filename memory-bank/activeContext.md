@@ -83,7 +83,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - **Custom Movements gotcha:** `exercise_groups.exercise_ids` only render if each id is also in `coach_tracked_exercises` (add with `active:false`).
 - **Split Times:** stats + time cap from Rx only, cap built on the fastest, members only (5 "(ex)" legacy rows until Chris deletes them).
 
-**S432 — Reject deletes history:** Chris Unapproved then Rejected Lena Rothe (12.11) → Reject hard-deletes member + login + bookings + scores (cascade), no history check. Restored from the 3.11 backup as **blocked**, no login (3 bookings 3.5/27.9/1.11 + 1.11 score) via `scripts/restore-rejected-member-history.ts`; `scripts/probe-backup-member.ts` finds a member's rows in a backup vs live. Offered: make Reject refuse members with bookings/scores (→ Block) — no answer yet.
+**S432 — Reject deletes history:** Chris Unapproved then Rejected Lena Rothe (12.11) → Reject hard-deletes member + login + bookings + scores (cascade), no history check. Restored from the 3.11 backup as **blocked**, no login (3 bookings 3.5/27.9/1.11 + 1.11 score) via `scripts/restore-rejected-member-history.ts`; `scripts/probe-backup-member.ts` finds a member's rows in a backup vs live. **Fixed:** Reject now refuses any member with bookings (any status) or scores → "Use Block instead" (Chris OK'd).
 
 **Open with Chris — don't chase:**
 - **Jan Huelbig:** 11.10 in-app 10-card purchase blocked by Stripe's own risk filter (no charge). Waiting for Jan. If blocked again → cash/transfer + **Close & Issue New**.
