@@ -1,0 +1,77 @@
+{
+ "note": "2026 Week 46.2 follow-up. 11.11 17:15 Strict Movements: Anfisa Bornemann did the workout but didn't score it (Chris) -> 'Did not score' flag on all 6 stations, same as Tobi at 18:30.",
+ "sessions": [
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794406699223",
+   "rows": [
+    {
+     "member": "Anfisa Bornemann",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794138567092-4",
+   "rows": [
+    {
+     "member": "Anfisa Bornemann",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794405995441",
+   "rows": [
+    {
+     "member": "Anfisa Bornemann",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794406039168",
+   "rows": [
+    {
+     "member": "Anfisa Bornemann",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794406618491",
+   "rows": [
+    {
+     "member": "Anfisa Bornemann",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "time": "17:15",
+   "sectionId": "section-1794406655076",
+   "rows": [
+    {
+     "member": "Anfisa Bornemann",
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  }
+ ]
+}
