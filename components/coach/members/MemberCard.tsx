@@ -21,7 +21,8 @@ import { isKidAge } from '@/lib/bookingRules';
 
 /**
  * "Share a card…" — link this member to any other member's 10-card. Loads
- * candidate holders on demand: active members with a card who aren't themselves
+ * candidate holders on demand: active members with a card (purchase date, or
+ * paying by 10-card — paper cards have no date) who aren't themselves
  * sharing someone else's (no chains).
  */
 function ShareCardPicker({ memberId, onPick }: { memberId: string; onPick: (holderId: string) => void }) {
@@ -32,7 +33,9 @@ function ShareCardPicker({ memberId, onPick }: { memberId: string; onPick: (hold
       .from('members')
       .select('id, name, display_name')
       .eq('status', 'active')
-      .not('ten_card_purchase_date', 'is', null)
+      // A bought card (purchase date) OR a 10-card payer without one — paper
+      // cards have no purchase date in the app (S432: Ludwig/Amalia).
+      .or('ten_card_purchase_date.not.is.null,membership_types.cs.{ten_card}')
       .is('ten_card_holder_id', null)
       .neq('id', memberId)
       .order('name');
