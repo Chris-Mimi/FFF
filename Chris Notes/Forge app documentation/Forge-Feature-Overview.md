@@ -208,7 +208,7 @@ Writing a "for time" workout means guessing how long it will take — and a time
 - **Weekly schedule view** — see all available classes with real-time capacity
 - **One-tap booking** — book into a class or join the waitlist if it's full
 - **Booking-window countdown** — every class card shows how long is left to book — "Closes in 1d 4h" / "3h 12m" / "14m". Turns amber under 2 hours and red under 30 minutes so you don't miss the cutoff
-- **Family bookings** — parents can book sessions for their children and spouse from one account
+- **Family bookings** — parents can book sessions for their children and spouse from one account. A child added with just a first name automatically gets the family surname, so the coach's lists never show a bare "Ludwig"
 - **Teens with their own login** — kids classes can't be booked under an adult's own name, but a member under 18 (by date of birth) with their own account can book kids classes for themselves — no need to register themselves as a "family member"
 - **Easy cancellation** — cancel with clear status tracking
 - **Public timetable for your website** — a live, login-free weekly timetable (day, time, class type) that embeds straight into the gym's website. It always matches the real schedule — cancellations, swapped days and private events are handled automatically — and switches to next week the moment it's released on Sunday. Classes that are genuinely busy show "Nur noch wenige Plätze" or "Ausgebucht – Warteliste"; no names or attendance numbers are ever shown
