@@ -35,7 +35,7 @@ Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * 
 * Is there a way of republishing all the Workouts in teh app so that the Google Cal entries match exactly?
 * 
-* 
+* Courses I paid for to check out: Rick Beato, Ashlee Young, Kononov (stretching, hips etc)
 * Next do a sweep to make sure that any exercises which appear in any WOD/Strength/Skill etc section also appear in the Workout Name. This does NOT mean that the exercise appears in full, I just want to be sure that any movements we did show in the title so I can scan it easily. FOr example, this week we did this workout Name: "Bench Press Negatives, DB Snatch, BJ, WB Shot" then I can see at a glance which main exercises we did when planning or reviewing. I don't need Warm-ups & Cool Downs
 
 
