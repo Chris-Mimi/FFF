@@ -84,6 +84,7 @@ _Updated at every session close. The "first 5 minutes of tomorrow" — read this
 - **Split Times:** stats + time cap from Rx only, cap built on the fastest, members only (5 "(ex)" legacy rows until Chris deletes them).
 
 **S432 — Reject deletes history:** Chris Unapproved then Rejected Lena Rothe (12.11) → Reject hard-deletes member + login + bookings + scores (cascade), no history check. Restored from the 3.11 backup as **blocked**, no login (3 bookings 3.5/27.9/1.11 + 1.11 score) via `scripts/restore-rejected-member-history.ts`; `scripts/probe-backup-member.ts` finds a member's rows in a backup vs live. **Fixed:** Reject now refuses any member with bookings (any status) or scores → "Use Block instead" (Chris OK'd).
+- **S432 family surnames:** `/member/book` add/edit child with a first name only → appends parent's surname (last word + particles). 19 existing kids renamed (`scripts/rename-family-members.ts`). Kalea (Jessica Schmid's niece, "other") left alone. Open: parent "Engels Frida" (d.haslauer@web.de) is reversed/wrong + child Frida DOB 24.09.2026; parent "Pascal Evghenia" reversed (surname Pascal). "Share a card…" now lists paper-card holders (no purchase date).
 
 **Open with Chris — don't chase:**
 - **Jan Huelbig:** 11.10 in-app 10-card purchase blocked by Stripe's own risk filter (no charge). Waiting for Jan. If blocked again → cash/transfer + **Close & Issue New**.
