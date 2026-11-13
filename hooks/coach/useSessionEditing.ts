@@ -85,8 +85,11 @@ export function useSessionEditing({
 
       if (error) throw error;
 
-      // Auto-promote waitlist members if capacity increased
-      const spotsOpened = newCapacity - confirmedCount;
+      // Auto-promote waitlist members if capacity increased.
+      // 0 = unlimited → promote the whole waitlist (0 − confirmed would be negative).
+      const spotsOpened = newCapacity === 0
+        ? bookings.filter(b => b.status === 'waitlist').length
+        : newCapacity - confirmedCount;
       const promotedMemberIds = await promoteWaitlistMembers(supabase, sessionId, spotsOpened);
 
       // Notify promoted members (fire-and-forget)
