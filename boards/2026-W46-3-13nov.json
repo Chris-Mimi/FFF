@@ -1,5 +1,5 @@
 {
- "note": "2026 Week 46.3. 13.11 17:15 (Trk1, 3 rounds) + 18:30 (Trk2, 2 rounds) station circuit: Airbike/Row/Ski = cals, WB Sit-up / KB Thruster (double, per-KB load) / DB Pullover = reps + load, BBJ = metres. 'Rx' load filled by gender (WB 6/9, KB 16/24, DB 15/22.5). Carla BBJ '30 Sc' -> scaling switched on for BBJ, Carla Sc1, rest Rx. Julia: Row 27 'AB' + Ski 17 'AB' = done on Airbike, BBJ '14 MC' -> modified. 'DianaPlaStr' = Daniela Struben (booked 18:30), dashes -> Did not score. 'Angie' = Angela Schulz. Unbarred 7s read as 1 (Dinny + Niko Airbike 21, Annerose/Magdalena Row 21, Wayne Airbike 51).",
+ "note": "2026 Week 46.3. 13.11 17:15 (Trk1, 3 rounds) + 18:30 (Trk2, 2 rounds) station circuit: Airbike/Row/Ski = cals, WB Sit-up / KB Thruster (double, per-KB load) / DB Pullover = reps + load, BBJ = metres. 'Rx' load filled by gender (WB 6/9, KB 16/24, DB 15/22.5). Carla BBJ '30 Sc' -> scaling switched on for BBJ, Carla Sc1, rest Rx. Julia: Row 27 'AB' + Ski 17 'AB' = done on Airbike, BBJ '14 MC' = 14 Mountain Climbers (Chris) -> modified, no metres. 'DianaPlaStr' = Daniela Struben (booked 18:30), dashes -> Did not score. 'Angie' = Angela Schulz. Unbarred 7s read as 1 (Dinny + Niko Airbike 21, Annerose/Magdalena Row 21, Wayne Airbike 51).",
  "sessions": [
   {
    "date": "2026-11-13",
@@ -740,10 +740,9 @@
     {
      "member": "Julia Weihe",
      "track": 2,
-     "metres_result": 14,
      "scaling_level": "Rx",
      "modified": true,
-     "modified_note": "Board: 14 MC (substitute for BBJ)"
+     "modified_note": "14 Mountain Climbers (substitute for BBJ)"
     },
     {
      "member": "Justine Baumstark",
