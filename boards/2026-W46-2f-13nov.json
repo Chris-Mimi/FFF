@@ -1,0 +1,142 @@
+{
+ "note": "2026 Week 46.2, last 3 names of the right-hand Strict Movements list (Michi S., Anna Kr, Mimi). Not 11.11: all three are booked into 13.11 09:00 (same Strict Movements WOD), so written there. Push-up/Pull-up weighted: board product / load = reps (Michi 1050/25=42, 260/10=26; Anna 75/5=15 'Sc1'; Mimi 90/5=18, 35/5=7). Holds as m:ss. 'Sc' = Sc1. Sven Hujo booked 13.11 09:00 but not in this block (he is on the 11.11 17:15 list).",
+ "sessions": [
+  {
+   "date": "2026-11-13",
+   "time": "09:00",
+   "sectionId": "section-1794406699223",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "reps_result": 25,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Anna Kr",
+     "reps_result": 30,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Mimi Hiles",
+     "reps_result": 13,
+     "scaling_level": "Sc1"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "09:00",
+   "sectionId": "section-1794138567092-4",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Anna Kr",
+     "time_result": "2:00",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Mimi Hiles",
+     "time_result": "2:00",
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "09:00",
+   "sectionId": "section-1794405995441",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "weight_result": 25,
+     "reps_result": 42,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Anna Kr",
+     "weight_result": 5,
+     "reps_result": 15,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Mimi Hiles",
+     "weight_result": 5,
+     "reps_result": 18,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "09:00",
+   "sectionId": "section-1794406039168",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "time_result": "0:55",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Anna Kr",
+     "time_result": "1:10",
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Mimi Hiles",
+     "time_result": "1:12",
+     "scaling_level": "Sc1"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "09:00",
+   "sectionId": "section-1794406618491",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "weight_result": 10,
+     "reps_result": 26,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Anna Kr",
+     "reps_result": 12,
+     "scaling_level": "Sc2"
+    },
+    {
+     "member": "Mimi Hiles",
+     "weight_result": 5,
+     "reps_result": 7,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "09:00",
+   "sectionId": "section-1794406655076",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "time_result": "0:41",
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Anna Kr",
+     "time_result": "0:40",
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Mimi Hiles",
+     "time_result": "1:12",
+     "scaling_level": "Sc1"
+    }
+   ]
+  }
+ ]
+}

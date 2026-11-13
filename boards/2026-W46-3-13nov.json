@@ -1,0 +1,775 @@
+{
+ "note": "2026 Week 46.3. 13.11 17:15 (Trk1, 3 rounds) + 18:30 (Trk2, 2 rounds) station circuit: Airbike/Row/Ski = cals, WB Sit-up / KB Thruster (double, per-KB load) / DB Pullover = reps + load, BBJ = metres. 'Rx' load filled by gender (WB 6/9, KB 16/24, DB 15/22.5). Carla BBJ '30 Sc' -> scaling switched on for BBJ, Carla Sc1, rest Rx. Julia: Row 27 'AB' + Ski 17 'AB' = done on Airbike, BBJ '14 MC' -> modified. 'DianaPlaStr' = Daniela Struben (booked 18:30), dashes -> Did not score. 'Angie' = Angela Schulz. Unbarred 7s read as 1 (Dinny + Niko Airbike 21, Annerose/Magdalena Row 21, Wayne Airbike 51).",
+ "sessions": [
+  {
+   "date": "2026-11-13",
+   "time": "17:15",
+   "sectionId": "section-1794571633441",
+   "rows": [
+    {
+     "member": "Carla Courtois",
+     "track": 1,
+     "calories_result": 26
+    },
+    {
+     "member": "Dinny Braatz",
+     "track": 1,
+     "calories_result": 21
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "track": 1,
+     "calories_result": 21
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "track": 1,
+     "calories_result": 34
+    },
+    {
+     "member": "Christian Müller",
+     "track": 1,
+     "calories_result": 53
+    },
+    {
+     "member": "Daniel Braatz",
+     "track": 1,
+     "calories_result": 46
+    },
+    {
+     "member": "Paul Bielenski",
+     "track": 1,
+     "calories_result": 37
+    },
+    {
+     "member": "Stefan G",
+     "track": 1,
+     "calories_result": 37
+    },
+    {
+     "member": "Wayne Lucas",
+     "track": 1,
+     "calories_result": 51
+    },
+    {
+     "member": "Chris Hiles",
+     "track": 1,
+     "calories_result": 33
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "17:15",
+   "sectionId": "section-1794571674154",
+   "rows": [
+    {
+     "member": "Carla Courtois",
+     "track": 1,
+     "reps_result": 50,
+     "weight_result": 6
+    },
+    {
+     "member": "Dinny Braatz",
+     "track": 1,
+     "reps_result": 41,
+     "weight_result": 6
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "track": 1,
+     "reps_result": 29,
+     "weight_result": 6
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "track": 1,
+     "reps_result": 51,
+     "weight_result": 6
+    },
+    {
+     "member": "Christian Müller",
+     "track": 1,
+     "reps_result": 50,
+     "weight_result": 9
+    },
+    {
+     "member": "Daniel Braatz",
+     "track": 1,
+     "reps_result": 62,
+     "weight_result": 6
+    },
+    {
+     "member": "Paul Bielenski",
+     "track": 1,
+     "reps_result": 57,
+     "weight_result": 9
+    },
+    {
+     "member": "Stefan G",
+     "track": 1,
+     "reps_result": 50,
+     "weight_result": 9
+    },
+    {
+     "member": "Wayne Lucas",
+     "track": 1,
+     "reps_result": 61,
+     "weight_result": 9
+    },
+    {
+     "member": "Chris Hiles",
+     "track": 1,
+     "reps_result": 62,
+     "weight_result": 9
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "17:15",
+   "sectionId": "section-1794571724038",
+   "rows": [
+    {
+     "member": "Carla Courtois",
+     "track": 1,
+     "reps_result": 29,
+     "weight_result": 8
+    },
+    {
+     "member": "Dinny Braatz",
+     "track": 1,
+     "reps_result": 33,
+     "weight_result": 10
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "track": 1,
+     "reps_result": 28,
+     "weight_result": 8
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "track": 1,
+     "reps_result": 35,
+     "weight_result": 10
+    },
+    {
+     "member": "Christian Müller",
+     "track": 1,
+     "reps_result": 30,
+     "weight_result": 12
+    },
+    {
+     "member": "Daniel Braatz",
+     "track": 1,
+     "reps_result": 41,
+     "weight_result": 12
+    },
+    {
+     "member": "Paul Bielenski",
+     "track": 1,
+     "reps_result": 30,
+     "weight_result": 24
+    },
+    {
+     "member": "Stefan G",
+     "track": 1,
+     "reps_result": 33,
+     "weight_result": 12
+    },
+    {
+     "member": "Wayne Lucas",
+     "track": 1,
+     "reps_result": 18,
+     "weight_result": 24
+    },
+    {
+     "member": "Chris Hiles",
+     "track": 1,
+     "reps_result": 38,
+     "weight_result": 20
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "17:15",
+   "sectionId": "section-1794571758720",
+   "rows": [
+    {
+     "member": "Carla Courtois",
+     "track": 1,
+     "calories_result": 27
+    },
+    {
+     "member": "Dinny Braatz",
+     "track": 1,
+     "calories_result": 33
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "track": 1,
+     "calories_result": 30
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "track": 1,
+     "calories_result": 44
+    },
+    {
+     "member": "Christian Müller",
+     "track": 1,
+     "calories_result": 41
+    },
+    {
+     "member": "Daniel Braatz",
+     "track": 1,
+     "calories_result": 46
+    },
+    {
+     "member": "Paul Bielenski",
+     "track": 1,
+     "calories_result": 46
+    },
+    {
+     "member": "Stefan G",
+     "track": 1,
+     "calories_result": 44
+    },
+    {
+     "member": "Wayne Lucas",
+     "track": 1,
+     "calories_result": 60
+    },
+    {
+     "member": "Chris Hiles",
+     "track": 1,
+     "calories_result": 46
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "17:15",
+   "sectionId": "section-1794571795992",
+   "rows": [
+    {
+     "member": "Carla Courtois",
+     "track": 1,
+     "reps_result": 48,
+     "weight_result": 10
+    },
+    {
+     "member": "Dinny Braatz",
+     "track": 1,
+     "reps_result": 43,
+     "weight_result": 10
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "track": 1,
+     "reps_result": 22,
+     "weight_result": 10
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "track": 1,
+     "reps_result": 39,
+     "weight_result": 12.5
+    },
+    {
+     "member": "Christian Müller",
+     "track": 1,
+     "reps_result": 34,
+     "weight_result": 17.5
+    },
+    {
+     "member": "Daniel Braatz",
+     "track": 1,
+     "reps_result": 43,
+     "weight_result": 15
+    },
+    {
+     "member": "Paul Bielenski",
+     "track": 1,
+     "reps_result": 51,
+     "weight_result": 22.5
+    },
+    {
+     "member": "Stefan G",
+     "track": 1,
+     "reps_result": 36,
+     "weight_result": 15
+    },
+    {
+     "member": "Wayne Lucas",
+     "track": 1,
+     "reps_result": 34,
+     "weight_result": 22.5
+    },
+    {
+     "member": "Chris Hiles",
+     "track": 1,
+     "reps_result": 62,
+     "weight_result": 22.5
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "17:15",
+   "sectionId": "section-1794571820943",
+   "rows": [
+    {
+     "member": "Carla Courtois",
+     "track": 1,
+     "calories_result": 21
+    },
+    {
+     "member": "Dinny Braatz",
+     "track": 1,
+     "calories_result": 30
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "track": 1,
+     "calories_result": 29
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "track": 1,
+     "calories_result": 34
+    },
+    {
+     "member": "Christian Müller",
+     "track": 1,
+     "calories_result": 41
+    },
+    {
+     "member": "Daniel Braatz",
+     "track": 1,
+     "calories_result": 43
+    },
+    {
+     "member": "Paul Bielenski",
+     "track": 1,
+     "calories_result": 46
+    },
+    {
+     "member": "Stefan G",
+     "track": 1,
+     "calories_result": 37
+    },
+    {
+     "member": "Wayne Lucas",
+     "track": 1,
+     "calories_result": 53
+    },
+    {
+     "member": "Chris Hiles",
+     "track": 1,
+     "calories_result": 49
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "17:15",
+   "sectionId": "section-1794571837460",
+   "rows": [
+    {
+     "member": "Carla Courtois",
+     "track": 1,
+     "metres_result": 30,
+     "scaling_level": "Sc1"
+    },
+    {
+     "member": "Dinny Braatz",
+     "track": 1,
+     "metres_result": 59,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "track": 1,
+     "metres_result": 33,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "track": 1,
+     "metres_result": 66,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Christian Müller",
+     "track": 1,
+     "metres_result": 47,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Daniel Braatz",
+     "track": 1,
+     "metres_result": 71,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Paul Bielenski",
+     "track": 1,
+     "metres_result": 60,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Stefan G",
+     "track": 1,
+     "metres_result": 59,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Wayne Lucas",
+     "track": 1,
+     "metres_result": 74,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Chris Hiles",
+     "track": 1,
+     "metres_result": 59,
+     "scaling_level": "Rx"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "18:30",
+   "sectionId": "section-1794571633441",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "track": 2,
+     "calories_result": 12
+    },
+    {
+     "member": "Annerose Streit",
+     "track": 2,
+     "calories_result": 26
+    },
+    {
+     "member": "Julia Weihe",
+     "track": 2,
+     "calories_result": 22
+    },
+    {
+     "member": "Justine Baumstark",
+     "track": 2,
+     "calories_result": 27
+    },
+    {
+     "member": "Magdalena Gebska",
+     "track": 2,
+     "calories_result": 20
+    },
+    {
+     "member": "Bodo Lehmann",
+     "track": 2,
+     "calories_result": 24
+    },
+    {
+     "member": "Daniela Struben",
+     "track": 2,
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "18:30",
+   "sectionId": "section-1794571674154",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "track": 2,
+     "reps_result": 29,
+     "weight_result": 6
+    },
+    {
+     "member": "Annerose Streit",
+     "track": 2,
+     "reps_result": 36,
+     "weight_result": 6
+    },
+    {
+     "member": "Julia Weihe",
+     "track": 2,
+     "reps_result": 25,
+     "weight_result": 6
+    },
+    {
+     "member": "Justine Baumstark",
+     "track": 2,
+     "reps_result": 25,
+     "weight_result": 6
+    },
+    {
+     "member": "Magdalena Gebska",
+     "track": 2,
+     "reps_result": 23,
+     "weight_result": 6
+    },
+    {
+     "member": "Bodo Lehmann",
+     "track": 2,
+     "reps_result": 27,
+     "weight_result": 9
+    },
+    {
+     "member": "Daniela Struben",
+     "track": 2,
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "18:30",
+   "sectionId": "section-1794571724038",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "track": 2,
+     "reps_result": 30,
+     "weight_result": 8
+    },
+    {
+     "member": "Annerose Streit",
+     "track": 2,
+     "reps_result": 29,
+     "weight_result": 8
+    },
+    {
+     "member": "Julia Weihe",
+     "track": 2,
+     "reps_result": 19,
+     "weight_result": 6
+    },
+    {
+     "member": "Justine Baumstark",
+     "track": 2,
+     "reps_result": 18,
+     "weight_result": 12
+    },
+    {
+     "member": "Magdalena Gebska",
+     "track": 2,
+     "reps_result": 25,
+     "weight_result": 8
+    },
+    {
+     "member": "Bodo Lehmann",
+     "track": 2,
+     "reps_result": 27,
+     "weight_result": 12
+    },
+    {
+     "member": "Daniela Struben",
+     "track": 2,
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "18:30",
+   "sectionId": "section-1794571758720",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "track": 2,
+     "calories_result": 22
+    },
+    {
+     "member": "Annerose Streit",
+     "track": 2,
+     "calories_result": 21
+    },
+    {
+     "member": "Julia Weihe",
+     "track": 2,
+     "calories_result": 27,
+     "modified": true,
+     "modified_note": "Done on Airbike (board: AB)"
+    },
+    {
+     "member": "Justine Baumstark",
+     "track": 2,
+     "calories_result": 18
+    },
+    {
+     "member": "Magdalena Gebska",
+     "track": 2,
+     "calories_result": 21
+    },
+    {
+     "member": "Bodo Lehmann",
+     "track": 2,
+     "calories_result": 25
+    },
+    {
+     "member": "Daniela Struben",
+     "track": 2,
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "18:30",
+   "sectionId": "section-1794571795992",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "track": 2,
+     "reps_result": 27,
+     "weight_result": 10
+    },
+    {
+     "member": "Annerose Streit",
+     "track": 2,
+     "reps_result": 38,
+     "weight_result": 10
+    },
+    {
+     "member": "Julia Weihe",
+     "track": 2,
+     "reps_result": 20,
+     "weight_result": 10
+    },
+    {
+     "member": "Justine Baumstark",
+     "track": 2,
+     "reps_result": 18,
+     "weight_result": 15
+    },
+    {
+     "member": "Magdalena Gebska",
+     "track": 2,
+     "reps_result": 22,
+     "weight_result": 10
+    },
+    {
+     "member": "Bodo Lehmann",
+     "track": 2,
+     "reps_result": 40,
+     "weight_result": 15
+    },
+    {
+     "member": "Daniela Struben",
+     "track": 2,
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "18:30",
+   "sectionId": "section-1794571820943",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "track": 2,
+     "calories_result": 22
+    },
+    {
+     "member": "Annerose Streit",
+     "track": 2,
+     "calories_result": 18
+    },
+    {
+     "member": "Julia Weihe",
+     "track": 2,
+     "calories_result": 17,
+     "modified": true,
+     "modified_note": "Done on Airbike (board: AB)"
+    },
+    {
+     "member": "Justine Baumstark",
+     "track": 2,
+     "calories_result": 21
+    },
+    {
+     "member": "Magdalena Gebska",
+     "track": 2,
+     "calories_result": 20
+    },
+    {
+     "member": "Bodo Lehmann",
+     "track": 2,
+     "calories_result": 25
+    },
+    {
+     "member": "Daniela Struben",
+     "track": 2,
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "time": "18:30",
+   "sectionId": "section-1794571837460",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "track": 2,
+     "metres_result": 27,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Annerose Streit",
+     "track": 2,
+     "metres_result": 30,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Julia Weihe",
+     "track": 2,
+     "metres_result": 14,
+     "scaling_level": "Rx",
+     "modified": true,
+     "modified_note": "Board: 14 MC (substitute for BBJ)"
+    },
+    {
+     "member": "Justine Baumstark",
+     "track": 2,
+     "metres_result": 19,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Magdalena Gebska",
+     "track": 2,
+     "metres_result": 20,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Bodo Lehmann",
+     "track": 2,
+     "metres_result": 28,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Daniela Struben",
+     "track": 2,
+     "modified": true,
+     "modified_note": "Did not score"
+    }
+   ]
+  }
+ ]
+}
