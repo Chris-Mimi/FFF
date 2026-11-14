@@ -116,13 +116,16 @@ export async function POST(request: NextRequest) {
       // Default workout name: date + time (e.g. "2026-03-17 17:00")
       const workoutName = `${formattedDate} ${displayTime}`;
 
-      // Default sections: Whiteboard Intro → Warm-up → Skill → WOD
+      // Default sections (Chris, S433) — same list as useWorkoutModal's new-WOD template
       const timestamp = Date.now();
       const defaultSections = [
-        { id: `section-${timestamp}-1`, type: 'Whiteboard Intro', duration: 0, content: '' },
-        { id: `section-${timestamp}-2`, type: 'Warm-up', duration: 12, content: '' },
-        { id: `section-${timestamp}-3`, type: 'Skill', duration: 15, content: '' },
-        { id: `section-${timestamp}-4`, type: 'WOD', duration: 15, content: '' },
+        { id: `section-${timestamp}-1`, type: 'Warm-up', duration: 12, content: '' },
+        { id: `section-${timestamp}-2`, type: 'Skill', duration: 10, content: '' },
+        { id: `section-${timestamp}-3`, type: 'Strength', duration: 15, content: '' },
+        { id: `section-${timestamp}-4`, type: 'WOD movements', duration: 10, content: '' },
+        { id: `section-${timestamp}-5`, type: 'Final prep/Info', duration: 3, content: '' },
+        { id: `section-${timestamp}-6`, type: 'WOD', duration: 12, content: '' },
+        { id: `section-${timestamp}-7`, type: 'Cool Down', duration: 10, content: '' },
       ];
 
       // Create WOD record with default sections
