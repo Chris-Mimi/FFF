@@ -1,7 +1,10 @@
 'use client';
 
 import { Member } from '@/hooks/coach/useSessionDetails';
+import { isKidAge } from '@/lib/bookingRules';
 import { useMemo, useRef, useState } from 'react';
+
+type Group = 'adults' | 'kids';
 
 interface ManualBookingPanelProps {
   availableMembers: Member[];
@@ -16,6 +19,7 @@ interface ManualBookingPanelProps {
   trialCount: number;
   dropInCount: number;
   isSessionActive: boolean;
+  isKidsClass: boolean;
 }
 
 const ALPHABET = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ', '#'];
@@ -39,9 +43,30 @@ export default function ManualBookingPanel({
   trialCount,
   dropInCount,
   isSessionActive,
+  isKidsClass,
 }: ManualBookingPanelProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const letterRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // Adults / Kids split (S433). Kid = under 16 by DOB, same rule as booking (isKidAge).
+  // Kids classes open on the Kids tab.
+  const [group, setGroup] = useState<Group>(isKidsClass ? 'kids' : 'adults');
+
+  const { adults, kids } = useMemo(() => {
+    const a: Member[] = [];
+    const k: Member[] = [];
+    for (const m of availableMembers) (isKidAge(m.date_of_birth) ? k : a).push(m);
+    return { adults: a, kids: k };
+  }, [availableMembers]);
+
+  const shownMembers = group === 'kids' ? kids : adults;
+
+  const switchGroup = (g: Group) => {
+    setGroup(g);
+    // Clear a selection that isn't in the new list, so "Add Member" can't add a hidden name.
+    if (selectedMemberId && !(g === 'kids' ? kids : adults).some(m => m.id === selectedMemberId)) {
+      onMemberSelect('');
+    }
+  };
 
   const handleSelect = (value: string) => {
     if (value === '__trial__') {
@@ -60,7 +85,7 @@ export default function ManualBookingPanel({
   // Mobile picker: members grouped by first letter so a side A–Z rail can
   // jump straight to a name instead of scrolling the whole list.
   const grouped = useMemo(() => {
-    const sorted = [...availableMembers].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = [...shownMembers].sort((a, b) => a.name.localeCompare(b.name));
     const groups: { letter: string; members: Member[] }[] = [];
     for (const m of sorted) {
       const letter = getInitial(m.name);
@@ -72,7 +97,7 @@ export default function ManualBookingPanel({
       g.members.push(m);
     }
     return groups;
-  }, [availableMembers]);
+  }, [shownMembers]);
 
   const availableLetters = useMemo(() => new Set(grouped.map(g => g.letter)), [grouped]);
 
@@ -97,7 +122,23 @@ export default function ManualBookingPanel({
 
   return (
     <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-      <h3 className='text-base font-semibold text-gray-800 mb-3'>Add Member Manually</h3>
+      <div className='flex items-center justify-between gap-2 mb-3'>
+        <h3 className='text-base font-semibold text-gray-800'>Add Member Manually</h3>
+        <div className='inline-flex rounded-md border border-gray-300 overflow-hidden text-sm'>
+          {(['adults', 'kids'] as const).map(g => (
+            <button
+              key={g}
+              type='button'
+              onClick={() => switchGroup(g)}
+              className={`px-3 py-1.5 transition ${
+                group === g ? 'bg-[#178da6] text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {g === 'adults' ? `Adults (${adults.length})` : `Kids (${kids.length})`}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Desktop: native select (type-to-jump works with a keyboard) */}
       <div className='hidden sm:flex gap-2'>
@@ -108,11 +149,13 @@ export default function ManualBookingPanel({
           className='flex-1 px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#178da6] focus:border-transparent text-gray-900 disabled:bg-gray-100'
         >
           <option value=''>
-            {availableMembers.length === 0 ? 'No available members' : 'Select a member...'}
+            {shownMembers.length === 0
+              ? `No available ${group}`
+              : group === 'kids' ? 'Select a kid...' : 'Select an adult...'}
           </option>
           <option value='__trial__'>+ Trial Athlete (enter name)</option>
           <option value='__dropin__'>+ Drop-in (enter name)</option>
-          {availableMembers.map(member => (
+          {shownMembers.map(member => (
             <option key={member.id} value={member.id}>
               {member.name}
             </option>
@@ -126,15 +169,15 @@ export default function ManualBookingPanel({
         <button
           type='button'
           onClick={() => setMobileOpen(o => !o)}
-          disabled={isLoading || availableMembers.length === 0}
+          disabled={isLoading}
           className='w-full flex items-center justify-between px-3 py-2.5 border border-gray-300 rounded-md bg-white text-left text-gray-900 disabled:bg-gray-100'
         >
           <span className={selectedMember ? '' : 'text-gray-500'}>
-            {availableMembers.length === 0
-              ? 'No available members'
-              : selectedMember
-                ? selectedMember.name
-                : 'Select a member...'}
+            {selectedMember
+              ? selectedMember.name
+              : shownMembers.length === 0
+                ? `No available ${group}`
+                : group === 'kids' ? 'Select a kid...' : 'Select an adult...'}
           </span>
           <span className='text-gray-400 ml-2'>{mobileOpen ? '▲' : '▼'}</span>
         </button>

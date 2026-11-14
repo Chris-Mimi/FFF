@@ -24,10 +24,10 @@ interface Member {
  * @param currentBookings - Current session bookings
  * @returns Members available for booking
  */
-export function filterAvailableMembers(
-  allMembers: Member[],
+export function filterAvailableMembers<M extends Pick<Member, 'id'>>(
+  allMembers: M[],
   currentBookings: Booking[]
-): Member[] {
+): M[] {
   const bookedMemberIds = currentBookings
     .filter(b => b.status === 'confirmed' || b.status === 'waitlist')
     .map(b => b.member.id);

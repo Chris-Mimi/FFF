@@ -288,6 +288,7 @@ export default function SessionManagementModal({
 
               {/* Manual Booking */}
               <ManualBookingPanel
+                key={sessionDetails.session.id}
                 availableMembers={sessionDetails.availableMembers}
                 selectedMemberId={bookingManagement.selectedMemberId}
                 onMemberSelect={bookingManagement.setSelectedMemberId}
@@ -300,6 +301,7 @@ export default function SessionManagementModal({
                 trialCount={(sessionDetails.session.trial_names || []).length}
                 dropInCount={(sessionDetails.session.drop_in_names || []).length}
                 isSessionActive={sessionDetails.session.status !== 'cancelled'}
+                isKidsClass={/kids|turnen/i.test(sessionDetails.session.workout_type || '')}
               />
 
               {/* Trial Athletes */}

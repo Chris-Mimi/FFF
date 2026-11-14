@@ -19,6 +19,7 @@ export interface SessionDetails {
   pre_cancel_status: string | null;
   trial_names: string[];
   drop_in_names: string[];
+  workout_type: string | null; // holds the session type (legacy column name)
 }
 
 export interface Booking {
@@ -60,6 +61,7 @@ export interface Member {
   ten_card_sessions_used: number;
   primary_payment_method: string | null;
   ten_card_holder_id: string | null;
+  date_of_birth: string | null;
 }
 
 interface UseSessionDetailsResult {
@@ -276,7 +278,7 @@ export function useSessionDetails(
       // Fetch all active members for manual booking
       const { data: membersData, error: membersError } = await supabase
         .from('members')
-        .select('id, name, display_name, email, membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id')
+        .select('id, name, display_name, email, membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id, date_of_birth')
         .eq('status', 'active')
         .order('name', { ascending: true });
 
