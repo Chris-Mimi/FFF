@@ -22,7 +22,7 @@ http://192.168.178.75:3000
 * You asked me aboutthe Bash command again! PC
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
-* 
+* Session management modal: I would like the "Add Member Manually" to be split into adults and kids so it's easier to scroll through to select a name.
 * NOTE: Eufy clip saved to Mac: Foam roller movements from 10.06.26 to sav e to YT and then link in app exercises.
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
