@@ -8,6 +8,8 @@ Plus the most recent file in `project-history/` (run `ls -t project-history | he
 
 _(Paths are relative to the project root — works on both Macbook and Windows PC. Claude Code opens with the project as cwd.)_
 
+**Housekeeping — every session start, no need to ask (Chris, S433):** `git pull`, then `git fetch --prune origin` + `git branch -r --merged origin/main` + `git branch -r --no-merged origin/main`. Delete every **merged** `ccr-*` / `claude/*` branch (`git push origin --delete <names>`) and say so in one line. An **unmerged** one = a phone session's work that never reached main → merge it first (or ask if it conflicts), never delete it.
+
 **One plain command per tool call — no `cd` prefix, no chaining (`&&`, `;`, `|`), no `$(…)`, no `>` redirects.** You're already in the project folder. Compound commands trigger a permission prompt even though Bash/PowerShell are allowed (S422: 7 prompts on the PC in one session). Run each command on its own; send independent ones as parallel tool calls.
 
 Only read `memory-bank/workflow-protocols.md`, `memory-bank/techContext.md`, or `memory-bank/systemPatterns.md` if the task actually needs them.

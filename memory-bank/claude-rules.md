@@ -165,6 +165,11 @@ For "today as YYYY-MM-DD" the correct helper **depends on where the code runs** 
 
 **How to apply:** one command per Bash/PowerShell call. No `cd` prefix, `&&`, `;`, `|`, `$(…)`, or `>`. Independent commands → parallel tool calls in one message. Need a pipeline or loop → write a script in the scratchpad and run it with one command. Applies on both machines.
 
+### Session-start housekeeping: delete merged cloud-session branches (S433)
+**Why:** phone/cloud sessions leave `ccr-*` and `claude/*` branches on GitHub; 7 piled up by S433 while I kept "offering" to delete them. Chris: check every time as a housekeeping rule.
+
+**How to apply:** at every session start, after `git pull`: `git fetch --prune origin`, `git branch -r --merged origin/main`, `git branch -r --no-merged origin/main`. Delete all **merged** `ccr-*` / `claude/*` branches without asking (`git push origin --delete …`), report in one line. **Unmerged** = phone work missing from main → merge first (ask only on conflict), never delete. Leave all other old branches alone.
+
 ### Deleting a `wods` row cascades its `lift_records` (S416)
 **Why:** copy-over deleted the replaced workout → 12 Back Squat 5RM records vanished with it (21.09). Restored from backup.
 
