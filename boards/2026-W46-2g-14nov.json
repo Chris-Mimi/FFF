@@ -1,0 +1,13 @@
+{
+ "note": "2026 Week 46.2, bottom-right block: 14.11 10:00 Ty Run Trial (for time). Time field switched on (section had no scoring fields). Sabrina Lucas: smiley instead of a time -> flagged 'Did not score'.",
+ "sessions": [
+  { "date": "2026-11-14", "time": "10:00", "sectionId": "section-1794138569043-4",
+    "rows": [
+     { "member": "Wayne Lucas",    "time_result": "47:10" },
+     { "member": "Volker Gabler",  "time_result": "50:05" },
+     { "member": "Kathrin Mühlen", "time_result": "43:08" },
+     { "member": "Sabrina Lucas",  "modified": true, "modified_note": "Did not score" },
+     { "member": "Mimi Hiles",     "time_result": "47:40" }
+    ] }
+ ]
+}

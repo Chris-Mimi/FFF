@@ -1,0 +1,24 @@
+{
+ "note": "2026 Week 46.4. 15.11 10:00 KB C&P / OH Lunge / DU AMRAP: Load 1 = KB, Scaling 1 = DUs (Sc1 attempts, Sc2 60 SU; Martina 'Sc3' as written), R+R in rounds_reps. 'Julia' not booked; session lists drop-in 'Justines sister in law' and the board has exactly one name beyond the 7 bookings -> written as that drop-in, not Julia Weihe. Julia + Justine all dashes -> Did not score. 15.11 11:00 RR / Up-Down / SU AMRAP: Scaling 1 = Ring Rows, Scaling 2 = SUs (switched on). 'AnnaM' = Anna Mavrommatis-Karaaslan.",
+ "sessions": [
+  { "date": "2026-11-15", "time": "10:00", "sectionId": "section-1794138569252-4",
+    "rows": [
+     { "whiteboard": "Justines sister in law", "modified": true, "modified_note": "Did not score" },
+     { "member": "Justine Baumstark",  "modified": true, "modified_note": "Did not score" },
+     { "member": "Martina Fenster",    "weight_result": 8,  "scaling_level": "Sc3", "rounds_result": 4, "reps_result": 0 },
+     { "member": "Nikolina Vlasalija", "weight_result": 8,  "scaling_level": "Sc2", "rounds_result": 4, "reps_result": 0 },
+     { "member": "Rosita Blum",        "weight_result": 8,  "scaling_level": "Sc2", "rounds_result": 3, "reps_result": 0 },
+     { "member": "Manuel Hengge",      "weight_result": 8,  "scaling_level": "Sc2", "rounds_result": 3, "reps_result": 6 },
+     { "member": "Markus Fischer",     "weight_result": 16, "scaling_level": "Rx",  "rounds_result": 3, "reps_result": 32 },
+     { "member": "Thomas Graf",        "weight_result": 12, "scaling_level": "Sc2", "rounds_result": 5, "reps_result": 0 }
+    ] },
+  { "date": "2026-11-15", "time": "11:00", "sectionId": "section-1794138567745-4",
+    "rows": [
+     { "member": "Anna Mavrommatis",  "scaling_level": "Sc1", "scaling_level_2": "Rx",  "rounds_result": 6, "reps_result": 0 },
+     { "member": "Katja Neumann",     "scaling_level": "Sc2", "scaling_level_2": "Sc1", "rounds_result": 4, "reps_result": 38 },
+     { "member": "Magdalena Gebska",  "scaling_level": "Sc2", "scaling_level_2": "Sc1", "rounds_result": 4, "reps_result": 12 },
+     { "member": "Sermet Gueler",     "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 5, "reps_result": 0 },
+     { "member": "Ferdi",             "scaling_level": "Sc1", "scaling_level_2": "Sc2", "rounds_result": 4, "reps_result": 0 }
+    ] }
+ ]
+}
