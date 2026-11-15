@@ -20,9 +20,10 @@ http://192.168.178.75:3000
 * Bear Crawl chase around the ring (battle rope), WB Squat Carries
 * Kids 1.7, 27.7 31.7 needs exercises
 * You asked me aboutthe Bash command again! PC
+* I am missing some kids workouts from October, check the security cams and fill them in
 
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
-* Session management modal: I would like the "Add Member Manually" to be split into adults and kids so it's easier to scroll through to select a name.
+* Parked athletes shouldn't appear as athletes to select in the Session Management or 
 * NOTE: Eufy clip saved to Mac: Foam roller movements from 10.06.26 to sav e to YT and then link in app exercises.
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
