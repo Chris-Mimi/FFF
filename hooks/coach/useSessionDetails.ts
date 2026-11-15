@@ -280,6 +280,10 @@ export function useSessionDetails(
         .from('members')
         .select('id, name, display_name, email, membership_types, ten_card_sessions_used, primary_payment_method, ten_card_holder_id, date_of_birth')
         .eq('status', 'active')
+        // S433: parked athletes and guardian-only parents never train → not bookable here.
+        // `.not(..., 'is', true)` keeps rows where the flag is false OR null.
+        .not('parked', 'is', true)
+        .not('guardian_only', 'is', true)
         .order('name', { ascending: true });
 
       if (membersError) throw membersError;
