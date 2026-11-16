@@ -1,0 +1,256 @@
+{
+ "note": "2026 Week 47.1. 16.11 10:00 station circuit (same as 13.11 17:15, Track 1 = 3 rounds; all rows Track 1 like 13.11 17:15). Airbike/Row/Ski = cals, WB Sit-up / KB Thruster (double, per-KB load) / DB Pullover = reps x load, BBJ = metres (scaling Rx, as 46.3). 'Michi' = Michael Städele. 'Stefan' = Stefan G, not booked -> booked. Carla Courtois + Susi Glocker booked, not on board. Michi BBJ read '84m' (could be 81).",
+ "sessions": [
+  {
+   "date": "2026-11-16",
+   "time": "10:00",
+   "sectionId": "section-1794571633441",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "track": 1,
+     "calories_result": 43
+    },
+    {
+     "member": "Stefan G",
+     "book": true,
+     "track": 1,
+     "calories_result": 41
+    },
+    {
+     "member": "Sabrina Lucas",
+     "track": 1,
+     "calories_result": 25
+    },
+    {
+     "member": "Irene Koffler",
+     "track": 1,
+     "calories_result": 34
+    },
+    {
+     "member": "Mimi Hiles",
+     "track": 1,
+     "calories_result": 39
+    }
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "time": "10:00",
+   "sectionId": "section-1794571674154",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "track": 1,
+     "reps_result": 53,
+     "weight_result": 9
+    },
+    {
+     "member": "Stefan G",
+     "book": true,
+     "track": 1,
+     "reps_result": 47,
+     "weight_result": 9
+    },
+    {
+     "member": "Sabrina Lucas",
+     "track": 1,
+     "reps_result": 65,
+     "weight_result": 3
+    },
+    {
+     "member": "Irene Koffler",
+     "track": 1,
+     "reps_result": 47,
+     "weight_result": 6
+    },
+    {
+     "member": "Mimi Hiles",
+     "track": 1,
+     "reps_result": 62,
+     "weight_result": 6
+    }
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "time": "10:00",
+   "sectionId": "section-1794571724038",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "track": 1,
+     "reps_result": 16,
+     "weight_result": 24
+    },
+    {
+     "member": "Stefan G",
+     "book": true,
+     "track": 1,
+     "reps_result": 20,
+     "weight_result": 16
+    },
+    {
+     "member": "Sabrina Lucas",
+     "track": 1,
+     "reps_result": 52,
+     "weight_result": 6
+    },
+    {
+     "member": "Irene Koffler",
+     "track": 1,
+     "reps_result": 28,
+     "weight_result": 10
+    },
+    {
+     "member": "Mimi Hiles",
+     "track": 1,
+     "reps_result": 16,
+     "weight_result": 16
+    }
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "time": "10:00",
+   "sectionId": "section-1794571758720",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "track": 1,
+     "calories_result": 51
+    },
+    {
+     "member": "Stefan G",
+     "book": true,
+     "track": 1,
+     "calories_result": 44
+    },
+    {
+     "member": "Sabrina Lucas",
+     "track": 1,
+     "calories_result": 32
+    },
+    {
+     "member": "Irene Koffler",
+     "track": 1,
+     "calories_result": 39
+    },
+    {
+     "member": "Mimi Hiles",
+     "track": 1,
+     "calories_result": 46
+    }
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "time": "10:00",
+   "sectionId": "section-1794571795992",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "track": 1,
+     "reps_result": 49,
+     "weight_result": 22.5
+    },
+    {
+     "member": "Stefan G",
+     "book": true,
+     "track": 1,
+     "reps_result": 27,
+     "weight_result": 17.5
+    },
+    {
+     "member": "Sabrina Lucas",
+     "track": 1,
+     "reps_result": 52,
+     "weight_result": 7.5
+    },
+    {
+     "member": "Irene Koffler",
+     "track": 1,
+     "reps_result": 39,
+     "weight_result": 12.5
+    },
+    {
+     "member": "Mimi Hiles",
+     "track": 1,
+     "reps_result": 53,
+     "weight_result": 15
+    }
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "time": "10:00",
+   "sectionId": "section-1794571820943",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "track": 1,
+     "calories_result": 44
+    },
+    {
+     "member": "Stefan G",
+     "book": true,
+     "track": 1,
+     "calories_result": 37
+    },
+    {
+     "member": "Sabrina Lucas",
+     "track": 1,
+     "calories_result": 28
+    },
+    {
+     "member": "Irene Koffler",
+     "track": 1,
+     "calories_result": 33
+    },
+    {
+     "member": "Mimi Hiles",
+     "track": 1,
+     "calories_result": 36
+    }
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "time": "10:00",
+   "sectionId": "section-1794571837460",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "track": 1,
+     "metres_result": 84,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Stefan G",
+     "book": true,
+     "track": 1,
+     "metres_result": 60,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Sabrina Lucas",
+     "track": 1,
+     "metres_result": 32,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Irene Koffler",
+     "track": 1,
+     "metres_result": 27,
+     "scaling_level": "Rx"
+    },
+    {
+     "member": "Mimi Hiles",
+     "track": 1,
+     "metres_result": 62,
+     "scaling_level": "Rx"
+    }
+   ]
+  }
+ ]
+}

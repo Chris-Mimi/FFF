@@ -1,0 +1,120 @@
+{
+ "note": "2026 Week 47.2. 16.11 17:15 + 18:30 10-min AMRAP RC / Clapping Push-up / WW / T2B. Scaling 1 = Rope Climb + Wall Walk condensed (Chris: lowest of the two), Scaling 2 = Clapping Push-up, Scaling 3 = T2B (switched on). Arrow across = Rx all. Anfisa RC 'Sc' = Sc1. Claudia all dashes -> Did not score. Anneke push-up read Sc2 (could be Sc1).",
+ "sessions": [
+  {
+   "date": "2026-11-16",
+   "time": "17:15",
+   "sectionId": "section-1794751718417-6",
+   "rows": [
+    {
+     "member": "Claudia Herrmann",
+     "modified": true,
+     "modified_note": "Did not score"
+    },
+    {
+     "member": "Dimitar Peresyov",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "rounds_result": 3,
+     "reps_result": 8
+    },
+    {
+     "member": "Lukas Simnacher",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "rounds_result": 4,
+     "reps_result": 4
+    },
+    {
+     "member": "Wayne Lucas",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "rounds_result": 3,
+     "reps_result": 37
+    }
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "time": "18:30",
+   "sectionId": "section-1794751718417-6",
+   "rows": [
+    {
+     "member": "Anfisa Bornemann",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc3",
+     "scaling_level_3": "Sc2",
+     "rounds_result": 4,
+     "reps_result": 0
+    },
+    {
+     "member": "Anneke Spegele",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 5,
+     "reps_result": 0
+    },
+    {
+     "member": "Dinny Braatz",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 0
+    },
+    {
+     "member": "Kathrin Mühlen",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 12
+    },
+    {
+     "member": "Lena Jähn",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 11
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc3",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 3,
+     "reps_result": 18
+    },
+    {
+     "member": "Christian Tanner",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Sc2",
+     "rounds_result": 3,
+     "reps_result": 8
+    },
+    {
+     "member": "Thomas Spegele",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "rounds_result": 4,
+     "reps_result": 13
+    },
+    {
+     "member": "Tobias Götte",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "rounds_result": 4,
+     "reps_result": 0
+    }
+   ]
+  }
+ ]
+}
