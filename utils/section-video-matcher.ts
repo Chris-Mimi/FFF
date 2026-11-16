@@ -101,10 +101,9 @@ export function matchSectionExercises(
       .replace(/\s+x\s*\d+.*$/i, '')         // x 10
       .trim();
 
-    if (!cleaned) continue;
-
-    // Try exact match first (most reliable)
-    const exactMatch = exerciseMap.get(cleaned.toLowerCase());
+    // Try exact match first (most reliable). An empty `cleaned` (e.g. the whole line was
+    // "(10 Lunge Walking)") falls through to the partial match on the raw line (S433).
+    const exactMatch = cleaned ? exerciseMap.get(cleaned.toLowerCase()) : undefined;
     if (exactMatch && !seen.has(exactMatch.name.toLowerCase())) {
       seen.add(exactMatch.name.toLowerCase());
       matched.push({
@@ -124,17 +123,22 @@ export function matchSectionExercises(
     // makes the most specific name win ("KB Dead Bug" beats "Dead Bug") and lets
     // a single line surface more than one movement. (S384)
     const lineLower = line.toLowerCase();
-    const boundaryChar = /[\s,;:\-–—/|]/;
+    // S433: brackets and sentence punctuation count as boundaries too — "(10 Lunge Walking)"
+    // and "Lunge Walking." were dropped, while the Planner counted them.
+    const boundaryChar = /[\s,;:\-–—/|()[\].!?+&]/;
     const candidates: { idx: number; len: number; entry: ExerciseEntry }[] = [];
     for (const [key, entry] of exerciseMap) {
       // Only match exercise names at least 4 chars (avoid false positives like "Row")
       if (key.length < 4) continue;
-      const idx = lineLower.indexOf(key);
-      if (idx === -1) continue;
-      const charBefore = idx > 0 ? lineLower[idx - 1] : ' ';
-      const charAfter = idx + key.length < lineLower.length ? lineLower[idx + key.length] : ' ';
-      if (!boundaryChar.test(charBefore) || !boundaryChar.test(charAfter)) continue;
-      candidates.push({ idx, len: key.length, entry });
+      // Check every occurrence, not just the first — an early one inside a longer word
+      // must not hide a valid later one.
+      for (let idx = lineLower.indexOf(key); idx !== -1; idx = lineLower.indexOf(key, idx + 1)) {
+        const charBefore = idx > 0 ? lineLower[idx - 1] : ' ';
+        const charAfter = idx + key.length < lineLower.length ? lineLower[idx + key.length] : ' ';
+        if (!boundaryChar.test(charBefore) || !boundaryChar.test(charAfter)) continue;
+        candidates.push({ idx, len: key.length, entry });
+        break;
+      }
     }
     candidates.sort((a, b) => b.len - a.len); // longest (most specific) first
     const claimed: Array<[number, number]> = [];
