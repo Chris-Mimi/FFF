@@ -1,5 +1,5 @@
 {
- "note": "2026 Week 47.1. 16.11 10:00 station circuit (same as 13.11 17:15, Track 1 = 3 rounds; all rows Track 1 like 13.11 17:15). Airbike/Row/Ski = cals, WB Sit-up / KB Thruster (double, per-KB load) / DB Pullover = reps x load, BBJ = metres (scaling Rx, as 46.3). 'Michi' = Michael Städele. 'Stefan' = Stefan G, not booked -> booked. Carla Courtois + Susi Glocker booked, not on board. Michi BBJ read '84m' (could be 81).",
+ "note": "2026 Week 47.1. 16.11 10:00 station circuit (same as 13.11 17:15, Track 1 = 3 rounds; all rows Track 1 like 13.11 17:15). Airbike/Row/Ski = cals, WB Sit-up / KB Thruster (double, per-KB load) / DB Pullover = reps x load, BBJ = metres (scaling Rx, as 46.3). 'Michi' = Michael Städele. 'Stefan' = Stefan G, not booked -> booked. Carla Courtois + Susi Glocker booked, not on board. Michi BBJ = 81m (Chris). Carla did a different workout; Susi booking removed by Chris.",
  "sessions": [
   {
    "date": "2026-11-16",
@@ -222,7 +222,7 @@
     {
      "member": "Michael Städele",
      "track": 1,
-     "metres_result": 84,
+     "metres_result": 81,
      "scaling_level": "Rx"
     },
     {
