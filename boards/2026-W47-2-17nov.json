@@ -1,0 +1,137 @@
+{
+ "note": "2026 Week 47.2 (lower half). 17.11 17:15 + 18:30 10-min AMRAP RC / Clapping Push-up / WW / T2B. Scaling 1 = lowest of RC + WW, Scaling 2 = Clapping Push-up, Scaling 3 = T2B. RC 'Sc' = Sc1. Board header says 16.11 but these athletes are booked 17.11. Marion: score only, no scaling written. Chris (Hiles) not booked -> booked into 17:15 (last boy).",
+ "sessions": [
+  {
+   "date": "2026-11-17",
+   "time": "17:15",
+   "sectionId": "section-1794751718417-6",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 19
+    },
+    {
+     "member": "Jolanda Greif",
+     "scaling_level": "Sc2",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc2",
+     "rounds_result": 4,
+     "reps_result": 3
+    },
+    {
+     "member": "Marion Weber",
+     "rounds_result": 4,
+     "reps_result": 12
+    },
+    {
+     "member": "Martina Fenster",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc2",
+     "rounds_result": 4,
+     "reps_result": 11
+    },
+    {
+     "member": "Christian Müller",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "rounds_result": 3,
+     "reps_result": 19
+    },
+    {
+     "member": "Chris Hiles",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "rounds_result": 4,
+     "reps_result": 0,
+     "book": true
+    }
+   ]
+  },
+  {
+   "date": "2026-11-17",
+   "time": "18:30",
+   "sectionId": "section-1794751718417-6",
+   "rows": [
+    {
+     "member": "Angela Schulz",
+     "scaling_level": "Sc2",
+     "scaling_level_2": "Sc3",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 20
+    },
+    {
+     "member": "Diana Di Benedetto",
+     "scaling_level": "Sc2",
+     "scaling_level_2": "Sc3",
+     "scaling_level_3": "Sc2",
+     "rounds_result": 4,
+     "reps_result": 1
+    },
+    {
+     "member": "Franziska Herndorf",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc2",
+     "rounds_result": 4,
+     "reps_result": 11
+    },
+    {
+     "member": "Magdalena Gebska",
+     "scaling_level": "Sc2",
+     "scaling_level_2": "Sc3",
+     "scaling_level_3": "Sc3",
+     "rounds_result": 3,
+     "reps_result": 0
+    },
+    {
+     "member": "Susi Glocker",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 11
+    },
+    {
+     "member": "Daniel Braatz",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 7
+    },
+    {
+     "member": "Bodo Lehmann",
+     "scaling_level": "Sc1",
+     "scaling_level_2": "Sc2",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 5,
+     "reps_result": 0
+    },
+    {
+     "member": "Sermet Gueler",
+     "scaling_level": "Sc2",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 4,
+     "reps_result": 16
+    },
+    {
+     "member": "Stefan G",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Sc1",
+     "rounds_result": 5,
+     "reps_result": 1
+    }
+   ]
+  }
+ ]
+}
