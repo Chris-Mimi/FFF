@@ -1,0 +1,152 @@
+{
+ "note": "2026 Week 47.2. Left list, last 3 names = 18.11 09:30 10-min AMRAP RC / Clapping Push-up / WW / T2B (Scaling 1 = lowest of RC + WW, Scaling 2 = Clapping Push-up, Scaling 3 = T2B; RC 'Sc' = Sc1; Michi S arrow = all Rx). Right list = 18.11 17:15 + 18:30 12-min AMRAP DB Bear Crawl / Devils Press / FS / PP / Lunge / Sidestep; load = per-DB weight (board 'DBs x2').",
+ "sessions": [
+  {
+   "date": "2026-11-18",
+   "time": "09:30",
+   "sectionId": "section-1794751718417-6",
+   "rows": [
+    {
+     "member": "Michael Städele",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Rx",
+     "scaling_level_3": "Rx",
+     "rounds_result": 5,
+     "reps_result": 11
+    },
+    {
+     "member": "Aline von Rüden",
+     "scaling_level": "Sc2",
+     "scaling_level_2": "Sc3",
+     "scaling_level_3": "Sc2",
+     "rounds_result": 4,
+     "reps_result": 0
+    },
+    {
+     "member": "Mimi Hiles",
+     "scaling_level": "Rx",
+     "scaling_level_2": "Sc1",
+     "scaling_level_3": "Rx",
+     "rounds_result": 3,
+     "reps_result": 12
+    }
+   ]
+  },
+  {
+   "date": "2026-11-18",
+   "time": "17:15",
+   "sectionId": "section-1794751719185-6",
+   "rows": [
+    {
+     "member": "Amelie Kirch",
+     "weight_result": 10,
+     "rounds_result": 5,
+     "reps_result": 5
+    },
+    {
+     "member": "Lena Jähn",
+     "weight_result": 12.5,
+     "rounds_result": 4,
+     "reps_result": 18
+    },
+    {
+     "member": "Martina Fenster",
+     "weight_result": 7.5,
+     "rounds_result": 4,
+     "reps_result": 0
+    },
+    {
+     "member": "Valerie Mesenburg",
+     "weight_result": 10,
+     "rounds_result": 4,
+     "reps_result": 20
+    },
+    {
+     "member": "Lukas Simnacher",
+     "weight_result": 20,
+     "rounds_result": 3,
+     "reps_result": 10
+    },
+    {
+     "member": "Thomas Graf",
+     "weight_result": 17.5,
+     "rounds_result": 3,
+     "reps_result": 12
+    },
+    {
+     "member": "Chris Hiles",
+     "weight_result": 17.5,
+     "rounds_result": 3,
+     "reps_result": 5
+    }
+   ]
+  },
+  {
+   "date": "2026-11-18",
+   "time": "18:30",
+   "sectionId": "section-1794751719185-6",
+   "rows": [
+    {
+     "member": "Anfisa Bornemann",
+     "weight_result": 7.5,
+     "rounds_result": 3,
+     "reps_result": 0
+    },
+    {
+     "member": "Anja Götte",
+     "weight_result": 10,
+     "rounds_result": 4,
+     "reps_result": 0
+    },
+    {
+     "member": "Kathrin Mühlen",
+     "weight_result": 12.5,
+     "rounds_result": 4,
+     "reps_result": 12
+    },
+    {
+     "member": "Nikolina Vlasalija",
+     "weight_result": 7.5,
+     "rounds_result": 3,
+     "reps_result": 22
+    },
+    {
+     "member": "Christian Müller",
+     "weight_result": 17.5,
+     "rounds_result": 3,
+     "reps_result": 12
+    },
+    {
+     "member": "Christian Tanner",
+     "weight_result": 15,
+     "rounds_result": 3,
+     "reps_result": 20
+    },
+    {
+     "member": "Markus Fischer",
+     "weight_result": 17.5,
+     "rounds_result": 3,
+     "reps_result": 16
+    },
+    {
+     "member": "Michael Weber",
+     "weight_result": 15,
+     "rounds_result": 3,
+     "reps_result": 22
+    },
+    {
+     "member": "Thomas Spegele",
+     "weight_result": 20,
+     "rounds_result": 3,
+     "reps_result": 29
+    },
+    {
+     "member": "Tobias Götte",
+     "weight_result": 20,
+     "rounds_result": 3,
+     "reps_result": 0
+    }
+   ]
+  }
+ ]
+}
