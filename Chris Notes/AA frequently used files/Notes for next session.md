@@ -22,6 +22,22 @@ http://192.168.178.75:3000
 * You asked me aboutthe Bash command again! PC
 * I am missing some kids workouts from October, check the security cams and fill them in
 
+1.
+Lanes Race, WB Box over, Shuttle Run, Clap-Slap game,
+Mon, 16 Nov 26
+2.
+Barbell Snatch
+Wed, 14 Oct 26
+3.
+DB Snatch, Goblet Squat, Lanes Race, WB Box over, BC, Parallettes Tuck Hold, Clap-Slap game,
+Fri, 9 Oct 26
+4.
+CrossFit Quarter Finals 2024 Workout 1
+Wed, 8 Apr 26
+5.
+Open #26.2
+Mon, 23 Mar 26
+
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
 * Parked athletes shouldn't appear as athletes to select in the Session Management or 
 * NOTE: Eufy clip saved to Mac: Foam roller movements from 10.06.26 to sav e to YT and then link in app exercises.

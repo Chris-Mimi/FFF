@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 301
-**Updated:** 2026-11-12 (Session 432 — Opus 5.5, Mac. **Testing-name audit + full lift names, Google Calendar titles synced, Lena Rothe restored + Reject guard, paper-card sharing, family surnames.** Previous: S431 — kids-only booking, release-window 10-card block.)
+**Version:** 302
+**Updated:** 2026-11-18 (Session 433 — Opus 5.5, Mac. **Unlimited capacity promotes waitlist, new 7-section template, Add Member Manually Adults/Kids + no parked/guardian-only, Movement Info bracket fix, branch housekeeping rule.** Previous: S432 — Testing names, calendar sync, Reject guard, family surnames.)
 
 ---
 
@@ -42,7 +42,14 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S432 (2026-11-12, Mac) — names, calendar, member fixes (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping (S433 rule in claude-rules: delete merged `ccr-*`/`claude/*` without asking; merge unmerged first). S433 deleted 7 merged `ccr-*`. Whiteboard is entered from the phone up to 46.2 (11.11). Then ask Chris (still unanswered from S431): did the Sunday release (8.11, 15:00) block full 10-cards? Foundations OK for Magdalena?
+**S433 (2026-11-13 → 18, Mac) — booking + workout-modal fixes (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping (claude-rules: `git fetch --prune origin`, delete merged `ccr-*`/`claude/*` without asking; merge unmerged first). Whiteboard entered from the phone up to 46.4 (15.11). Then ask Chris once: **Salma Berraho** (Guardian Only) has a confirmed booking 13.11 15:00 — probably meant for a child; move it or leave it? (Don't act without him.) Still unanswered from S431: did the Sunday release block full 10-cards? Foundations OK for Magdalena?
+- **Capacity 0 = unlimited (S433):** changing capacity to unlimited now promotes the whole waitlist (`hooks/coach/useSessionEditing.ts`). Any new `capacity − x` maths needs the 0 branch.
+- **New-workout template (S433):** Warm-up, Skill, Strength, WOD movements, Final prep/Info, WOD, Cool Down — in both `generate-weekly/route.ts` and `useWorkoutModal.ts` (keep them in sync).
+- **Add Member Manually (S433):** Adults / Kids tabs (kid = `isKidAge` <16; kids/turnen classes open on Kids); parked + Guardian Only members hidden.
+- **Movement Info (S433):** `utils/section-video-matcher.ts` boundaries include `()[].!?+&`, every occurrence checked, all-bracket lines matched. Planner never affected.
+- **Scaling 4:** not built — Chris condensed 2 exercises into 1 scaling option. Only if he asks again (touches DB, modal, save route, leaderboard, logbook, whiteboard writer).
+
+**S432 carry-forward:**
 - **Testing names (S432):** tested lift always in full (Bench Press, Overhead Squat, Bent Over Row, Romanian Deadlift, Clean & Jerk, Barbell Good Morning, Push Press); only Strict OHP short. Any `rm_test` lift ⇒ "Testing" in the name. Check: `scripts/audit-rm-testing-names.ts [--list]` (in the 3-monthly audit).
 - **After any rename:** `scripts/sync-calendar-titles.ts renames/<file>.json --commit` patches Google Calendar titles only (no re-publish). All S429+S432 renames synced (181 events).
 - **Reject (S432):** refuses members with bookings/scores → Block. Lena Rothe (rejected 12.11) restored as blocked from the 3.11 backup (`scripts/restore-rejected-member-history.ts`).
@@ -170,6 +177,13 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 433 (2026-11-13 → 18 — Opus 5.5, Mac) — WAITLIST, TEMPLATE, MANUAL BOOKING TABS, BRACKET MATCH (all pushed, build clean)**
+- Unlimited capacity promotes the whole waitlist (`88ba4a1`).
+- New 7-section default workout template (`a461aad`).
+- Branch housekeeping rule; 8 merged `ccr-*` deleted (`80f413b`).
+- Add Member Manually: Adults/Kids tabs (`2366073`), parked + Guardian Only hidden (`31143ae`).
+- Movement Info finds names before `)` `.` `!` and in all-bracket lines (`28d5b54`).
+
 **Session 432 (2026-11-12 — Opus 5.5, Mac) — NAMES, CALENDAR, MEMBER FIXES (all pushed, build clean)**
 - RM-test workouts without "Testing" renamed (3), then all Testing names → lift in full (10 names, 37 workouts). New `audit-rm-testing-names.ts`.
 - Google Calendar titles patched for all S429+S432 renames (181) — new `sync-calendar-titles.ts`.
@@ -193,14 +207,7 @@ Athlete Tools
 - NEW `scripts/audit-workout-names.ts` (name vs movements, 328 workouts) → joins the 3-monthly audit.
 - NEW `scripts/rename-workouts.ts`: 24 names get missing movements (73 workouts), then 34 names → Testing Format A + extras (111 workouts, incl. 2 kids). Files in `renames/`.
 
-**Session 428 (2026-10-30 — Opus 5.5, Mac) — PLANNER FLAGS PROJECT COMPLETE (all pushed, build clean)**
-- Closed S427 retroactively from git history (`1626963`).
-- Section F batch 2: 33 wods rewritten to library names; new library Split Hold, Headstand, Dip Squat, 3-Point Jump, Cartwheel (`d950fc5`).
-- `genericToCanonical` removed entirely — only 30 Jul "Walking Lunges" depended on it; 671 wods diffed, 0 differ (`6a4fb92`).
-- Audit script: `--uncounted` (Section F scan) + `--since`; 3 library names trimmed of stray spaces; Athlete 2 Skierg fixed (`e83c759`).
-- 3-monthly Planner audit scheduled (next end Jan 2027); D&D left alone like Turnen (`e3339fc`, `0ad868b`).
-
-**Older sessions (57-427):** See `project-history/` folder.
+**Older sessions (57-428):** See `project-history/` folder.
 
 ---
 
@@ -231,7 +238,8 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
-1. **Whiteboard — entered from the phone through 46.2 (11.11).** Next boards when Chris uploads. At Mac session start: `git pull` + merge/delete any `claude/*` branch.
+0. **Salma Berraho (S433):** Guardian Only with a confirmed booking 13.11 15:00 — ask Chris once what to do; don't act without him.
+1. **Whiteboard — entered from the phone through 46.4 (15.11).** Next boards when Chris uploads. At Mac session start: `git pull` + branch housekeeping (claude-rules).
 1a. **Foundations clearance — live (S430), kids <16 exempt + kids-only booking (S431).** Check with Chris: works for Magdalena? Bianca to unclear? Booking Rules tick-boxes right? (Lena Rothe left the gym — restored as blocked, S432.)
 1b. **Release-window 10-card block (S431)** — first live run Sunday 8.11 15:00; ask Chris if anyone hit it. Optional: align the two older refused messages ("schreib uns") to "sprich mit Chris oder Mimi".
 2. **S425 checks still open (Chris):** pages faster after fra1? (not sure yet) · Planner Benchmarks panel numbers (he'll check). Everything else from S424/S425 confirmed (S426).
