@@ -118,6 +118,8 @@ export interface ExerciseFrequencyWorkout {
   date: string;
   session_type: string;
   workout_name: string | null;
+  /** Class start "HH:MM:SS" (S434). */
+  time?: string | null;
   /** The line (or lift / benchmark) that got this workout counted, e.g.
    *  "WOD: 20x DB Alternating Snatch". Shown in the Planner popovers (S434). */
   evidence?: string;
@@ -150,6 +152,8 @@ export interface PublishedWorkout {
   session_type: string;
   workout_name: string | null;
   workout_week: string | null;
+  /** weekly_sessions.time ("17:15:00") — class start (S434). */
+  time?: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sections: any[];
 }
@@ -168,7 +172,7 @@ export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = '
   for (let from = 0; ; from += PAGE) {
     let query = supabase
       .from('weekly_sessions')
-      .select('date, is_private, wods(id, date, session_type, workout_name, workout_week, sections, workout_publish_status)')
+      .select('date, time, is_private, wods(id, date, session_type, workout_name, workout_week, sections, workout_publish_status)')
       .order('date', { ascending: false })
       .range(from, from + PAGE - 1);
 
@@ -208,6 +212,7 @@ export async function fetchPublishedWorkouts(filter?: DateRangeFilter, label = '
     .map((s) => ({
       id: s.wods.id,
       date: s.date,
+      time: s.time ?? null,
       session_type: s.wods.session_type || '',
       workout_name: s.wods.workout_name,
       workout_week: s.wods.workout_week,
@@ -608,6 +613,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
         date: workout.date,
         session_type: workout.session_type,
         workout_name: workout.workout_name,
+        time: workout.time ?? null,
         evidence: evidence.get(movementName),
       };
 
@@ -664,14 +670,21 @@ export async function getExerciseFrequencyById(exerciseId: string, filter?: Date
 export function lastUniqueWorkouts(
   workouts: ExerciseFrequencyWorkout[],
   limit = 5
-): ExerciseFrequencyWorkout[] {
+): (ExerciseFrequencyWorkout & { times: string[] })[] {
+  const keyOf = (w: ExerciseFrequencyWorkout) => (w.workout_name || '').trim() || w.date;
   const seen = new Set<string>();
-  const out: ExerciseFrequencyWorkout[] = [];
+  const out: (ExerciseFrequencyWorkout & { times: string[] })[] = [];
   for (const w of workouts) {
-    const key = (w.workout_name || '').trim() || w.date;
+    const key = keyOf(w);
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push(w);
+    // Every class time this workout ran on its most recent date, e.g. 17:15, 18:30 (S434).
+    const times = Array.from(new Set(
+      workouts
+        .filter(o => o.date === w.date && keyOf(o) === key && o.time)
+        .map(o => (o.time as string).slice(0, 5))
+    )).sort();
+    out.push({ ...w, times });
     if (out.length === limit) break;
   }
   return out;

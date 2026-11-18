@@ -707,6 +707,7 @@ export default function PlanningGrid({
                             month: 'short',
                             year: '2-digit',
                           })}
+                          {w.times.length > 0 && ` · ${w.times.join(', ')}`}
                         </span>
                       </div>
                       {w.evidence && (
