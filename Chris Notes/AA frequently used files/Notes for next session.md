@@ -22,35 +22,19 @@ http://192.168.178.75:3000
 * You asked me aboutthe Bash command again! PC
 * I am missing some kids workouts from October, check the security cams and fill them in
 
-1.
-Lanes Race, WB Box over, Shuttle Run, Clap-Slap game,
-Mon, 16 Nov 26
-2.
-Barbell Snatch
-Wed, 14 Oct 26
-3.
-DB Snatch, Goblet Squat, Lanes Race, WB Box over, BC, Parallettes Tuck Hold, Clap-Slap game,
-Fri, 9 Oct 26
-4.
-CrossFit Quarter Finals 2024 Workout 1
-Wed, 8 Apr 26
-5.
-Open #26.2
-Mon, 23 Mar 26
-
 Athletes app: Give me the possibility to send Athletes who pay for the app a message.
 * Parked athletes shouldn't appear as athletes to select in the Session Management or 
 * NOTE: Eufy clip saved to Mac: Foam roller movements from 10.06.26 to sav e to YT and then link in app exercises.
 Need DOB: Engels Frida, Frieda Stromer, Leopold Wischhöfer, Nico Enzmann, 
 Ask Mimi Silvia Maritati (Diapers & Dumbbells?)
 * Review what the section filter chips do in the Workouts page. 
-* New protocol: memory-bank/whiteboard-score-entry-protocol.md. Next time, just say "run the whiteboard protocol for [photo]" and give the name of the WOD and the date/s and times. Give also any Drop-ins or unknown names in the session. Whether it's an RM/Strength day or a MetCon. I'll: pull the image → transcribe to a verification table → you confirm → map names via the list → write lift_records + WSR → verify one session → parity check. 
+* 
 * IDEA for new app. Piano tutorials, YT clips, own recordings and sheet music all in one webapp
 * Ask Claude how good would he be at reading the Planner, Workouts page and planning a workout based on movements we haven't done for a while.
 * Clicking on 10-card should open the 10-card modal in Members
 * Ask Claude about Ionos web hosting etc
 * 
-* Is there a way of republishing all the Workouts in teh app so that the Google Cal entries match exactly?
+* Is there a way of republishing all the Workouts in teh app so that the Google Cal entries match exactly? - yes, Claude wrote a script to just change the titles in Google Cal
 * 
 * Courses I paid for to check out: Rick Beato, Ashlee Young, Kononov (stretching, hips etc)
 * Next do a sweep to make sure that any exercises which appear in any WOD/Strength/Skill etc section also appear in the Workout Name. This does NOT mean that the exercise appears in full, I just want to be sure that any movements we did show in the title so I can scan it easily. FOr example, this week we did this workout Name: "Bench Press Negatives, DB Snatch, BJ, WB Shot" then I can see at a glance which main exercises we did when planning or reviewing. I don't need Warm-ups & Cool Downs

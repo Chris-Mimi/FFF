@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 302
-**Updated:** 2026-11-18 (Session 433 — Opus 5.5, Mac. **Unlimited capacity promotes waitlist, new 7-section template, Add Member Manually Adults/Kids + no parked/guardian-only, Movement Info bracket fix, branch housekeeping rule.** Previous: S432 — Testing names, calendar sync, Reject guard, family surnames.)
+**Version:** 303
+**Updated:** 2026-11-18 (Session 434 — Opus 5.5, Mac. **Planner last-5 popovers show the counting line + class times; Open #26.2 "Snatch" shorthand fixed.** Previous: S433 — unlimited waitlist, template, manual booking tabs, bracket match.)
 
 ---
 
@@ -42,7 +42,11 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S433 (2026-11-13 → 18, Mac) — booking + workout-modal fixes (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping (claude-rules: `git fetch --prune origin`, delete merged `ccr-*`/`claude/*` without asking; merge unmerged first). Whiteboard entered from the phone up to 47.2 (17.11). 2 new `ccr-*` branches appeared at close — run housekeeping. Then ask Chris once: **Salma Berraho** (Guardian Only) has a confirmed booking 13.11 15:00 — probably meant for a child; move it or leave it? (Don't act without him.) Still unanswered from S431: did the Sunday release block full 10-cards? Foundations OK for Magdalena?
+**S434 (2026-11-18, Mac) — Planner popover clarity (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping. Whiteboard through 47.2. Ask Chris once to eyeball the Planner chip popover (↳ line + times) live. Still unanswered (asked S434, no reply): Salma Berraho 13.11 15:00 booking · Sunday release block hits · Foundations/Magdalena/Bianca · "schreib uns" wording.
+- **Planner popover evidence (S434):** `extractMovementsFromWod(..., evidence?)` / `extractMovementsFromText(..., evidence?, label?)` record the source per movement (lift 3 > bullet/number line 2 > sentence 1). Counts unchanged (verified 730 wods). Stray bare names ("Lunge & Snatch") → fix the text with `rewrite-workout-lines.ts`, never rename the library (S434: Snatch had 1 wrong hit in 16, Clean 1 in 30 — not worth "Barbell Snatch").
+- **Popover times (S434):** `fetchPublishedWorkouts` now carries `weekly_sessions.time`; `lastUniqueWorkouts` returns `times[]` for the latest date.
+
+**S433:**
 - **Capacity 0 = unlimited (S433):** changing capacity to unlimited now promotes the whole waitlist (`hooks/coach/useSessionEditing.ts`). Any new `capacity − x` maths needs the 0 branch.
 - **New-workout template (S433):** Warm-up, Skill, Strength, WOD movements, Final prep/Info, WOD, Cool Down — in both `generate-weekly/route.ts` and `useWorkoutModal.ts` (keep them in sync).
 - **Add Member Manually (S433):** Adults / Kids tabs (kid = `isKidAge` <16; kids/turnen classes open on Kids); parked + Guardian Only members hidden.
@@ -177,6 +181,11 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 434 (2026-11-18 — Opus 5.5, Mac) — PLANNER POPOVER CLARITY (all pushed, build clean)**
+- Last-5 popovers show the line that got each workout counted (`dbd88f0`) + class times (`d5f330e`).
+- Open #26.2 "Lunge & Snatch" → "Lunge & DB Alternating Snatch" (6 wods); Chris fixed 9.10 "Snatch game" → "Grab" himself.
+- Rename-to-"Barbell Snatch" considered and rejected (data: wrong hits are rare, single shorthand lines).
+
 **Session 433 (2026-11-13 → 18 — Opus 5.5, Mac) — WAITLIST, TEMPLATE, MANUAL BOOKING TABS, BRACKET MATCH (all pushed, build clean)**
 - Unlimited capacity promotes the whole waitlist (`88ba4a1`).
 - New 7-section default workout template (`a461aad`).
@@ -201,13 +210,7 @@ Athlete Tools
 - 45.1 entered from the phone (record merged from `claude/whiteboard-45-1-qscfre`). Phone sessions now push straight to main (untested).
 - Foundations clearance (`96f5b27`): `foundations_clearances` table, `workout_titles.open_to_foundations`, booking-route block, Members chip + Clear button, Booking Rules tick-boxes, athlete-page lock.
 
-**Session 429 (2026-11-02 — Opus 5.5, Mac) — WEEK 44 DONE, WORKOUT NAMES AUDITED + RENAMED (all pushed, build clean)**
-- Backups folder reviewed: 40-run auto-retention already in place, 426 MB — Chris: leave it.
-- Whiteboard 44.3 (28.10 17:15/18:30, 30.10 09:00, 1.11 10:00/11:00 — 42 rows) + 44.4 (29.10 17:15 KB ladder, 17:20 — 7 rows). 30.10 17:30 = Open Gym.
-- NEW `scripts/audit-workout-names.ts` (name vs movements, 328 workouts) → joins the 3-monthly audit.
-- NEW `scripts/rename-workouts.ts`: 24 names get missing movements (73 workouts), then 34 names → Testing Format A + extras (111 workouts, incl. 2 kids). Files in `renames/`.
-
-**Older sessions (57-428):** See `project-history/` folder.
+**Older sessions (57-429):** See `project-history/` folder.
 
 ---
 
