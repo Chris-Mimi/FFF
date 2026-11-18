@@ -42,7 +42,7 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S433 (2026-11-13 → 18, Mac) — booking + workout-modal fixes (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping (claude-rules: `git fetch --prune origin`, delete merged `ccr-*`/`claude/*` without asking; merge unmerged first). Whiteboard entered from the phone up to 46.4 (15.11). Then ask Chris once: **Salma Berraho** (Guardian Only) has a confirmed booking 13.11 15:00 — probably meant for a child; move it or leave it? (Don't act without him.) Still unanswered from S431: did the Sunday release block full 10-cards? Foundations OK for Magdalena?
+**S433 (2026-11-13 → 18, Mac) — booking + workout-modal fixes (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping (claude-rules: `git fetch --prune origin`, delete merged `ccr-*`/`claude/*` without asking; merge unmerged first). Whiteboard entered from the phone up to 47.2 (17.11). 2 new `ccr-*` branches appeared at close — run housekeeping. Then ask Chris once: **Salma Berraho** (Guardian Only) has a confirmed booking 13.11 15:00 — probably meant for a child; move it or leave it? (Don't act without him.) Still unanswered from S431: did the Sunday release block full 10-cards? Foundations OK for Magdalena?
 - **Capacity 0 = unlimited (S433):** changing capacity to unlimited now promotes the whole waitlist (`hooks/coach/useSessionEditing.ts`). Any new `capacity − x` maths needs the 0 branch.
 - **New-workout template (S433):** Warm-up, Skill, Strength, WOD movements, Final prep/Info, WOD, Cool Down — in both `generate-weekly/route.ts` and `useWorkoutModal.ts` (keep them in sync).
 - **Add Member Manually (S433):** Adults / Kids tabs (kid = `isKidAge` <16; kids/turnen classes open on Kids); parked + Guardian Only members hidden.
@@ -239,7 +239,7 @@ Athlete Tools
 ## 📋 Next Immediate Steps
 
 0. **Salma Berraho (S433):** Guardian Only with a confirmed booking 13.11 15:00 — ask Chris once what to do; don't act without him.
-1. **Whiteboard — entered from the phone through 46.4 (15.11).** Next boards when Chris uploads. At Mac session start: `git pull` + branch housekeeping (claude-rules).
+1. **Whiteboard — entered from the phone through 47.2 (17.11).** Next boards when Chris uploads. At Mac session start: `git pull` + branch housekeeping (claude-rules).
 1a. **Foundations clearance — live (S430), kids <16 exempt + kids-only booking (S431).** Check with Chris: works for Magdalena? Bianca to unclear? Booking Rules tick-boxes right? (Lena Rothe left the gym — restored as blocked, S432.)
 1b. **Release-window 10-card block (S431)** — first live run Sunday 8.11 15:00; ask Chris if anyone hit it. Optional: align the two older refused messages ("schreib uns") to "sprich mit Chris oder Mimi".
 2. **S425 checks still open (Chris):** pages faster after fra1? (not sure yet) · Planner Benchmarks panel numbers (he'll check). Everything else from S424/S425 confirmed (S426).
