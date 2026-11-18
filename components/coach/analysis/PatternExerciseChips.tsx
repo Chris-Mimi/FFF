@@ -287,19 +287,24 @@ export default function PatternExerciseChips({
           ) : (
             <ol className='space-y-1'>
               {last5.map((w, i) => (
-                <li key={`${w.workout_name ?? w.date}-${i}`} className='flex items-baseline gap-2 text-xs'>
-                  <span className='text-gray-400 shrink-0'>{i + 1}.</span>
-                  <span className='font-medium text-gray-800'>
-                    {w.workout_name || 'Untitled workout'}
-                  </span>
-                  <span className='text-gray-500 shrink-0'>
-                    {new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', {
-                      weekday: 'short',
-                      day: 'numeric',
-                      month: 'short',
-                      year: '2-digit',
-                    })}
-                  </span>
+                <li key={`${w.workout_name ?? w.date}-${i}`} className='text-xs'>
+                  <div className='flex items-baseline gap-2'>
+                    <span className='text-gray-400 shrink-0'>{i + 1}.</span>
+                    <span className='font-medium text-gray-800'>
+                      {w.workout_name || 'Untitled workout'}
+                    </span>
+                    <span className='text-gray-500 shrink-0'>
+                      {new Date(w.date + 'T00:00:00').toLocaleDateString('en-GB', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                        year: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  {w.evidence && (
+                    <div className='pl-4 text-gray-500 italic break-words'>↳ {w.evidence}</div>
+                  )}
                 </li>
               ))}
             </ol>

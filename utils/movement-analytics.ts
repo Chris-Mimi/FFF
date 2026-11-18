@@ -118,6 +118,9 @@ export interface ExerciseFrequencyWorkout {
   date: string;
   session_type: string;
   workout_name: string | null;
+  /** The line (or lift / benchmark) that got this workout counted, e.g.
+   *  "WOD: 20x DB Alternating Snatch". Shown in the Planner popovers (S434). */
+  evidence?: string;
 }
 
 export interface ExerciseFrequency {
@@ -588,7 +591,8 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
       classTimes: [],
     };
 
-    const movements = extractMovementsFromWod(wodData, knownExerciseNames, acronymMap, liftExerciseMap);
+    const evidence = new Map<string, string>();
+    const movements = extractMovementsFromWod(wodData, knownExerciseNames, acronymMap, liftExerciseMap, evidence);
 
     // Count each exercise at most once per session, even if two movement strings
     // (name + acronym, say) resolve to the same exercise within this workout.
@@ -604,6 +608,7 @@ export async function getExerciseFrequency(filter?: DateRangeFilter): Promise<Ex
         date: workout.date,
         session_type: workout.session_type,
         workout_name: workout.workout_name,
+        evidence: evidence.get(movementName),
       };
 
       const existing = exerciseMap.get(exercise.id);

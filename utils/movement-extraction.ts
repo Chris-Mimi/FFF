@@ -141,7 +141,11 @@ export const extractMovementsFromText = (
   text: string,
   movements: Set<string>,
   knownLower?: Set<string>,
-  knownList?: string[]
+  knownList?: string[],
+  // Optional: records the first line that credited each movement (Planner
+  // popover "why is this counted", S434). Counting is unchanged.
+  evidence?: Map<string, string>,
+  label?: string
 ): void => {
   const lines = text.split('\n');
 
@@ -175,7 +179,7 @@ export const extractMovementsFromText = (
       .forEach(({ ex }) => movements.add(normalizeMovement(ex)));
   };
 
-  lines.forEach(line => {
+  const processLine = (line: string) => {
     const trimmedLine = line.trim();
     if (!trimmedLine) return;
 
@@ -305,7 +309,35 @@ export const extractMovementsFromText = (
         }
       }
     });
+  };
+
+  if (!evidence) {
+    lines.forEach(processLine);
+    return;
+  }
+  // Evidence mode: run each line on its own so every movement it credits is
+  // known (even ones an earlier line already added), then merge — same union.
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    const lineSet = new Set<string>();
+    extractMovementsFromText(trimmed, lineSet, knownLower, knownList);
+    const shown = label ? `${label}: ${trimmed}` : trimmed;
+    const prio = PROGRAMMED_LINE.test(trimmed) ? 2 : 1;
+    lineSet.forEach(m => { movements.add(m); recordEvidence(evidence, m, shown, prio); });
   });
+};
+
+// Evidence priority: lift slot (3) > programmed line — bullet or number first (2)
+// > anything else, e.g. a sentence (1). Ties keep the earliest source.
+const PROGRAMMED_LINE = /^([*•◦\-–]|\d)/;
+const evidencePriority = new WeakMap<Map<string, string>, Map<string, number>>();
+const recordEvidence = (evidence: Map<string, string>, movement: string, text: string, prio: number) => {
+  let prios = evidencePriority.get(evidence);
+  if (!prios) { prios = new Map(); evidencePriority.set(evidence, prios); }
+  if ((prios.get(movement) ?? 0) >= prio) return;
+  prios.set(movement, prio);
+  evidence.set(movement, text);
 };
 
 /**
@@ -433,9 +465,12 @@ export const extractMovementsFromWod = (
   wod: WODFormData,
   knownExerciseNames?: Set<string>,
   acronymMap?: AcronymMap,
-  liftExerciseMap?: LiftExerciseMap
+  liftExerciseMap?: LiftExerciseMap,
+  // Optional: first source that credited each movement, e.g.
+  // "WOD movements: Work up to … Snatch" or "Strength: Lift Back Squat" (S434).
+  evidence?: Map<string, string>
 ): Set<string> => {
-  const movements = new Set<string>();
+  let movements = new Set<string>();
 
   // Pre-compute lowercase exercise names for matching
   const knownLower = knownExerciseNames && knownExerciseNames.size > 0
@@ -443,9 +478,20 @@ export const extractMovementsFromWod = (
     : undefined;
   const knownList = knownLower ? Array.from(knownLower) : undefined;
 
+  // Evidence mode: run one lift / benchmark into a fresh set so we know exactly
+  // what it credited, then merge back (same union as without evidence).
+  const note = (label: string, prio: number, run: () => void) => {
+    if (!evidence) { run(); return; }
+    const main = movements;
+    movements = new Set<string>();
+    run();
+    movements.forEach(m => { main.add(m); recordEvidence(evidence, m, label, prio); });
+    movements = main;
+  };
+
   wod.sections.forEach(section => {
     // Source 1: Structured lift names (cross-reference to exercise library)
-    section.lifts?.forEach((lift: ConfiguredLift) => {
+    section.lifts?.forEach((lift: ConfiguredLift) => note(`${section.type}: Lift ${lift.name}`, 3, () => {
       if (!lift.name) return;
       const liftLower = lift.name.toLowerCase().trim();
       // Linked-lift shortcut — barbell_lifts.exercise_id resolves the canonical
@@ -474,10 +520,10 @@ export const extractMovementsFromWod = (
       // Default: add both with and without "Barbell" prefix for tracking
       movements.add(normalizeMovement(barbellPrefixed));
       movements.add(normalizeMovement(lift.name));
-    });
+    }));
 
     // Source 2: Structured benchmark names + parse descriptions for exercises
-    section.benchmarks?.forEach((benchmark: ConfiguredBenchmark) => {
+    section.benchmarks?.forEach((benchmark: ConfiguredBenchmark) => note(`${section.type}: ${benchmark.name}`, 2, () => {
       if (benchmark.name) movements.add(normalizeMovement(benchmark.name));
       benchmark.exercises?.forEach((ex: string) => {
         if (ex) movements.add(normalizeMovement(ex));
@@ -485,10 +531,10 @@ export const extractMovementsFromWod = (
       if (benchmark.description) {
         extractMovementsFromText(benchmark.description, movements, knownLower, knownList);
       }
-    });
+    }));
 
     // Source 3: Structured forge benchmark names + parse descriptions for exercises
-    section.forge_benchmarks?.forEach((forge: ConfiguredForgeBenchmark) => {
+    section.forge_benchmarks?.forEach((forge: ConfiguredForgeBenchmark) => note(`${section.type}: ${forge.name}`, 2, () => {
       if (forge.name) movements.add(normalizeMovement(forge.name));
       forge.exercises?.forEach((ex: string) => {
         if (ex) movements.add(normalizeMovement(ex));
@@ -496,10 +542,10 @@ export const extractMovementsFromWod = (
       if (forge.description) {
         extractMovementsFromText(forge.description, movements, knownLower, knownList);
       }
-    });
+    }));
 
     // Source 4: Parse exercise names from section content text
-    extractMovementsFromText(section.content, movements, knownLower, knownList);
+    extractMovementsFromText(section.content, movements, knownLower, knownList, evidence, section.type);
   });
 
   impliedMovements(Array.from(movements), knownLower).forEach(n => movements.add(n));
