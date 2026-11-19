@@ -294,18 +294,41 @@ export default function WellpassTab() {
           <p className="text-sm text-gray-400 mt-0.5">
             {tracked.length} tracked households · {untracked.length} untracked names
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Each week shows <span className="font-mono text-gray-300">sign-ins / bookings</span> ·
-            sign-ins <span className="text-red-400">red</span> when below Min · bookings{' '}
-            <span className="text-green-400">green</span> when ≤ sign-ins,{' '}
-            <span className="text-red-400">red</span> when &gt; sign-ins ·{' '}
-            <span className="font-mono text-gray-300">YTD/All-time</span> = logins as % of target
-            (<span className="text-green-400">≥100</span> /{' '}
-            <span className="text-amber-400">80–99</span> /{' '}
-            <span className="text-red-400">&lt;80</span>) · shared households also show a
-            <span className="font-mono text-gray-300"> 1.x× </span>login:attendance ratio
-            (<span className="text-green-400">≥1.5</span> ok)
-          </p>
+          <div className="text-xs text-gray-500 mt-1.5 space-y-0.5 max-w-3xl">
+            <p>
+              Each week (Mon–Sun) shows{' '}
+              <span className="font-mono text-gray-300">Wellpass logins / app bookings</span>.
+            </p>
+            <p>
+              <span className="text-gray-300">Wellpass logins</span> = check-ins the household made
+              in the Wellpass app (from the Excel sync).{' '}
+              <span className="text-red-400">Red</span> = below the household&apos;s Min.{' '}
+              <span className="font-mono text-gray-300">—</span> = no Excel data for that week.
+            </p>
+            <p>
+              <span className="text-gray-300">App bookings</span> = confirmed bookings in this app
+              for everyone linked to the household (cancelled, late-cancelled and no-show bookings
+              aren&apos;t counted). <span className="text-green-400">Green</span> = no more than the
+              logins. <span className="text-red-400">Red</span> = more bookings than logins, so
+              someone trained without logging in to Wellpass.
+            </p>
+            <p>
+              <span className="text-gray-300">YTD % / All-time %</span> = Wellpass logins as a % of
+              the target (Min × weeks this year / Min × all weeks tracked):{' '}
+              <span className="text-green-400">100%+</span> ·{' '}
+              <span className="text-amber-400">80–99%</span> ·{' '}
+              <span className="text-red-400">under 80%</span>.
+            </p>
+            <p>
+              <span className="text-gray-300">Shared households</span> (one Wellpass account, two
+              people) also show a chip like <span className="font-mono text-gray-300">1.62×</span>{' '}
+              next to the name = this year&apos;s Wellpass logins ÷ app bookings.{' '}
+              <span className="text-green-400">1.5× or more</span> is fine (the partner logs in on
+              rest days). <span className="text-amber-400">Amber</span> = under 1.5×, early
+              warning — a household under 1.5× across the last 13 weeks gets blocked. Grey = under
+              1.5× but already blocked, paused or exempt.
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {blockedCount > 0 && (
