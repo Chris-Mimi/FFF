@@ -160,8 +160,10 @@ export async function POST(request: NextRequest) {
     // of the imported Excel. The check is PER-WEEK — an athlete present in W20
     // but absent from W21 must still get a W21=0 row, otherwise the block
     // recompute would read their stale W20 value as the "latest" and miss the
-    // signal that they've stopped checking in. Uses ignoreDuplicates so any
-    // pre-existing real value for the same (identity, year, week) is preserved.
+    // signal that they've stopped checking in. The Excel is the authority for
+    // every week it contains: a name missing from a week's tab OVERWRITES any
+    // stored count with 0. (S435: a Sunday–Saturday export left stale 1s for
+    // Anna M-K W43 + Anna Krautwald W45 because this used ignoreDuplicates.)
     const { data: allTrackedIdentities } = await supabaseAdmin
       .from('wellpass_identities')
       .select('id')
@@ -193,7 +195,7 @@ export async function POST(request: NextRequest) {
       if (zeroRows.length > 0) {
         const { error: zErr } = await supabaseAdmin
           .from('wellpass_weekly_checkins')
-          .upsert(zeroRows, { onConflict: 'wellpass_identity_id,year,week_number', ignoreDuplicates: true });
+          .upsert(zeroRows, { onConflict: 'wellpass_identity_id,year,week_number' });
         if (zErr) {
           console.error('[wellpass-import] zero-fill error:', zErr);
           // Non-fatal — continue with whatever rows landed.
