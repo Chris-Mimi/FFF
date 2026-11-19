@@ -21,6 +21,20 @@ const isoWeekYear = (dateStr: string): number => {
   return target.getUTCFullYear();
 };
 
+const utcDate = (dateStr: string): Date => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+};
+const weekdayOf = (dateStr: string): number => utcDate(dateStr).getUTCDay(); // 0 = Sun, 1 = Mon
+const addDaysIso = (dateStr: string, days: number): string => {
+  const dt = utcDate(dateStr);
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+};
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const dayName = (dateStr: string): string => DAY_NAMES[weekdayOf(dateStr)];
+const ddmm = (dateStr: string): string => `${dateStr.slice(8, 10)}.${dateStr.slice(5, 7)}`;
+
 export async function POST(request: NextRequest) {
   try {
     const coach = await requireCoach(request);
@@ -46,6 +60,24 @@ export async function POST(request: NextRequest) {
 
     if (parsed.weeks.length === 0) {
       return NextResponse.json({ error: 'No "Wk NN" sheets with data found' }, { status: 400 });
+    }
+
+    // Fail-safe (S435): our week is Monday–Sunday. A Wellpass export run
+    // Sunday–Saturday has the right-looking tab names but wrong counts, so
+    // refuse the whole file before anything is written.
+    const badWeeks = parsed.weeks.filter(
+      (wk) => weekdayOf(wk.week_start) !== 1 || addDaysIso(wk.week_start, 6) !== wk.week_end
+    );
+    if (badWeeks.length > 0) {
+      const list = badWeeks
+        .map((wk) => `Wk ${wk.week_number}: ${dayName(wk.week_start)} ${ddmm(wk.week_start)} – ${dayName(wk.week_end)} ${ddmm(wk.week_end)}`)
+        .join('; ');
+      return NextResponse.json(
+        {
+          error: `Nothing imported — weeks must run Monday to Sunday. ${list}. Export again from Wellpass with Monday–Sunday selected.`,
+        },
+        { status: 400 }
+      );
     }
 
     const wellpassNames = new Set<string>();
