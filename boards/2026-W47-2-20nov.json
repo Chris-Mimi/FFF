@@ -1,0 +1,15 @@
+{
+ "note": "2026 Week 47.2 (updated). Middle column, last 3 names = 20.11 09:00, same 12-min AMRAP DB Bear Crawl / Devils Press / FS / PP / Lunge / Sidestep. Load = per-DB weight; 'Rx' = prescribed 15/22.5kg.",
+ "sessions": [
+  {
+   "date": "2026-11-20",
+   "time": "09:00",
+   "sectionId": "section-1794751719185-6",
+   "rows": [
+    { "member": "Michael Städele", "weight_result": 22.5, "rounds_result": 3, "reps_result": 11 },
+    { "member": "Irene Koffler", "weight_result": 10, "rounds_result": 3, "reps_result": 12 },
+    { "member": "Mimi Hiles", "weight_result": 15, "rounds_result": 3, "reps_result": 42 }
+   ]
+  }
+ ]
+}

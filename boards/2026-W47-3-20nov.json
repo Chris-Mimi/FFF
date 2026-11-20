@@ -1,0 +1,39 @@
+{
+ "note": "2026 Week 47.3. Top = 20.11 17:15 15-min AMRAP HSPU (Scaling 1) / KB Halo-Swing-Fig8-ATW (Load 1, Rx 16/24kg); R+R. Bottom = 20.11 18:30 Bear Crawl OTB / Deadlift / AbMat; Barbell DL load, Rx = 70/102kg; Daniela '-' = did not score.",
+ "sessions": [
+  {
+   "date": "2026-11-20",
+   "time": "17:15",
+   "sectionId": "section-1768316539541",
+   "rows": [
+    { "member": "Justine Baumstark", "scaling_level": "Sc3", "weight_result": 12, "rounds_result": 6, "reps_result": 9 },
+    { "member": "Katharina Herbst", "scaling_level": "Sc2", "weight_result": 12, "rounds_result": 4, "reps_result": 9 },
+    { "member": "Martina Fenster", "scaling_level": "Sc1", "weight_result": 12, "rounds_result": 4, "reps_result": 18 },
+    { "member": "Nikolina Vlasalija", "scaling_level": "Sc3", "weight_result": 12, "rounds_result": 5, "reps_result": 3 },
+    { "member": "Valerie Mesenburg", "scaling_level": "Sc3", "weight_result": 12, "rounds_result": 7, "reps_result": 9 },
+    { "member": "Lukas Simnacher", "scaling_level": "Rx", "weight_result": 24, "rounds_result": 5, "reps_result": 12 },
+    { "member": "Paul Bielenski", "scaling_level": "Sc1", "weight_result": 24, "rounds_result": 4, "reps_result": 18 },
+    { "member": "Thomas Herbst", "scaling_level": "Sc3", "weight_result": 20, "rounds_result": 5, "reps_result": 9 },
+    { "member": "Tobias Götte", "scaling_level": "Rx", "weight_result": 24, "rounds_result": 4, "reps_result": 15 },
+    { "member": "Chris Hiles", "book": true, "scaling_level": "Rx", "weight_result": 20, "rounds_result": 5, "reps_result": 28 },
+    { "member": "Dimitar Peresyov", "scaling_level": "Sc3", "weight_result": 24, "rounds_result": 4, "reps_result": 18 }
+   ]
+  },
+  {
+   "date": "2026-11-20",
+   "time": "18:30",
+   "sectionId": "section-1769609404956",
+   "rows": [
+    { "member": "Anfisa Bornemann", "book": true, "weight_result": 30, "rounds_result": 8, "reps_result": 0 },
+    { "member": "Anna Mavrommatis-Karaaslan", "weight_result": 40, "rounds_result": 8, "reps_result": 0 },
+    { "member": "Annerose Streit", "weight_result": 35, "rounds_result": 9, "reps_result": 9 },
+    { "member": "Daniela Struben", "weight_result": 12.5, "modified": true, "modified_note": "Did not score" },
+    { "member": "Franziska Herndorf", "weight_result": 50, "rounds_result": 8, "reps_result": 0 },
+    { "whiteboard": "Johanna Bubla WP", "weight_result": 70, "rounds_result": 5, "reps_result": 0 },
+    { "member": "Susi Glocker", "weight_result": 45, "rounds_result": 8, "reps_result": 0 },
+    { "member": "Bodo Lehmann", "weight_result": 50, "rounds_result": 8, "reps_result": 3 },
+    { "member": "Ferdi", "weight_result": 50, "rounds_result": 7, "reps_result": 0 }
+   ]
+  }
+ ]
+}
