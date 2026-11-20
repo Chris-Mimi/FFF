@@ -30,6 +30,11 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Who a Kids 10-Card can be bought for: the logged-in member if under 18, plus
+  // their own children under 18. The card goes onto that person (S435 — before,
+  // it always landed on the logged-in parent).
+  const [kidBuyers, setKidBuyers] = useState<{ id: string; label: string }[]>([]);
+  const [kidBuyerId, setKidBuyerId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPaymentStatus();
@@ -83,6 +88,20 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
         hasUsedTrial: member.athlete_subscription_start != null,
         isMinor: isMinor(member.date_of_birth),
       });
+
+      const { data: children } = await supabase
+        .from('members')
+        .select('id, name, display_name, date_of_birth')
+        .eq('primary_member_id', userId)
+        .eq('account_type', 'family_member');
+      const buyers = [
+        ...(isMinor(member.date_of_birth) ? [{ id: userId, label: 'me' }] : []),
+        ...(children ?? [])
+          .filter((c) => isMinor(c.date_of_birth))
+          .map((c) => ({ id: c.id, label: (c.display_name || c.name || '').split(' ')[0] })),
+      ];
+      setKidBuyers(buyers);
+      setKidBuyerId((prev) => (prev && buyers.some((b) => b.id === prev) ? prev : buyers[0]?.id ?? null));
     } catch (err) {
       console.error('Error fetching payment status:', err);
       setError('Failed to load payment information');
@@ -91,7 +110,10 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
     }
   };
 
-  const handlePurchase = async (productType: 'member_monthly' | 'member_yearly' | 'wellpass_monthly' | 'wellpass_yearly' | '10card' | '10card_kids') => {
+  const handlePurchase = async (
+    productType: 'member_monthly' | 'member_yearly' | 'wellpass_monthly' | 'wellpass_yearly' | '10card' | '10card_kids',
+    forMemberId: string = userId
+  ) => {
     setPurchasing(productType);
     setError(null);
 
@@ -101,7 +123,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
       const wantsTrial = productType !== '10card' && productType !== '10card_kids' && !hasActiveSubscription && !hasTrial && !paymentStatus?.hasUsedTrial;
       const response = await authFetch('/api/stripe/create-checkout', {
         method: 'POST',
-        body: JSON.stringify({ productType, memberId: userId, ...(wantsTrial && { trial: true }) }),
+        body: JSON.stringify({ productType, memberId: forMemberId, ...(wantsTrial && { trial: true }) }),
       });
 
       const data = await response.json();
@@ -507,8 +529,8 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
           </div>
 
           {/* 10-Card (Kids) — white card, pink button to distinguish from the adult card.
-              Only for under-18s (S435: adults could buy it for themselves at €85). */}
-          {paymentStatus?.isMinor && (
+              Bought FOR an under-18 (self or own child) and put on their profile (S435). */}
+          {kidBuyers.length > 0 && kidBuyerId && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
             <div className="p-6 flex flex-col flex-grow">
               <div className="flex items-center gap-3 mb-4">
@@ -531,15 +553,31 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
                   <CheckCircle size={16} className="text-purple-500" /> 12-month validity
                 </li>
               </ul>
+              {kidBuyers.length > 1 && (
+                <label className="block text-sm text-gray-600 mb-3">
+                  For
+                  <select
+                    value={kidBuyerId}
+                    onChange={(e) => setKidBuyerId(e.target.value)}
+                    className="ml-2 border border-gray-300 rounded-md px-2 py-1 text-gray-900"
+                  >
+                    {kidBuyers.map((b) => (
+                      <option key={b.id} value={b.id}>{b.label}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <button
-                onClick={() => handlePurchase('10card_kids')}
+                onClick={() => handlePurchase('10card_kids', kidBuyerId)}
                 disabled={!!purchasing}
                 className="w-full py-3 bg-pink-400 hover:bg-pink-500 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {purchasing === '10card_kids' ? (
                   <Loader2 className="animate-spin" size={20} />
-                ) : (
+                ) : kidBuyerId === userId ? (
                   'Buy Kids 10-Card'
+                ) : (
+                  `Buy Kids 10-Card for ${kidBuyers.find((b) => b.id === kidBuyerId)?.label ?? ''}`
                 )}
               </button>
             </div>
