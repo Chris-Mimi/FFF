@@ -4,6 +4,7 @@ import { authFetch } from '@/lib/auth-fetch';
 import { supabase } from '@/lib/supabase';
 import { CreditCard, Calendar, Package, ExternalLink, Loader2, CheckCircle, AlertCircle, Dumbbell, Trophy, BarChart3, Users, Timer, Calculator, Camera, Activity, Share2, Bell, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { isMinor } from '@/lib/bookingRules';
 
 interface PaymentStatus {
   subscriptionStatus: 'active' | 'trial' | 'past_due' | 'expired' | null;
@@ -16,6 +17,8 @@ interface PaymentStatus {
   stripeCustomerId: string | null;
   membershipTypes: string[];
   hasUsedTrial: boolean;
+  /** Under 18 — only then is the Kids 10-Card offered (server enforces it too, S435). */
+  isMinor: boolean;
 }
 
 interface AthletePagePaymentTabProps {
@@ -46,7 +49,8 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
           ten_card_sessions_used,
           ten_card_expiry_date,
           stripe_customer_id,
-          membership_types
+          membership_types,
+          date_of_birth
         `)
         .eq('id', userId)
         .single();
@@ -77,6 +81,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
         stripeCustomerId: member.stripe_customer_id,
         membershipTypes: member.membership_types || [],
         hasUsedTrial: member.athlete_subscription_start != null,
+        isMinor: isMinor(member.date_of_birth),
       });
     } catch (err) {
       console.error('Error fetching payment status:', err);
@@ -501,7 +506,9 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
             </div>
           </div>
 
-          {/* 10-Card (Kids) — white card, pink button to distinguish from the adult card */}
+          {/* 10-Card (Kids) — white card, pink button to distinguish from the adult card.
+              Only for under-18s (S435: adults could buy it for themselves at €85). */}
+          {paymentStatus?.isMinor && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
             <div className="p-6 flex flex-col flex-grow">
               <div className="flex items-center gap-3 mb-4">
@@ -537,6 +544,7 @@ export default function AthletePagePaymentTab({ userId }: AthletePagePaymentTabP
               </button>
             </div>
           </div>
+          )}
         </div>
       </div>
 

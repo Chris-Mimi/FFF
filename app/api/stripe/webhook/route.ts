@@ -128,11 +128,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     if (curErr) throw new Error(`10-card lookup failed for member ${memberId}: ${curErr.message}`);
     if (current.ten_card_notes?.includes(session.id)) return;
 
+    // S435: record which card was paid for (Kids €85 vs adult €150) so it can be
+    // checked against who uses it without opening Stripe.
+    const boughtNote = `Bought in app — ${productType === '10card_kids' ? 'Kids 10-Card' : '10-Card'} (Stripe ${session.id})`;
+
     if (current.ten_card_purchase_date && !current.ten_card_holder_id) {
       // Throws on failure → 500 → Stripe retries (see S393 note below).
       await renewTenCard(supabaseAdmin, memberId, {
         paidOn: berlinToday(),
-        newNotes: `Bought in app (Stripe ${session.id})`,
+        newNotes: boughtNote,
       });
       return;
     }
@@ -145,7 +149,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         ten_card_sessions_used_offset: 0,
         ten_card_total: 10,
         ten_card_expiry_date: expiryDate.toISOString(),
-        ten_card_notes: `Bought in app (Stripe ${session.id})`,
+        ten_card_notes: boughtNote,
         updated_at: now.toISOString(),
       })
       .eq('id', memberId);

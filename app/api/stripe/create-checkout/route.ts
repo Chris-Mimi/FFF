@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { stripe, getPriceId, isSubscription, getTier, getBillingPeriod, ProductType } from '@/lib/stripe';
 import { requireAuth, isAuthError } from '@/lib/auth-api';
+import { getHouseholdTenCards } from '@/lib/tenCardStatus';
+import { isMinor } from '@/lib/bookingRules';
 
 // Use service role for admin operations
 const supabaseAdmin = createClient(
@@ -49,6 +51,35 @@ export async function POST(request: NextRequest) {
       ) {
         return NextResponse.json(
           { error: 'You can only pay for your own account or your family members' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // S435: the 10-card price is decided here, never trusted from the browser —
+    // an adult could otherwise click "Buy Kids 10-Card" (€85 instead of €150)
+    // on their own account. Kids price only when the card's users are all under
+    // 18 (same rule as the Book page buy button), or — for a first card — when
+    // the holder is under 18.
+    if (productType === '10card' || productType === '10card_kids') {
+      const cards = await getHouseholdTenCards(supabaseAdmin, user.id);
+      let allowed = cards.find((c) => c.holderId === memberId)?.buyProduct ?? null;
+      if (!allowed) {
+        const { data: holder } = await supabaseAdmin
+          .from('members')
+          .select('date_of_birth')
+          .eq('id', memberId)
+          .single();
+        allowed = isMinor(holder?.date_of_birth) ? '10card_kids' : '10card';
+      }
+      if (productType !== allowed) {
+        return NextResponse.json(
+          {
+            error:
+              productType === '10card_kids'
+                ? 'Die Kids 10er-Karte gibt es nur für Kinder unter 18.'
+                : 'Für diese Karte gilt die Kids 10er-Karte.',
+          },
           { status: 403 }
         );
       }
