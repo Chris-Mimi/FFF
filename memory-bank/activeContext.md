@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 303
-**Updated:** 2026-11-18 (Session 434 — Opus 5.5, Mac. **Planner last-5 popovers show the counting line + class times; Open #26.2 "Snatch" shorthand fixed.** Previous: S433 — unlimited waitlist, template, manual booking tabs, bracket match.)
+**Version:** 304
+**Updated:** 2026-11-20 (Session 435 — Opus 5.5, Mac. **Wellpass sync: Mon–Sun guard + Excel always wins + clearer legend; Kids 10-Card price enforced server-side + bought for the child; Markus's card moved to Jano; Crocodile Frog Catcher rename.** Previous: S434 — Planner popover counting line + class times.)
 
 ---
 
@@ -42,7 +42,10 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S434 (2026-11-18, Mac) — Planner popover clarity (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping. Whiteboard through 47.2. Ask Chris once to eyeball the Planner chip popover (↳ line + times) live. Still unanswered (asked S434, no reply): Salma Berraho 13.11 15:00 booking · Sunday release block hits · Foundations/Magdalena/Bianca · "schreib uns" wording.
+**S435 (2026-11-20, Mac) — Wellpass sync + Kids 10-Card fixes (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping. **Then ask Chris if he re-synced the Wellpass Excel** — if yes, run `npx tsx scripts/compare-wellpass-excel.ts "<Chris's xlsm>"` (path in the script header) → expect 0 differences (end of S435: still 2 — Anna Mavrommatis-Karaaslan W43, Anna Krautwald W45, both stale 1s that should be 0). Whiteboard through 47.2. Still unanswered from S434 (asked once at S435 start, no reply — don't re-ask every session): Salma Berraho · Sunday release block · Foundations/Magdalena/Bianca · "schreib uns" · Planner popover eyeball.
+- **Wellpass sync (S435):** `/api/coach/wellpass/import` refuses the whole file if any week isn't Mon–Sun (Chris once exported Sun–Sat). Zero-fill now OVERWRITES (was `ignoreDuplicates`, which left stale counts when a re-synced week no longer listed a name). Counts are keyed by tab number (`Wk NN`); E1/F1 dates are only labels. Tab-number-vs-date check offered, not built.
+- **Kids 10-Card (S435):** `create-checkout` decides 10card vs 10card_kids server-side (household card's `buyProduct`, else holder `isMinor`) — before, the Payment tab let any adult buy the €85 card for themselves. Payment tab offers the Kids card FOR each own child <18 (`memberId` = child). Webhook notes now say "Bought in app — Kids 10-Card / 10-Card (Stripe …)". Book-page buy link only appears inside a full/expired/≤2-left warning — a first card for a child can only be bought on the Payment tab.
+- **Local `STRIPE_SECRET_KEY` is a TEST key** — live Stripe lookups aren't possible from scripts; ask Chris for the amount/ID from the Stripe dashboard.
 - **Planner popover evidence (S434):** `extractMovementsFromWod(..., evidence?)` / `extractMovementsFromText(..., evidence?, label?)` record the source per movement (lift 3 > bullet/number line 2 > sentence 1). Counts unchanged (verified 730 wods). Stray bare names ("Lunge & Snatch") → fix the text with `rewrite-workout-lines.ts`, never rename the library (S434: Snatch had 1 wrong hit in 16, Clean 1 in 30 — not worth "Barbell Snatch").
 - **Popover times (S434):** `fetchPublishedWorkouts` now carries `weekly_sessions.time`; `lastUniqueWorkouts` returns `times[]` for the latest date.
 
@@ -181,6 +184,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 435 (2026-11-20 — Opus 5.5, Mac) — WELLPASS SYNC + KIDS 10-CARD (all pushed, build clean)**
+- "Team: Bumper Plate Frog Catcher" → "Crocodile Frog Catcher" in 5 kids wods + 2 names + 2 calendar titles.
+- Wellpass: Mon–Sun guard (`af8bc00`), legend rewrite (`c394350`), Excel-always-wins zero-fill (`a5c4fdb`); `scripts/compare-wellpass-excel.ts`.
+- Kids 10-Card price server-side + note records card type (`3e415c1`); Payment tab buys for the child (`0bba5fc`).
+- Markus Fischer's 14.11 Kids card (€85) moved to Jano (2/10); Markus back on 12.10 cash card (6/10); Jano 16.11 booking marked consumed.
+
 **Session 434 (2026-11-18 — Opus 5.5, Mac) — PLANNER POPOVER CLARITY (all pushed, build clean)**
 - Last-5 popovers show the line that got each workout counted (`dbd88f0`) + class times (`d5f330e`).
 - Open #26.2 "Lunge & Snatch" → "Lunge & DB Alternating Snatch" (6 wods); Chris fixed 9.10 "Snatch game" → "Grab" himself.
@@ -205,12 +214,7 @@ Athlete Tools
 - Full 10-card can't book anything on release day after the release time (`79b31e3`).
 - "No more bookings" note moved to the last-session message (`95475a2`).
 
-**Session 430 (2026-11-03 — Opus 5.5, Mac) — PHONE WHITEBOARD + FOUNDATIONS CLEARANCE (all pushed, build clean)**
-- Cloud environment "Forge Whiteboard" (Limited network + `*.supabase.co`, Supabase URL + service key as env vars, setup `cd /home/user/FFF && npm ci || true`); Claude GitHub App installed on Chris-Mimi → FFF. Guide: `Chris Notes/Workflow & Git/whiteboard-from-phone-setup.md`.
-- 45.1 entered from the phone (record merged from `claude/whiteboard-45-1-qscfre`). Phone sessions now push straight to main (untested).
-- Foundations clearance (`96f5b27`): `foundations_clearances` table, `workout_titles.open_to_foundations`, booking-route block, Members chip + Clear button, Booking Rules tick-boxes, athlete-page lock.
-
-**Older sessions (57-429):** See `project-history/` folder.
+**Older sessions (57-430):** See `project-history/` folder.
 
 ---
 
@@ -241,6 +245,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+00. **Wellpass re-sync (S435):** Chris syncs the corrected Excel once the `a5c4fdb` deploy is live → run `scripts/compare-wellpass-excel.ts` → expect 0 differences. Check whether either Anna got blocked by that sync.
 0. **Salma Berraho (S433):** Guardian Only with a confirmed booking 13.11 15:00 — ask Chris once what to do; don't act without him.
 1. **Whiteboard — entered from the phone through 47.2 (17.11).** Next boards when Chris uploads. At Mac session start: `git pull` + branch housekeeping (claude-rules).
 1a. **Foundations clearance — live (S430), kids <16 exempt + kids-only booking (S431).** Check with Chris: works for Magdalena? Bianca to unclear? Booking Rules tick-boxes right? (Lena Rothe left the gym — restored as blocked, S432.)
