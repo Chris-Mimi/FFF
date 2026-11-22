@@ -1,0 +1,35 @@
+{
+ "note": "2026 Week 47.2 (updated). Far-right column. Top = 22.11 10:00 AMRAP ladder Hang Power Snatch (Load 1, Rx 20/30kg) / Push-up to Bbl (Scaling 1) / Roll-out (Scaling 2) / SMC; 'Rx' barbell = prescribed load. Bottom = 22.11 11:00 12-min AMRAP HSPU (Scaling 1) / KB Halo (Load 1); R+R. Kia = trial.",
+ "sessions": [
+  {
+   "date": "2026-11-22",
+   "time": "10:00",
+   "sectionId": "section-1782044000428-4",
+   "rows": [
+    { "member": "Rosita Blum", "weight_result": 17.5, "scaling_level": "Sc1", "scaling_level_2": "Rx", "rounds_result": 6, "reps_result": 14 },
+    { "member": "Martina Fenster", "weight_result": 20, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 7, "reps_result": 20 },
+    { "member": "Nikolina Vlasalija", "weight_result": 20, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 7, "reps_result": 4 },
+    { "member": "Justine Baumstark", "weight_result": 20, "scaling_level": "Sc1", "scaling_level_2": "Sc1", "rounds_result": 7, "reps_result": 8 },
+    { "member": "Mimi Hiles", "book": true, "weight_result": 20, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 9, "reps_result": 29 },
+    { "member": "Thomas Graf", "weight_result": 30, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 7, "reps_result": 12 },
+    { "member": "Carmine Carrozzo", "weight_result": 30, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 7, "reps_result": 5 },
+    { "member": "Lukas Simnacher", "weight_result": 30, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 9, "reps_result": 24 },
+    { "member": "Chris Hiles", "book": true, "weight_result": 30, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 9, "reps_result": 25 },
+    { "member": "Manuel Hengge", "weight_result": 17.5, "scaling_level": "Rx", "scaling_level_2": "Rx", "rounds_result": 7, "reps_result": 16 }
+   ]
+  },
+  {
+   "date": "2026-11-22",
+   "time": "11:00",
+   "sectionId": "section-1768316539541",
+   "rows": [
+    { "member": "Anna Hohenadl", "scaling_level": "Sc3", "weight_result": 10, "rounds_result": 6, "reps_result": 0 },
+    { "member": "Anna Mavrommatis-Karaaslan", "scaling_level": "Sc3", "weight_result": 12, "rounds_result": 6, "reps_result": 2 },
+    { "member": "Angela Schulz", "scaling_level": "Sc3", "weight_result": 10, "rounds_result": 7, "reps_result": 0 },
+    { "whiteboard": "Kia", "scaling_level": "Sc3", "weight_result": 8, "rounds_result": 5, "reps_result": 0 },
+    { "member": "Magdalena Gebska", "scaling_level": "Sc3", "weight_result": 12, "rounds_result": 6, "reps_result": 0 },
+    { "member": "Ferdi Karaaslan", "scaling_level": "Sc3", "weight_result": 16, "rounds_result": 5, "reps_result": 0 }
+   ]
+  }
+ ]
+}
