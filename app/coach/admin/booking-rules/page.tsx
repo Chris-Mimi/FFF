@@ -736,10 +736,10 @@ export default function BookingRulesPage() {
                   <li>
                     A second booking on release day is refused with:{' '}
                     <em>
-                      &quot;Als eingeschränktes Wellpass-Mitglied kannst du am Veröffentlichungstag
-                      (Sonntag) nur einen Kurs buchen. Ab morgen kannst du den Rest der Woche buchen.
-                      Bitte sprich mit Coach Chris, wenn das ein Fehler ist.&quot;
-                    </em>
+                      &quot;Heute ist nur eine Buchung möglich. Ab morgen kannst du den Rest der Woche
+                      buchen. Sprich mit Chris oder Mimi, wenn du Fragen hast.&quot;
+                    </em>{' '}
+                    Deliberately gives no reason and never mentions Wellpass.
                   </li>
                 </ul>
               </div>

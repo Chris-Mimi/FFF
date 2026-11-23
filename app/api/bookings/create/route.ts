@@ -341,7 +341,9 @@ export async function POST(request: NextRequest) {
     let releaseDayCapApplies = false;
     let releaseDayStart: Date | null = null;
     const releaseDayCapMessage =
-      'Als eingeschränktes Wellpass-Mitglied kannst du am Veröffentlichungstag (Sonntag) nur einen Kurs buchen. Ab morgen kannst du den Rest der Woche buchen. Bitte sprich mit Coach Chris, wenn das ein Fehler ist.';
+      // S436 (Chris): athlete-facing text must never name Wellpass or a restriction tier —
+      // contractually Wellpass members get the same offer. No reason given on purpose.
+      'Heute ist nur eine Buchung möglich. Ab morgen kannst du den Rest der Woche buchen. Sprich mit Chris oder Mimi, wenn du Fragen hast.';
     if (member.wellpass_booking_restricted) {
       const nowBerlin = berlinWallClock(new Date());
       if (nowBerlin.dow === rules.next_week_release_day_of_week) {
