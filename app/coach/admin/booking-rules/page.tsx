@@ -553,6 +553,61 @@ export default function BookingRulesPage() {
             </div>
           </div>
 
+          {/* S436: plain-language summary of the 10-card blocks in /api/bookings/create. Keep in sync with that route. */}
+          <details className='mb-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-gray-700'>
+            <summary className='cursor-pointer font-medium text-gray-800'>
+              10-card: who gets blocked from booking, and when
+            </summary>
+            <div className='mt-3 space-y-3'>
+              <p>
+                <strong>Who:</strong> athletes whose <em>Pay with</em> is 10-card. A kid who shares a
+                parent&apos;s card books against the parent&apos;s card.
+              </p>
+              <p>
+                <strong>Sessions left</strong> = Total Sessions − Sessions Used − open waitlist spots
+                (today or later) of everyone on that card. A waitlist spot counts because it debits the
+                card when the athlete moves up.
+              </p>
+              <div>
+                <strong>The rules (checked in this order when the athlete taps Book or Waitlist):</strong>
+                <ol className='list-decimal pl-5 mt-1 space-y-1'>
+                  <li>
+                    <strong>Expired more than 1 month ago</strong> → blocked. Up to 1 month after the
+                    expiry date they can still book, with a reminder in the message.
+                  </li>
+                  <li>
+                    <strong>Already 1 over</strong> (sessions left below 0) → blocked, any day.
+                  </li>
+                  <li>
+                    <strong>
+                      Card full on release day ({DAY_LABELS[Number(form.next_week_release_day_of_week)] ?? '?'}),
+                      from {form.next_week_release_time || '?'} to midnight
+                    </strong>{' '}
+                    (sessions left 0 or below) → blocked, for any class, this week or next. The
+                    &quot;one over&quot; allowance does not apply in this window.
+                  </li>
+                  <li>
+                    <strong>Card full at any other time</strong> → they may book <em>one</em> more
+                    session (the card goes to 1 over), then rule 2 blocks them.
+                  </li>
+                </ol>
+              </div>
+              <p>
+                <strong>What the athlete sees:</strong> the booking is refused with a German message
+                telling them to buy a new 10-card in the app or talk to Chris or Mimi. No notification
+                is sent to coaches.
+              </p>
+              <p>
+                <strong>How they get unblocked:</strong> buy a new 10-card in the app (Payment tab), or
+                you take cash and use <em>Close &amp; Issue New</em> on their card.
+              </p>
+              <p>
+                <strong>Coaches are never blocked:</strong> bookings you add (Session Management, Add
+                Member Manually) skip all of these rules.
+              </p>
+            </div>
+          </details>
+
           <div className='mb-5'>
             <label className='block text-sm font-medium text-gray-700 mb-1'>
               Wellpass restricted-tier offset
