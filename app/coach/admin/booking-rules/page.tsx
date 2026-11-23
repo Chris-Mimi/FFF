@@ -630,6 +630,83 @@ export default function BookingRulesPage() {
             </div>
           </div>
 
+          {/* S436: plain-language summary of Wellpass blocking — lib/coach/wellpassScoring.ts
+              (suggestion rules), /api/bookings/create (enforcement). Keep in sync. */}
+          <details className='mb-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-gray-700'>
+            <summary className='cursor-pointer font-medium text-gray-800'>
+              Wellpass: who gets blocked from booking, and when
+            </summary>
+            <div className='mt-3 space-y-3'>
+              <p>
+                <strong>Nobody is blocked automatically.</strong> The Sunday Excel sync only{' '}
+                <em>suggests</em> households (amber <em>review</em> on Members → Wellpass). A block
+                happens only when you set the household to <em>blocked</em> (or click Block on one
+                member). A re-sync never blocks or unblocks anyone.
+              </p>
+              <p>
+                <strong>Who is checked:</strong> tracked Wellpass households with at least one linked
+                member. <em>Min</em> = that household&apos;s weekly minimum check-ins. Logins come from
+                the Excel; attendances = confirmed app bookings of every linked member.
+              </p>
+              <div>
+                <strong>The sync suggests a block when any of these fails:</strong>
+                <ol className='list-decimal pl-5 mt-1 space-y-1'>
+                  <li>
+                    <strong>Last 4 weeks:</strong> Wellpass logins below 3 × Min (one short week is
+                    allowed).
+                  </li>
+                  <li>
+                    <strong>Last 12 weeks:</strong> logins below 9 × Min (three short weeks allowed).
+                  </li>
+                  <li>
+                    <strong>Shared households only (2+ linked members), last 13 weeks:</strong> logins
+                    ÷ attendances below 1.5.
+                  </li>
+                </ol>
+                <p className='mt-1'>
+                  Each rule waits until the household has that many weeks on record, so new
+                  households can&apos;t be flagged straight away.
+                </p>
+              </div>
+              <p>
+                <strong>Never suggested:</strong> paused households, and exempt ones — with
+                Exemption on <em>Auto</em>, a household is exempt when any linked member pays for the
+                Athlete App; <em>Always exempt</em> / <em>Always enforce</em> override that.
+              </p>
+              <div>
+                <strong>What a block does</strong> (per member, all marked members of the household):
+                <ol className='list-decimal pl-5 mt-1 space-y-1'>
+                  <li>
+                    Next week opens{' '}
+                    <strong>
+                      {Number(form.wellpass_restricted_release_offset_minutes) || 0} minutes later
+                    </strong>{' '}
+                    than for everyone else (the offset above; 0 = no delay).
+                  </li>
+                  <li>
+                    On release day ({DAY_LABELS[Number(form.next_week_release_day_of_week)] ?? '?'})
+                    they can make only <strong>one</strong> confirmed booking. From the next day they
+                    book the rest of the week normally.
+                  </li>
+                </ol>
+                <p className='mt-1'>
+                  Pausing a household lifts the one-booking limit but not the later opening — set it to{' '}
+                  <em>ok</em> to lift both.
+                </p>
+              </div>
+              <p>
+                <strong>What the athlete sees:</strong> next week&apos;s classes appear later, and a
+                second release-day booking is refused with a German message saying they can book the
+                rest of the week from tomorrow. No notification is sent.
+              </p>
+              <p>
+                <strong>How they get unblocked:</strong> only by you — set the household to{' '}
+                <em>ok</em>/<em>review</em>, click Unblock on the member, or use <em>Unblock all</em>.
+                Coach-added bookings skip all of this.
+              </p>
+            </div>
+          </details>
+
           {message && (
             <div
               className={`mb-4 px-4 py-2 rounded text-sm ${
