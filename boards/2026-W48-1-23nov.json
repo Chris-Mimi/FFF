@@ -1,0 +1,53 @@
+{
+ "note": "2026 Week 48.1. 23.11 17:15 (Valerie..Wayne) + 18:30 (Anfisa..Thomas S). Strength = Partner Superset Barbell Hip Thrust (load 1) + Bent Over Row (load 2), NOT an RM — reference weights only, section has no lifts[] so no Lifts entries. WOD = R+R. Dinny '3+21': trailing digit has no crossbar = 1.",
+ "sessions": [
+  {
+   "date": "2026-11-23", "time": "17:15", "sectionId": "section-1795349978088-3",
+   "rows": [
+    { "member": "Valerie Mesenburg", "weight_result": 60, "weight_result_2": 25 },
+    { "member": "Dimitar Peresyov", "weight_result": 100, "weight_result_2": 70 },
+    { "member": "Lukas Simnacher", "weight_result": 90, "weight_result_2": 65 },
+    { "member": "Senol", "weight_result": 120, "weight_result_2": 70 },
+    { "member": "Wayne Lucas", "weight_result": 90, "weight_result_2": 50 }
+   ]
+  },
+  {
+   "date": "2026-11-23", "time": "17:15", "sectionId": "section-1795349978088-6",
+   "rows": [
+    { "member": "Valerie Mesenburg", "rounds_result": 4, "reps_result": 3 },
+    { "member": "Dimitar Peresyov", "rounds_result": 4, "reps_result": 3 },
+    { "member": "Lukas Simnacher", "rounds_result": 4, "reps_result": 28 },
+    { "member": "Senol", "rounds_result": 2, "reps_result": 2 },
+    { "member": "Wayne Lucas", "rounds_result": 4, "reps_result": 20 }
+   ]
+  },
+  {
+   "date": "2026-11-23", "time": "18:30", "sectionId": "section-1795349978088-3",
+   "rows": [
+    { "member": "Anfisa Bornemann", "weight_result": 60, "weight_result_2": 30 },
+    { "member": "Carla Courtois", "weight_result": 55, "weight_result_2": 30 },
+    { "member": "Dinny Braatz", "weight_result": 60, "weight_result_2": 30 },
+    { "member": "Kathrin Mühlen", "weight_result": 65, "weight_result_2": 40 },
+    { "member": "Nikolina Vlasalija", "weight_result": 65, "weight_result_2": 25 },
+    { "member": "Daniel Braatz", "weight_result": 60, "weight_result_2": 40 },
+    { "member": "Michael Weber", "weight_result": 60, "weight_result_2": 50 },
+    { "member": "Paul Bielenski", "weight_result": 100, "weight_result_2": 80 },
+    { "member": "Thomas Spegele", "weight_result": 100, "weight_result_2": 70 }
+   ]
+  },
+  {
+   "date": "2026-11-23", "time": "18:30", "sectionId": "section-1795349978088-6",
+   "rows": [
+    { "member": "Anfisa Bornemann", "rounds_result": 3, "reps_result": 8 },
+    { "member": "Carla Courtois", "rounds_result": 3, "reps_result": 1 },
+    { "member": "Dinny Braatz", "rounds_result": 3, "reps_result": 21 },
+    { "member": "Kathrin Mühlen", "rounds_result": 4, "reps_result": 38 },
+    { "member": "Nikolina Vlasalija", "rounds_result": 3, "reps_result": 0 },
+    { "member": "Daniel Braatz", "rounds_result": 3, "reps_result": 42 },
+    { "member": "Michael Weber", "rounds_result": 4, "reps_result": 10 },
+    { "member": "Paul Bielenski", "rounds_result": 3, "reps_result": 30 },
+    { "member": "Thomas Spegele", "rounds_result": 3, "reps_result": 17 }
+   ]
+  }
+ ]
+}
