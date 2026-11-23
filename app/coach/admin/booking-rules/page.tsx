@@ -694,11 +694,24 @@ export default function BookingRulesPage() {
                   <em>ok</em> to lift both.
                 </p>
               </div>
-              <p>
-                <strong>What the athlete sees:</strong> next week&apos;s classes appear later, and a
-                second release-day booking is refused with a German message saying they can book the
-                rest of the week from tomorrow. No notification is sent.
-              </p>
+              <div>
+                <strong>What the athlete sees</strong> (no notification is sent):
+                <ul className='list-disc pl-5 mt-1 space-y-1'>
+                  <li>
+                    Before their later opening time, the same countdown banner as everyone else, just
+                    counting to their time: <em>&quot;Buchungen für nächste Woche öffnen in 1 Std. 30
+                    Min.&quot;</em> It doesn&apos;t say why.
+                  </li>
+                  <li>
+                    A second booking on release day is refused with:{' '}
+                    <em>
+                      &quot;Als eingeschränktes Wellpass-Mitglied kannst du am Veröffentlichungstag
+                      (Sonntag) nur einen Kurs buchen. Ab morgen kannst du den Rest der Woche buchen.
+                      Bitte sprich mit Coach Chris, wenn das ein Fehler ist.&quot;
+                    </em>
+                  </li>
+                </ul>
+              </div>
               <p>
                 <strong>How they get unblocked:</strong> only by you — set the household to{' '}
                 <em>ok</em>/<em>review</em>, click Unblock on the member, or use <em>Unblock all</em>.
