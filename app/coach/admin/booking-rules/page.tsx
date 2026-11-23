@@ -572,11 +572,30 @@ export default function BookingRulesPage() {
                 <strong>The rules (checked in this order when the athlete taps Book or Waitlist):</strong>
                 <ol className='list-decimal pl-5 mt-1 space-y-1'>
                   <li>
-                    <strong>Expired more than 1 month ago</strong> → blocked. Up to 1 month after the
-                    expiry date they can still book, with a reminder in the message.
+                    <strong>Expired more than 1 month ago</strong> → blocked:{' '}
+                    <em>
+                      &quot;Deine 10er-Karte ist seit über einem Monat abgelaufen. Bitte kaufe eine neue
+                      10er-Karte in der App oder melde dich bei uns.&quot;
+                    </em>
+                    <br />
+                    Up to 1 month after the expiry date they can still book; the booking message then
+                    ends with:{' '}
+                    <em>&quot;⚠️ Deine 10er-Karte ist am 01.12.2026 abgelaufen – bitte kaufe bald eine neue.&quot;</em>{' '}
+                    (their expiry date).
                   </li>
                   <li>
-                    <strong>Already 1 over</strong> (sessions left below 0) → blocked, any day.
+                    <strong>Already 1 over</strong> (sessions left below 0) → blocked, any day:{' '}
+                    <em>
+                      &quot;Deine 10er-Karte ist bereits um 1 Session überzogen. Bitte kaufe eine neue
+                      10er-Karte in der App – oder sprich mit Chris oder Mimi.&quot;
+                    </em>
+                    <br />
+                    If they are only over because of an open waitlist spot:{' '}
+                    <em>
+                      &quot;Deine 10er-Karte ist voll und dein Wartelistenplatz zählt schon als Session
+                      über dem Limit. Bitte kaufe eine neue 10er-Karte in der App – oder sprich mit Chris
+                      oder Mimi.&quot;
+                    </em>
                   </li>
                   <li>
                     <strong>
@@ -584,19 +603,31 @@ export default function BookingRulesPage() {
                       from {form.next_week_release_time || '?'} to midnight
                     </strong>{' '}
                     (sessions left 0 or below) → blocked, for any class, this week or next. The
-                    &quot;one over&quot; allowance does not apply in this window.
+                    &quot;one over&quot; allowance does not apply in this window:{' '}
+                    <em>
+                      &quot;Deine 10er-Karte ist voll. Bitte kaufe eine neue 10er-Karte in der App – oder
+                      sprich mit Chris oder Mimi.&quot;
+                    </em>
                   </li>
                   <li>
                     <strong>Card full at any other time</strong> → they may book <em>one</em> more
-                    session (the card goes to 1 over), then rule 2 blocks them.
+                    session (the card goes to 1 over), then rule 2 blocks them. That booking goes
+                    through with:{' '}
+                    <em>
+                      &quot;⚠️ Session gebucht – deine 10er-Karte ist jetzt um 1 Session überzogen. Bitte
+                      kaufe eine neue 10er-Karte in der App – oder sprich mit Chris oder Mimi.&quot;
+                    </em>
                   </li>
                 </ol>
               </div>
               <p>
-                <strong>What the athlete sees:</strong> the booking is refused with a German message
-                telling them to buy a new 10-card in the app or talk to Chris or Mimi. No notification
-                is sent to coaches.
+                <strong>Warning on the last session of the card</strong> (booking goes through):{' '}
+                <em>
+                  &quot;🎫 Session gebucht – das war die letzte Session auf deiner 10er-Karte! Weitere
+                  Buchungen sind erst mit einer neuen 10er-Karte möglich.&quot;
+                </em>
               </p>
+              <p>No notification is sent to coaches.</p>
               <p>
                 <strong>How they get unblocked:</strong> buy a new 10-card in the app (Payment tab), or
                 you take cash and use <em>Close &amp; Issue New</em> on their card.
