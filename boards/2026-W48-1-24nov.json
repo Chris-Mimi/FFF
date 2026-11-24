@@ -1,0 +1,37 @@
+{
+ "note": "2026 Week 48.1 update, from 'Angie' down = 24.11 18:00 (same Hip Thrust/BOR + R+R WOD). Angie = Angela Schulz (only Angela booked; alias not in name map). Max + Manu A = listed trials. Manu A R+R = dash -> modified 'Did not score'.",
+ "sessions": [
+  {
+   "date": "2026-11-24", "time": "18:00", "sectionId": "section-1795349978088-3",
+   "rows": [
+    { "member": "Angela Schulz", "weight_result": 35, "weight_result_2": 17.5 },
+    { "member": "Franziska Herndorf", "weight_result": 65, "weight_result_2": 30 },
+    { "member": "Jolanda Greif", "weight_result": 30, "weight_result_2": 17.5 },
+    { "member": "Justine Baumstark", "weight_result": 40, "weight_result_2": 30 },
+    { "member": "Magdalena Gebska", "weight_result": 35, "weight_result_2": 17.5 },
+    { "member": "Marion Weber", "weight_result": 65, "weight_result_2": 30 },
+    { "member": "Martina Fenster", "weight_result": 30, "weight_result_2": 30 },
+    { "member": "Bodo Lehmann", "weight_result": 45, "weight_result_2": 50 },
+    { "whiteboard": "Manu A", "weight_result": 40, "weight_result_2": 25 },
+    { "member": "Markus Fischer", "weight_result": 70, "weight_result_2": 60 },
+    { "whiteboard": "Max", "weight_result": 40, "weight_result_2": 25 }
+   ]
+  },
+  {
+   "date": "2026-11-24", "time": "18:00", "sectionId": "section-1795349978088-6",
+   "rows": [
+    { "member": "Angela Schulz", "rounds_result": 3, "reps_result": 8 },
+    { "member": "Franziska Herndorf", "rounds_result": 3, "reps_result": 8 },
+    { "member": "Jolanda Greif", "rounds_result": 2, "reps_result": 16 },
+    { "member": "Justine Baumstark", "rounds_result": 2, "reps_result": 16 },
+    { "member": "Magdalena Gebska", "rounds_result": 2, "reps_result": 8 },
+    { "member": "Marion Weber", "rounds_result": 3, "reps_result": 3 },
+    { "member": "Martina Fenster", "rounds_result": 3, "reps_result": 6 },
+    { "member": "Bodo Lehmann", "rounds_result": 3, "reps_result": 9 },
+    { "whiteboard": "Manu A", "modified": true, "modified_note": "Did not score" },
+    { "member": "Markus Fischer", "rounds_result": 3, "reps_result": 14 },
+    { "whiteboard": "Max", "rounds_result": 3, "reps_result": 13 }
+   ]
+  }
+ ]
+}
