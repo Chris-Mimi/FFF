@@ -1,0 +1,17 @@
+{
+ "note": "23.11 10:00, typed by Chris (no photo). 15-min AMRAP: HSPU Kipping (Scaling 1), KB Halo 16/24kg (Load 1), R+R. Michi 'Rx' = 24kg + Rx HSPU. Sabrina did Dips instead of HSPU = modified. Dave Montgomery still to come.",
+ "sessions": [
+  {
+   "date": "2026-11-23", "time": "10:00", "sectionId": "section-1768316539541",
+   "rows": [
+    { "member": "Julia Weihe", "scaling_level": "Sc3", "weight_result": 10, "rounds_result": 5, "reps_result": 12 },
+    { "member": "Anna Kr", "scaling_level": "Sc3", "weight_result": 12, "rounds_result": 5, "reps_result": 26 },
+    { "member": "Irene Koffler", "scaling_level": "Sc3", "weight_result": 12, "rounds_result": 5, "reps_result": 33 },
+    { "member": "Mimi Hiles", "scaling_level": "Sc1", "weight_result": 16, "rounds_result": 5, "reps_result": 1 },
+    { "member": "Michael Städele", "scaling_level": "Rx", "weight_result": 24, "rounds_result": 4, "reps_result": 21 },
+    { "member": "Aline von Rüden", "scaling_level": "Sc3", "weight_result": 12, "rounds_result": 5, "reps_result": 3 },
+    { "member": "Sabrina Lucas", "weight_result": 6, "rounds_result": 6, "reps_result": 0, "modified": true, "modified_note": "Dips instead of HSPU" }
+   ]
+  }
+ ]
+}
