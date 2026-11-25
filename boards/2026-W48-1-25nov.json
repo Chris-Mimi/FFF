@@ -1,0 +1,50 @@
+{
+ "note": "2026 Week 48.1 update. Left column, last 5 (Carmine..Mimi) = 25.11 09:30 Hip Thrust (Load 1) / BOR (Load 2) + R+R WOD. Right column 'Cindy' 25.11: Helen..Wayne = 17:15, Amelie..Tobi = 18:30. Pull-ups = Scaling 1, Push-ups = Scaling 2, Air Squats = Scaling 3. Chris unbooked -> 17:15 (sits among 17:15 names).",
+ "sessions": [
+  {
+   "date": "2026-11-25", "time": "09:30", "sectionId": "section-1795349978088-3",
+   "rows": [
+    { "member": "Carmine Carrozzo", "weight_result": 121, "weight_result_2": 70 },
+    { "member": "Michael Städele", "weight_result": 121, "weight_result_2": 70 },
+    { "member": "Irene Koffler", "weight_result": 47.5, "weight_result_2": 32.5 },
+    { "member": "Anna Kr", "weight_result": 52.5, "weight_result_2": 30 },
+    { "member": "Mimi Hiles", "weight_result": 80, "weight_result_2": 50 }
+   ]
+  },
+  {
+   "date": "2026-11-25", "time": "09:30", "sectionId": "section-1795349978088-6",
+   "rows": [
+    { "member": "Carmine Carrozzo", "rounds_result": 3, "reps_result": 30 },
+    { "member": "Michael Städele", "rounds_result": 4, "reps_result": 10 },
+    { "member": "Irene Koffler", "rounds_result": 3, "reps_result": 16 },
+    { "member": "Anna Kr", "rounds_result": 3, "reps_result": 8 },
+    { "member": "Mimi Hiles", "rounds_result": 4, "reps_result": 4 }
+   ]
+  },
+  {
+   "date": "2026-11-25", "time": "17:15", "sectionId": "section-1774191504868-4",
+   "rows": [
+    { "member": "Helen Schüler", "scaling_level": "Sc3", "scaling_level_2": "Sc2", "scaling_level_3": "Rx", "rounds_result": 11, "reps_result": 7 },
+    { "member": "Julia Weihe", "scaling_level": "Sc3", "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 7, "reps_result": 0 },
+    { "member": "Lena Jähn", "scaling_level": "Rx", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 8, "reps_result": 0 },
+    { "member": "Valerie Mesenburg", "scaling_level": "Sc2", "scaling_level_2": "Sc1", "scaling_level_3": "Rx", "rounds_result": 11, "reps_result": 15 },
+    { "member": "Chris Hiles", "book": true, "scaling_level": "Rx", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 14, "reps_result": 5 },
+    { "member": "Lukas Simnacher", "scaling_level": "Rx", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 13, "reps_result": 20 },
+    { "member": "Thomas Graf", "scaling_level": "Sc2", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 8, "reps_result": 5 },
+    { "member": "Wayne Lucas", "scaling_level": "Rx", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 12, "reps_result": 5 }
+   ]
+  },
+  {
+   "date": "2026-11-25", "time": "18:30", "sectionId": "section-1774191504868-4",
+   "rows": [
+    { "member": "Amelie Kirch", "scaling_level": "Sc1", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 11, "reps_result": 11 },
+    { "member": "Anja Götte", "scaling_level": "Rx", "scaling_level_2": "Sc1", "scaling_level_3": "Rx", "rounds_result": 11, "reps_result": 15 },
+    { "member": "Anfisa Bornemann", "scaling_level": "Sc3", "scaling_level_2": "Sc2", "scaling_level_3": "Rx", "rounds_result": 9, "reps_result": 0 },
+    { "member": "Martina Fenster", "scaling_level": "Sc3", "scaling_level_2": "Sc2", "scaling_level_3": "Sc2", "rounds_result": 8, "reps_result": 13 },
+    { "member": "Nikolina Vlasalija", "scaling_level": "Sc3", "scaling_level_2": "Sc2", "scaling_level_3": "Rx", "rounds_result": 11, "reps_result": 8 },
+    { "member": "Senol Özdilek", "scaling_level": "Sc3", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 9, "reps_result": 5 },
+    { "member": "Tobias Götte", "scaling_level": "Rx", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 13, "reps_result": 5 }
+   ]
+  }
+ ]
+}
