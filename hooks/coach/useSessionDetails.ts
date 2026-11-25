@@ -41,6 +41,9 @@ export interface Booking {
   // True when this athlete books against someone else's card (family sharing),
   // so the count shown is the whole family's, not just theirs.
   tenCardShared: boolean;
+  // S436: 10-card user whose card (own or holder's) has no purchase date = not paid
+  // yet (e.g. trial athlete approved on a verbal "10-card next visit"). Flag only.
+  tenCardUnpaid: boolean;
   // Wellpass sign-in reminder (S418): set when the athlete is linked to a tracked
   // Wellpass pass; `low` = last synced week below the minimum (3).
   wellpass: WellpassSigninStatus | null;
@@ -209,9 +212,11 @@ export function useSessionDetails(
         let tenCardUsed: number | null = null;
         let tenCardTotal: number | null = null;
         let tenCardShared = false;
+        let tenCardUnpaid = false;
         if (effective === 'ten_card' && raw) {
           const holderId = (raw.ten_card_holder_id as string | null) || raw.id;
           const card = holderMap.get(holderId);
+          tenCardUnpaid = !!card && !card.purchaseDate;
           // Only attribute if the session falls within the active card's window.
           // A card with no purchase_date has no knowable window (22 of 68 holders
           // are paper-card carry-overs), so fall back to "today onwards": the live
@@ -242,6 +247,7 @@ export function useSessionDetails(
           tenCardUsed,
           tenCardTotal,
           tenCardShared,
+          tenCardUnpaid,
           wellpass: null as WellpassSigninStatus | null,
           // Strip the 10-card fields from the public member shape; downstream only
           // needs the original five.

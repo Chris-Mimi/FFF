@@ -333,6 +333,16 @@ export default function MemberCard({
                 </button>
               );
             })()}
+            {/* S436: no purchase date = 10-card not paid yet. Flag only, never blocks. */}
+            {member.membership_types?.includes('ten_card') && !member.ten_card_holder_id && !member.ten_card_purchase_date && (
+              <button
+                onClick={() => onOpenTenCard(member)}
+                className="px-2 py-0.5 rounded text-xs font-bold transition cursor-pointer bg-red-600 text-white hover:bg-red-700"
+                title="10-card not paid yet — no purchase date. Collect payment, then enter the purchase date here."
+              >
+                € unpaid
+              </button>
+            )}
             {member.membership_types?.includes('wellpass') && (
               <button
                 onClick={() => onOpenTenCard(member)}

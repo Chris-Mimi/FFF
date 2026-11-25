@@ -152,6 +152,14 @@ export default function BookingListItem({
             {cardCountLabel}
           </span>
         )}
+        {showCardWarning && booking.tenCardUnpaid && (
+          <span
+            className='text-[10px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded'
+            title={`10-card not paid yet — no purchase date on ${booking.tenCardShared ? "the card holder's" : 'their'} card. Collect payment, then enter the purchase date in the 10-card window.`}
+          >
+            € unpaid
+          </span>
+        )}
         {cardTier === 'overage' && (
           <span className='text-[10px] font-bold text-white bg-red-600 px-1.5 py-0.5 rounded'>
             ⚠ Over by {Math.abs(remaining ?? 0)}

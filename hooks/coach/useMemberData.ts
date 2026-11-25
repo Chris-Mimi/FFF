@@ -5,6 +5,17 @@ import { useRouter } from 'next/navigation';
 import { MemberStatus, MembershipType, ClassType, Member, getAge } from '@/types/member';
 import { sessionStartInstant } from '@/lib/bookingRules';
 
+// S436: a 10-card holder (not a sharer) with no purchase date = card not paid yet —
+// e.g. a trial athlete approved on a verbal "10-card next visit". Flag only, never blocks.
+// Paying in the app or entering the purchase date in the 10-card window clears it.
+function isUnpaidTenCard(m: {
+  membership_types?: string[] | null;
+  ten_card_holder_id?: string | null;
+  ten_card_purchase_date?: string | null;
+}): boolean {
+  return !!m.membership_types?.includes('ten_card') && !m.ten_card_holder_id && !m.ten_card_purchase_date;
+}
+
 export function useMemberData() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<MemberStatus>('active');
@@ -17,6 +28,7 @@ export function useMemberData() {
   const [pendingCount, setPendingCount] = useState(0);
   const [atRiskCount, setAtRiskCount] = useState(0);
   const [lowTenCardCount, setLowTenCardCount] = useState(0);
+  const [unpaidTenCardCount, setUnpaidTenCardCount] = useState(0);
   const [unlinkedWhiteboardNames, setUnlinkedWhiteboardNames] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -98,12 +110,13 @@ export function useMemberData() {
     try {
       const { data, error } = await supabase
         .from('members')
-        .select('ten_card_sessions_used, ten_card_total, membership_types')
+        .select('ten_card_sessions_used, ten_card_total, membership_types, ten_card_purchase_date, ten_card_holder_id')
         .eq('status', 'active')
         .neq('parked', true)
         .contains('membership_types', ['ten_card']);
       if (error || !data) {
         setLowTenCardCount(0);
+        setUnpaidTenCardCount(0);
         return;
       }
       const count = data.filter(m => {
@@ -112,9 +125,11 @@ export function useMemberData() {
         return total - used <= 1;
       }).length;
       setLowTenCardCount(count);
+      setUnpaidTenCardCount(data.filter(isUnpaidTenCard).length);
     } catch (error) {
       console.error('Error fetching low ten-card count:', error);
       setLowTenCardCount(0);
+      setUnpaidTenCardCount(0);
     }
   };
 
@@ -463,16 +478,19 @@ export function useMemberData() {
         });
       }
 
-      // Filter low-ten-card: only ten-card members with <= 1 sessions remaining (includes overage).
-      // Sort: smallest remaining first (overages on top).
+      // Filter low-ten-card: ten-card members with <= 1 sessions remaining (includes overage),
+      // plus unpaid cards (S436). Sort: unpaid first, then smallest remaining (overages on top).
       if (status === 'low-ten-card') {
         membersWithAttendance = membersWithAttendance
           .filter(member => {
             const total = member.ten_card_total ?? 10;
             const used = member.ten_card_sessions_used ?? 0;
-            return total - used <= 1;
+            return total - used <= 1 || isUnpaidTenCard(member);
           })
           .sort((a, b) => {
+            const aUnpaid = isUnpaidTenCard(a) ? 0 : 1;
+            const bUnpaid = isUnpaidTenCard(b) ? 0 : 1;
+            if (aUnpaid !== bUnpaid) return aUnpaid - bUnpaid;
             const aRem = (a.ten_card_total ?? 10) - (a.ten_card_sessions_used ?? 0);
             const bRem = (b.ten_card_total ?? 10) - (b.ten_card_sessions_used ?? 0);
             return aRem - bRem;
@@ -682,6 +700,7 @@ export function useMemberData() {
     pendingCount,
     atRiskCount,
     lowTenCardCount,
+    unpaidTenCardCount,
     membershipCounts,
     refreshData,
     refreshPendingCount,

@@ -56,6 +56,7 @@ export default function CoachMembersPage() {
     pendingCount,
     atRiskCount,
     lowTenCardCount,
+    unpaidTenCardCount,
     membershipCounts,
     refreshData,
     refreshPendingCount,
@@ -213,6 +214,14 @@ export default function CoachMembersPage() {
                   {lowTenCardCount}
                 </span>
               )}
+              {unpaidTenCardCount > 0 && activeTab !== 'low-ten-card' && (
+                <span
+                  className="inline-flex items-center justify-center px-1.5 h-4 md:h-5 text-[10px] md:text-xs font-bold text-white bg-red-600 rounded-full"
+                  title={`${unpaidTenCardCount} 10-card${unpaidTenCardCount === 1 ? '' : 's'} not paid yet (no purchase date)`}
+                >
+                  €{unpaidTenCardCount}
+                </span>
+              )}
             </div>
           </button>
           <button
@@ -339,7 +348,7 @@ export default function CoachMembersPage() {
               {activeTab === 'blocked' && 'No blocked members'}
               {activeTab === 'subscriptions' && 'No members with subscriptions'}
               {activeTab === 'at-risk' && 'No at-risk members — everyone is attending!'}
-              {activeTab === 'low-ten-card' && 'No 10-card members are running low.'}
+              {activeTab === 'low-ten-card' && 'No 10-card members are running low or unpaid.'}
               {activeTab === 'parked' && 'No parked members. Park an athlete from the Active tab to hide them here.'}
             </p>
           </div>
