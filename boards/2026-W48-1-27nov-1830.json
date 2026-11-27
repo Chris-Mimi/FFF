@@ -1,0 +1,16 @@
+{
+ "note": "2026 Week 48.1 update (2nd): '27.11.26 Foundations' block = 27.11 18:30 Cindy. Daniela St R+R = dash -> modified 'Did not score'.",
+ "sessions": [
+  {
+   "date": "2026-11-27", "time": "18:30", "sectionId": "section-1774191504868-4",
+   "rows": [
+    { "member": "Anna Mavrommatis-Karaaslan", "scaling_level": "Sc2", "scaling_level_2": "Sc3", "scaling_level_3": "Sc1", "rounds_result": 10, "reps_result": 0 },
+    { "member": "Daniela Struben", "scaling_level": "Sc3", "scaling_level_2": "Sc3", "scaling_level_3": "Rx", "modified": true, "modified_note": "Did not score" },
+    { "member": "Marion Heider", "scaling_level": "Sc3", "scaling_level_2": "Sc3", "scaling_level_3": "Sc2", "rounds_result": 7, "reps_result": 0 },
+    { "member": "Bodo Lehmann", "scaling_level": "Sc2", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 9, "reps_result": 26 },
+    { "member": "Ferdi Karaaslan", "scaling_level": "Sc3", "scaling_level_2": "Sc3", "scaling_level_3": "Rx", "rounds_result": 10, "reps_result": 15 },
+    { "member": "Sermet Gueler", "scaling_level": "Sc3", "scaling_level_2": "Sc3", "scaling_level_3": "Rx", "rounds_result": 9, "reps_result": 0 }
+   ]
+  }
+ ]
+}
