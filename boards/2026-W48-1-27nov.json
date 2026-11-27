@@ -1,0 +1,15 @@
+{
+ "note": "2026 Week 48.1 update 27.11: Cindy block 'Anna kr'..'Sven' = 27.11 09:00 (Pull-up Sc1 / Push-up Sc2 / Air Squat Sc3, R+R). 25.11 rows on the same photo were already in the DB and match the board.",
+ "sessions": [
+  {
+   "date": "2026-11-27", "time": "09:00", "sectionId": "section-1774191504868-4",
+   "rows": [
+    { "member": "Anna Kr", "scaling_level": "Sc3", "scaling_level_2": "Sc1", "scaling_level_3": "Rx", "rounds_result": 7, "reps_result": 0 },
+    { "member": "Justine Baumstark", "scaling_level": "Sc3", "scaling_level_2": "Sc2", "scaling_level_3": "Rx", "rounds_result": 8, "reps_result": 0 },
+    { "member": "David Montgomery", "scaling_level": "Sc3", "scaling_level_2": "Sc2", "scaling_level_3": "Sc1", "rounds_result": 9, "reps_result": 0 },
+    { "member": "Michael Städele", "scaling_level": "Rx", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 19, "reps_result": 12 },
+    { "member": "Sven Hujo", "scaling_level": "Sc1", "scaling_level_2": "Rx", "scaling_level_3": "Rx", "rounds_result": 10, "reps_result": 0 }
+   ]
+  }
+ ]
+}

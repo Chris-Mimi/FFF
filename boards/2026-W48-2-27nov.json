@@ -1,0 +1,21 @@
+{
+ "note": "2026 Week 48.2 = 27.11 17:15. 3 x (3 min erg for cals + DBPP/HPC/BGM triplet). calories_result = SkiErg + Rower + Airbike total. Load 1 = HPC barbell, Load 2 = DB. 'Rx' = prescribed (men BB 52 / DB 22.5). Scaling from the HPC tiers (W 34/25/20, M 52/35/30), switched on per protocol S389. Lukas all dashes = Did not score.",
+ "sessions": [
+  {
+   "date": "2026-11-27", "time": "17:15", "sectionId": "section-1795349979798-6",
+   "rows": [
+    { "member": "Amelie Kirch", "calories_result": 106, "weight_result": 25, "weight_result_2": 12.5, "scaling_level": "Sc1" },
+    { "member": "Martina Fenster", "calories_result": 108, "weight_result": 20, "weight_result_2": 12.5, "scaling_level": "Sc2" },
+    { "member": "Valerie Mesenburg", "calories_result": 111, "weight_result": 25, "weight_result_2": 12.5, "scaling_level": "Sc1" },
+    { "member": "Lukas Simnacher", "modified": true, "modified_note": "Did not score" },
+    { "member": "Michael Weber", "calories_result": 160, "weight_result": 35, "weight_result_2": 17.5, "scaling_level": "Sc1" },
+    { "member": "Paul Bielenski", "calories_result": 150, "weight_result": 52, "weight_result_2": 22.5, "scaling_level": "Rx" },
+    { "member": "Senol", "calories_result": 143, "weight_result": 52, "weight_result_2": 22.5, "scaling_level": "Rx" },
+    { "member": "Tobias Götte", "calories_result": 123, "weight_result": 52, "weight_result_2": 22.5, "scaling_level": "Rx" },
+    { "member": "Wayne Lucas", "calories_result": 153, "weight_result": 52, "weight_result_2": 22.5, "scaling_level": "Rx" },
+    { "member": "Nikolina Vlasalija", "calories_result": 83, "weight_result": 20, "weight_result_2": 7.5, "scaling_level": "Sc2" },
+    { "member": "Susi Glocker", "calories_result": 100, "weight_result": 20, "weight_result_2": 10, "scaling_level": "Sc2" }
+   ]
+  }
+ ]
+}
