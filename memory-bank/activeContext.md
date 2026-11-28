@@ -1,7 +1,7 @@
 # Active Context
 
-**Version:** 304
-**Updated:** 2026-11-20 (Session 435 — Opus 5.5, Mac. **Wellpass sync: Mon–Sun guard + Excel always wins + clearer legend; Kids 10-Card price enforced server-side + bought for the child; Markus's card moved to Jano; Crocodile Frog Catcher rename.** Previous: S434 — Planner popover counting line + class times.)
+**Version:** 305
+**Updated:** 2026-11-28 (Session 437 — Opus 5.5, Mac. **28 historical Cindy scores entered from Chris's dictation; new `scripts/insert-benchmark-results.ts`.** S436 left no log — see Kickoff. Previous: S435 — Wellpass sync guard, Kids 10-Card price.)
 
 ---
 
@@ -42,7 +42,9 @@ Synology Drive syncs files in the background and is **not git-aware**. When Chri
 
 _Updated at every session close. The "first 5 minutes of tomorrow" — read this immediately after the regular activeContext + latest project-history file._
 
-**S435 (2026-11-20, Mac) — Wellpass sync + Kids 10-Card fixes (all pushed, build clean, no SQL).** First action next session: `git pull` + branch housekeeping. **Then ask Chris if he re-synced the Wellpass Excel** — if yes, run `npx tsx scripts/compare-wellpass-excel.ts "<Chris's xlsm>"` (path in the script header) → expect 0 differences (end of S435: still 2 — Anna Mavrommatis-Karaaslan W43, Anna Krautwald W45, both stale 1s that should be 0). Whiteboard through 47.3 (20.11). Still unanswered from S434 (asked once at S435 start, no reply — don't re-ask every session): Salma Berraho · Sunday release block · Foundations/Magdalena/Bianca · "schreib uns" · Planner popover eyeball.
+**S437 (2026-11-28, Mac) — historical Cindy scores (DB only + one new script, build clean).** First action: `git pull` + branch housekeeping. **Chris may keep dictating historical benchmark scores** → `npx tsx scripts/insert-benchmark-results.ts <batch.json>` (format in the script header + S437 history). His shorthand: scalings in movement order (Cindy: Pull-up, Push-up, Air Squat), none written = all Rx, bare number = full rounds — just enter, don't ask. AMRAP only; check the stored format before extending to For Time / Load benchmarks. **S436 has no project-history file and this file skipped it** (commits `5331f61`…`6df3caf`: Booking Rules info boxes, release-day message without Wellpass, unpaid 10-card flag, Ferdi→Anna Wellpass link) — offered to back-fill from git, Chris didn't pick it up; "schreib uns" alignment is done (`5331f61`).
+
+**S435 (2026-11-20, Mac) — Wellpass sync + Kids 10-Card fixes.** **Ask Chris if he re-synced the Wellpass Excel** — if yes, run `npx tsx scripts/compare-wellpass-excel.ts "<Chris's xlsm>"` (path in the script header) → expect 0 differences (end of S435: still 2 — Anna Mavrommatis-Karaaslan W43, Anna Krautwald W45, both stale 1s that should be 0). Whiteboard through 47.3 (20.11). Still unanswered from S434 (asked once at S435 start, no reply — don't re-ask every session): Salma Berraho · Sunday release block · Foundations/Magdalena/Bianca · "schreib uns" · Planner popover eyeball.
 - **Wellpass sync (S435):** `/api/coach/wellpass/import` refuses the whole file if any week isn't Mon–Sun (Chris once exported Sun–Sat). Zero-fill now OVERWRITES (was `ignoreDuplicates`, which left stale counts when a re-synced week no longer listed a name). Counts are keyed by tab number (`Wk NN`); E1/F1 dates are only labels. Tab-number-vs-date check offered, not built.
 - **Kids 10-Card (S435):** `create-checkout` decides 10card vs 10card_kids server-side (household card's `buyProduct`, else holder `isMinor`) — before, the Payment tab let any adult buy the €85 card for themselves. Payment tab offers the Kids card FOR each own child <18 (`memberId` = child). Webhook notes now say "Bought in app — Kids 10-Card / 10-Card (Stripe …)". Book-page buy link only appears inside a full/expired/≤2-left warning — a first card for a child can only be bought on the Payment tab.
 - **Local `STRIPE_SECRET_KEY` is a TEST key** — live Stripe lookups aren't possible from scripts; ask Chris for the amount/ID from the Stripe dashboard.
@@ -184,6 +186,12 @@ Athlete Tools
 
 ## 📍 Current Status (Last 5 Sessions)
 
+**Session 437 (2026-11-26 → 28 — Opus 5.5, Mac) — HISTORICAL CINDY SCORES (DB + 1 script, build clean)**
+- Confirmed the S313–S355 lift import never covered benchmarks.
+- 28 Cindy `benchmark_results` rows: Chris (6), Mimi (4), Michael Städele (4), 16.09.25 class (14).
+- New `scripts/insert-benchmark-results.ts` (AMRAP batch insert, resolves names first, insert-only).
+- Found S436 undocumented (no history file, activeContext skipped it).
+
 **Session 435 (2026-11-20 — Opus 5.5, Mac) — WELLPASS SYNC + KIDS 10-CARD (all pushed, build clean)**
 - "Team: Bumper Plate Frog Catcher" → "Crocodile Frog Catcher" in 5 kids wods + 2 names + 2 calendar titles.
 - Wellpass: Mon–Sun guard (`af8bc00`), legend rewrite (`c394350`), Excel-always-wins zero-fill (`a5c4fdb`); `scripts/compare-wellpass-excel.ts`.
@@ -209,12 +217,7 @@ Athlete Tools
 - Steven Zaft = parked (keeps app to 16.04.27); Carla Courtois out of Subscriptions tab = correct (monthly ended 10.11).
 - "Share a card…" includes paper-card holders; child first-name-only → parent's surname; 21 kids renamed.
 
-**Session 431 (2026-11-03 — Opus 5.5, Mac) — KIDS-ONLY BOOKING, RELEASE-WINDOW 10-CARD BLOCK (all pushed, build clean)**
-- Kids under 16 book kids classes only; never need Foundations clearance (`81cfae0`, `aa059bd`, `d72a67a` — first 18, Chris chose 16).
-- Full 10-card can't book anything on release day after the release time (`79b31e3`).
-- "No more bookings" note moved to the last-session message (`95475a2`).
-
-**Older sessions (57-430):** See `project-history/` folder.
+**Older sessions (57-431):** See `project-history/` folder.
 
 ---
 
@@ -245,6 +248,7 @@ Athlete Tools
 
 ## 📋 Next Immediate Steps
 
+000. **Historical benchmark scores (S437):** Chris dictates → `scripts/insert-benchmark-results.ts`. Cindy so far (28 rows). S436 log back-fill offered, optional.
 00. **Wellpass re-sync (S435):** Chris syncs the corrected Excel once the `a5c4fdb` deploy is live → run `scripts/compare-wellpass-excel.ts` → expect 0 differences. Check whether either Anna got blocked by that sync.
 0. **Salma Berraho (S433):** Guardian Only with a confirmed booking 13.11 15:00 — ask Chris once what to do; don't act without him.
 1. **Whiteboard — entered from the phone through 47.3 (20.11).** Next boards when Chris uploads. At Mac session start: `git pull` + branch housekeeping (claude-rules).
