@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Check, Clock, Link2, Pause, Pencil, Play, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Check, Clock, Link2, Pause, Pencil, Play, StickyNote, Trash2, X } from 'lucide-react';
 import {
   MemberStatus,
   MembershipType,
@@ -85,7 +85,7 @@ interface MemberCardProps {
   onUnblock: (memberId: string) => void;
   onPark: (memberId: string) => void;
   onRestart: (memberId: string) => void;
-  onSaveReason: (memberId: string, field: 'park_reason' | 'block_reason', reason: string) => Promise<void>;
+  onSaveReason: (memberId: string, field: 'park_reason' | 'block_reason' | 'note', reason: string) => Promise<void>;
   onStartTrial: (memberId: string, days?: number) => void;
   onExtendTrial: (memberId: string, days?: number) => void;
   onActivateSubscription: (memberId: string) => void;
@@ -139,7 +139,7 @@ function ReasonEditor({
   reason: string | null | undefined;
   colorClass: string;
   disabled: boolean;
-  onSave: (memberId: string, field: 'park_reason' | 'block_reason', reason: string) => Promise<void>;
+  onSave: (memberId: string, field: 'park_reason' | 'block_reason' | 'note', reason: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(reason ?? '');
@@ -200,6 +200,85 @@ function ReasonEditor({
   );
 }
 
+/**
+ * S438: coach-only free-text note next to the member's name. Hover shows it as a
+ * pop-up; click (or tap on a phone) opens the editor. Saving empty deletes it.
+ * Stored in coach_member_notes.note (coach RLS only — athletes can't read it).
+ */
+function MemberNote({
+  memberId,
+  note,
+  disabled,
+  onSave,
+}: {
+  memberId: string;
+  note: string | null | undefined;
+  disabled: boolean;
+  onSave: (memberId: string, field: 'note', reason: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(note ?? '');
+
+  const startEdit = () => {
+    setValue(note ?? '');
+    setEditing(true);
+  };
+
+  const save = async () => {
+    setEditing(false);
+    if (value.trim() === (note ?? '').trim()) return; // no change
+    await onSave(memberId, 'note', value.trim());
+  };
+
+  return (
+    <span className="relative group inline-flex">
+      <button
+        onClick={startEdit}
+        aria-label={note ? 'Edit note' : 'Add note'}
+        title={note ? undefined : 'Add note'}
+        className={`p-0.5 rounded transition ${
+          note ? 'text-amber-300 hover:text-amber-200' : 'text-gray-600 hover:text-gray-300'
+        }`}
+      >
+        <StickyNote size={15} />
+      </button>
+      {note && !editing && (
+        <span className="pointer-events-none absolute left-0 top-full z-30 mt-1 hidden w-72 max-w-[80vw] whitespace-pre-wrap rounded-lg border border-amber-500/40 bg-gray-900 p-2.5 text-xs font-normal text-gray-100 shadow-xl group-hover:block">
+          {note}
+        </span>
+      )}
+      {editing && (
+        <span className="absolute left-0 top-full z-30 mt-1 block w-80 max-w-[85vw] rounded-lg border border-gray-600 bg-gray-900 p-2 shadow-xl">
+          <textarea
+            autoFocus
+            rows={5}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setEditing(false);
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save();
+            }}
+            placeholder="Where they came from, plans, when they're back…"
+            className="block w-full resize-y rounded border border-gray-600 bg-gray-800 px-2 py-1 text-sm font-normal text-white focus:border-teal-500 focus:outline-none"
+          />
+          <span className="mt-1.5 flex items-center justify-end gap-2">
+            <button onClick={() => setEditing(false)} className="px-2 py-1 text-xs text-gray-300 hover:text-white">
+              Cancel
+            </button>
+            <button
+              onClick={save}
+              disabled={disabled}
+              className="rounded bg-teal-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-teal-500 disabled:opacity-50"
+            >
+              Save
+            </button>
+          </span>
+        </span>
+      )}
+    </span>
+  );
+}
+
 export default function MemberCard({
   member,
   activeTab,
@@ -244,6 +323,12 @@ export default function MemberCard({
                 return age !== null ? <span className="ml-1.5 text-xs font-normal text-gray-400">(age {age})</span> : null;
               })()}
             </h3>
+            <MemberNote
+              memberId={member.id}
+              note={member.coach_note}
+              disabled={processingMemberId === member.id}
+              onSave={onSaveReason}
+            />
             {activeTab === 'at-risk' && (
               <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full flex items-center gap-1">
                 <AlertTriangle size={10} />
@@ -258,6 +343,14 @@ export default function MemberCard({
             {member.guardian_only && (
               <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 text-xs rounded-full">
                 Guardian
+              </span>
+            )}
+            {!member.guardian_only && (member.family_member_count ?? 0) > 0 && (
+              <span
+                className="px-1.5 py-0.5 bg-amber-500/10 text-amber-200 text-xs rounded-full border border-amber-500/30"
+                title={`Trains AND has ${member.family_member_count} family member${member.family_member_count === 1 ? '' : 's'} linked to this account`}
+              >
+                Parent
               </span>
             )}
             {/* Sharer (kid on a parent's shared card): show the shared balance + own

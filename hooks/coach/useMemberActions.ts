@@ -231,7 +231,7 @@ export function useMemberActions(
   // Edit the coach-only park/block reason in place (for members already parked/blocked).
   const handleSaveReason = async (
     memberId: string,
-    field: 'park_reason' | 'block_reason',
+    field: 'park_reason' | 'block_reason' | 'note',
     reason: string
   ) => {
     setProcessingMemberId(memberId);

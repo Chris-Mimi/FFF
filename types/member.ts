@@ -58,6 +58,10 @@ export interface Member {
   // cleared on Restart / Unblock.
   park_reason?: string | null;
   block_reason?: string | null;
+  // S438: general coach note (same coach-only table), shown as a hover pop-up on every tab.
+  coach_note?: string | null;
+  // S438: number of family members (kids) linked to this primary account → "Parent" chip.
+  family_member_count?: number;
 }
 
 // Effective payment method for self-bookings: explicit field wins, else first in membership_types.

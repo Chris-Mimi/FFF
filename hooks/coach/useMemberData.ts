@@ -246,22 +246,33 @@ export function useMemberData() {
         }
       }
 
-      // Coach-only park/block reasons live in coach_member_notes (RLS: coaches only,
-      // so athletes can't read them). Only needed on the tabs that show them.
-      let notesMap: Record<string, { park_reason: string | null; block_reason: string | null }> = {};
-      if ((status === 'parked' || status === 'blocked') && memberIds.length > 0) {
-        const { data: notesData } = await supabase
+      // Coach-only park/block reasons + the general note (S438) live in
+      // coach_member_notes (RLS: coaches only, so athletes can't read them).
+      type NoteRow = { member_id: string; park_reason: string | null; block_reason: string | null; note: string | null };
+      let notesMap: Record<string, NoteRow> = {};
+      if (memberIds.length > 0) {
+        const { data: notesData, error: notesError } = await supabase
           .from('coach_member_notes')
-          .select('member_id, park_reason, block_reason')
+          .select('member_id, park_reason, block_reason, note')
           .in('member_id', memberIds);
+        if (notesError) console.error('coach_member_notes fetch error:', notesError);
         if (notesData) {
-          notesMap = Object.fromEntries(
-            notesData.map((n: { member_id: string; park_reason: string | null; block_reason: string | null }) => [
-              n.member_id,
-              { park_reason: n.park_reason, block_reason: n.block_reason },
-            ])
-          );
+          notesMap = Object.fromEntries(notesData.map((n: NoteRow) => [n.member_id, n]));
         }
+      }
+
+      // S438: kids linked to each primary account → "Parent" chip.
+      const familyCountMap: Record<string, number> = {};
+      if (memberIds.length > 0) {
+        const { data: kidsData, error: kidsError } = await supabase
+          .from('members')
+          .select('primary_member_id')
+          .eq('account_type', 'family_member')
+          .in('primary_member_id', memberIds);
+        if (kidsError) console.error('family member count error:', kidsError);
+        (kidsData || []).forEach((k: { primary_member_id: string | null }) => {
+          if (k.primary_member_id) familyCountMap[k.primary_member_id] = (familyCountMap[k.primary_member_id] || 0) + 1;
+        });
       }
 
       let attendanceMap: Record<string, number> = {};
@@ -407,6 +418,8 @@ export function useMemberData() {
           shared_card_total: sharedCard ? sharedCard.total : null,
           park_reason: notesMap[member.id]?.park_reason ?? null,
           block_reason: notesMap[member.id]?.block_reason ?? null,
+          coach_note: notesMap[member.id]?.note ?? null,
+          family_member_count: familyCountMap[member.id] || 0,
         };
       });
 

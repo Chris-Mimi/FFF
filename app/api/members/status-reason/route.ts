@@ -12,7 +12,8 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-const ALLOWED_FIELDS = ['park_reason', 'block_reason'] as const;
+// `note` = the general coach note (S438), shown as a pop-up on the Members page.
+const ALLOWED_FIELDS = ['park_reason', 'block_reason', 'note'] as const;
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     if (!memberId || !ALLOWED_FIELDS.includes(field)) {
       return NextResponse.json(
-        { error: 'memberId and a valid field (park_reason | block_reason) are required' },
+        { error: 'memberId and a valid field (park_reason | block_reason | note) are required' },
         { status: 400 }
       );
     }
@@ -42,7 +43,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to save reason' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: value ? 'Reason saved' : 'Reason cleared' });
+    const noun = field === 'note' ? 'Note' : 'Reason';
+    return NextResponse.json({ success: true, message: value ? `${noun} saved` : `${noun} cleared` });
   } catch (error) {
     console.error('status-reason error:', error);
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
